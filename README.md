@@ -102,6 +102,16 @@ The conversions supported cover the following cases.
 
 ## What’s new
 
+### Version 1.15.0 news (unreleased)
+
+  * The [`wide_mul_unsigned`][f-wmu-1-15] method was added to all fixed-point
+    signed numbers up to 64 bits wide.
+  * The [`wide_mul_signed`][f-wms-1-15] method was added to all fixed-point
+    unsigned numbers up to 64 bits wide.
+
+[f-wms-1-15]: https://docs.rs/fixed/~1.15/struct.FixedU32.html#method.wide_mul_signed
+[f-wmu-1-15]: https://docs.rs/fixed/~1.15/struct.FixedI32.html#method.wide_mul_unsigned
+
 ### Version 1.14.0 news (2022-03-20)
 
   * The [`next_multiple_of`][f-nmo-1-14] method was added to all fixed-point

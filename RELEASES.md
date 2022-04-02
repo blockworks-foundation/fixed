@@ -5,6 +5,17 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.15.0 (unreleased)
+===========================
+
+  * The [`wide_mul_unsigned`][f-wmu-1-15] method was added to all fixed-point
+    signed numbers up to 64 bits wide.
+  * The [`wide_mul_signed`][f-wms-1-15] method was added to all fixed-point
+    unsigned numbers up to 64 bits wide.
+
+[f-wms-1-15]: https://docs.rs/fixed/~1.15/struct.FixedU32.html#method.wide_mul_signed
+[f-wmu-1-15]: https://docs.rs/fixed/~1.15/struct.FixedI32.html#method.wide_mul_unsigned
+
 Version 1.14.0 (2022-03-20)
 ===========================
 

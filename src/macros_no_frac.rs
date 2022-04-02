@@ -20,8 +20,10 @@ macro_rules! fixed_no_frac {
             $s_nbits:expr, $s_nbits_m1:expr, $s_nbits_m2:expr
         ),
         $nbytes:expr, $bytes_val:expr, $rev_bytes_val:expr, $be_bytes:expr, $le_bytes:expr,
-        $IFixed:ident[$s_ifixed:expr], $UFixed:ident[$s_ufixed:expr], $UInner:ty, $Signedness:tt,
-        $HasDouble:tt, $Double:ident[$s_double:expr], $DoubleInner:ty, $s_nbits_2:expr
+        $IFixed:ident[$s_ifixed:expr], $UFixed:ident[$s_ufixed:expr],
+        $IInner:ty, $UInner:ty, $Signedness:tt,
+        $HasDouble:tt, $s_nbits_2:expr,
+        $Double:ident[$s_double:expr], $DoubleInner:ty, $IDouble:ident, $IDoubleInner:ty
     ) => {
         /// The implementation of items in this block is independent
         /// of the number of fractional bits `Frac`.
@@ -768,6 +770,110 @@ assert_eq!(a.wide_mul(b), 1.328_125);
                         let self_bits = <$DoubleInner>::from(self.to_bits());
                         let rhs_bits = <$DoubleInner>::from(rhs.to_bits());
                         $Double::from_bits(self_bits * rhs_bits)
+                    }
+                }
+
+                if_signed! {
+                    $Signedness;
+                    /// Multiplies an unsigned fixed-point number and returns a
+                    /// wider signed type to retain all precision.
+                    ///
+                    /// If `self` has <i>f</i> fractional bits and
+                    #[doc = concat!($s_nbits, "&nbsp;&minus;&nbsp;<i>f</i>")]
+                    /// integer bits, and `rhs` has <i>g</i> fractional bits and
+                    #[doc = concat!($s_nbits, "&nbsp;&minus;&nbsp;<i>g</i>")]
+                    /// integer bits, then the returned fixed-point number will
+                    /// have <i>f</i>&nbsp;+&nbsp;<i>g</i> fractional bits and
+                    #[doc = concat!(
+                        $s_nbits_2,
+                        "&nbsp;&minus;&nbsp;<i>f</i>&nbsp;&minus;&nbsp;<i>g</i>"
+                    )]
+                    /// integer bits.
+                    ///
+                    /// # Examples
+                    ///
+                    /// ```rust
+                    /// use fixed::{
+                    ///     types::extra::{U2, U4},
+                    #[doc = concat!("     ", $s_fixed, ", ", $s_ufixed, ",")]
+                    /// };
+                    /// // decimal: -1.25 × 1.0625 = -1.328_125
+                    /// // binary: -1.01 × 1.0001 == -1.010101
+                    #[doc = concat!("let a = ", $s_fixed, "::<U2>::from_num(-1.25);")]
+                    #[doc = concat!("let b = ", $s_ufixed, "::<U4>::from_num(1.0625);")]
+                    /// assert_eq!(a.wide_mul_unsigned(b), -1.328_125);
+                    /// ```
+                    #[inline]
+                    #[must_use]
+                    pub fn wide_mul_unsigned<RhsFrac>(
+                        self,
+                        rhs: $UFixed<RhsFrac>,
+                    ) -> $Double<Sum<Frac, RhsFrac>>
+                    where
+                        Frac: Add<RhsFrac>,
+                    {
+                        let wide_lhs = <$DoubleInner>::from(self.to_bits());
+                        let rhs_signed = rhs.to_bits() as $Inner;
+                        let wide_rhs = <$DoubleInner>::from(rhs_signed);
+                        let mut wide_prod = wide_lhs * wide_rhs;
+                        if rhs_signed < 0 {
+                            // rhs msb treated as -2^(N - 1) instead of +2^(N - 1),
+                            // so error in rhs is -2^N, and error in prod is -2^N × lhs
+                            wide_prod += wide_lhs << ($nbytes * 8);
+                        }
+                        $Double::from_bits(wide_prod)
+                    }
+                }
+
+                if_unsigned! {
+                    $Signedness;
+                    /// Multiplies a signed fixed-point number and returns a
+                    /// wider signed type to retain all precision.
+                    ///
+                    /// If `self` has <i>f</i> fractional bits and
+                    #[doc = concat!($s_nbits, "&nbsp;&minus;&nbsp;<i>f</i>")]
+                    /// integer bits, and `rhs` has <i>g</i> fractional bits and
+                    #[doc = concat!($s_nbits, "&nbsp;&minus;&nbsp;<i>g</i>")]
+                    /// integer bits, then the returned fixed-point number will
+                    /// have <i>f</i>&nbsp;+&nbsp;<i>g</i> fractional bits and
+                    #[doc = concat!(
+                        $s_nbits_2,
+                        "&nbsp;&minus;&nbsp;<i>f</i>&nbsp;&minus;&nbsp;<i>g</i>"
+                    )]
+                    /// integer bits.
+                    ///
+                    /// # Examples
+                    ///
+                    /// ```rust
+                    /// use fixed::{
+                    ///     types::extra::{U2, U4},
+                    #[doc = concat!("     ", $s_ifixed, ", ", $s_fixed, ",")]
+                    /// };
+                    /// // decimal: 1.25 × -1.0625 = -1.328_125
+                    /// // binary: 1.01 × -1.0001 == -1.010101
+                    #[doc = concat!("let a = ", $s_fixed, "::<U2>::from_num(1.25);")]
+                    #[doc = concat!("let b = ", $s_ifixed, "::<U4>::from_num(-1.0625);")]
+                    /// assert_eq!(a.wide_mul_signed(b), -1.328_125);
+                    /// ```
+                    #[inline]
+                    #[must_use]
+                    pub fn wide_mul_signed<RhsFrac>(
+                        self,
+                        rhs: $IFixed<RhsFrac>,
+                    ) -> $IDouble<Sum<Frac, RhsFrac>>
+                    where
+                        Frac: Add<RhsFrac>,
+                    {
+                        let lhs_signed = self.to_bits() as $IInner;
+                        let wide_lhs = <$IDoubleInner>::from(lhs_signed);
+                        let wide_rhs = <$IDoubleInner>::from(rhs.to_bits());
+                        let mut wide_prod = wide_lhs * wide_rhs;
+                        if lhs_signed < 0 {
+                            // lhs msb treated as -2^(N - 1) instead of +2^(N - 1),
+                            // so error in lhs is -2^N, and error in prod is -2^N × rhs
+                            wide_prod += wide_rhs << ($nbytes * 8);
+                        }
+                        $IDouble::from_bits(wide_prod)
                     }
                 }
 
