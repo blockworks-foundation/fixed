@@ -16,8 +16,8 @@
 macro_rules! fixed_no_frac {
     (
         $Fixed:ident[$s_fixed:expr](
-            $Inner:ident[$s_inner:expr], $LeEqU:tt, $UNbits:ident,
-            $s_nbits:expr, $s_nbits_m1:expr, $s_nbits_m2:expr
+            $Inner:ident[$s_inner:expr], $LeEqU:tt, $UNbits:ident, $UNbits_m1:ident,
+            $s_nbits:expr, $s_nbits_p1:expr, $s_nbits_m1:expr, $s_nbits_m2:expr, $s_nbits_m3:expr
         ),
         $nbytes:expr, $bytes_val:expr, $rev_bytes_val:expr, $be_bytes:expr, $le_bytes:expr,
         $IFixed:ident[$s_ifixed:expr], $UFixed:ident[$s_ufixed:expr],
@@ -894,7 +894,8 @@ bits.
                         "
 **Warning:** While most cases of overflow are avoided using this method,
 dividing [`MIN`][Self::MIN] by <code>-[DELTA][Self::DELTA]</code> will still
-result in panic due to overflow.
+result in panic due to overflow. The alternative [`wide_sdiv`][Self::wide_sdiv]
+method avoids this by sacrificing one fractional bit in the return type.
 "
                     },
                     "
@@ -954,6 +955,77 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
 
                 if_signed! {
                     $Signedness;
+
+                    /// Divides two fixed-point numbers and returns a wider type
+                    /// to retain more precision.
+                    ///
+                    /// If `self` has <i>f</i> fractional bits and
+                    #[doc = concat!($s_nbits, "&nbsp;&minus;&nbsp;<i>f</i>")]
+                    /// integer bits, and `rhs` has <i>g</i> fractional bits and
+                    #[doc = concat!($s_nbits, "&nbsp;&minus;&nbsp;<i>g</i>")]
+                    /// integer bits, then the returned fixed-point number will have
+                    #[doc = concat!(
+                        $s_nbits_m1, "&nbsp;+&nbsp;<i>f</i>&nbsp;&minus;&nbsp;<i>g</i>"
+                    )]
+                    /// fractional bits and
+                    #[doc = concat!(
+                        $s_nbits_p1, "&nbsp;&minus;&nbsp;<i>f</i>&nbsp;+&nbsp;<i>g</i>"
+                    )]
+                    /// integer bits.
+                    ///
+                    /// This is similar to the [`wide_div`] method but
+                    /// sacrifices one fractional bit to avoid overflow.
+                    ///
+                    /// # Panics
+                    ///
+                    /// Panics if the divisor is zero.
+                    ///
+                    /// # Examples
+                    ///
+                    /// ```rust
+                    /// use fixed::{
+                    #[doc = concat!("     types::extra::{U4, U5, U", $s_nbits_m2, "},")]
+                    #[doc = concat!("     ", $s_fixed, ", ", $s_double, ",")]
+                    /// };
+                    /// // decimal: 4.625 / 0.03125 = 148
+                    /// // binary: 100.101 / 0.00001 = 10010100
+                    #[doc = concat!("let a = ", $s_fixed, "::<U4>::from_num(4.625);")]
+                    #[doc = concat!("let b = ", $s_fixed, "::<U5>::from_num(0.03125);")]
+                    #[doc = concat!(
+                        "let ans: ", $s_double, "<U", $s_nbits_m2, "> = a.wide_sdiv(b);"
+                    )]
+                    /// assert_eq!(ans, 148);
+                    /// ```
+                    ///
+                    /// Unlike [`wide_div`], dividing [`MIN`][Self::MIN] by
+                    /// <code>-[DELTA][Self::DELTA]</code> does not overflow.
+                    ///
+                    /// ```rust
+                    /// use fixed::{
+                    #[doc = concat!("     types::extra::{U4, U", $s_nbits_m1, "},")]
+                    #[doc = concat!("     ", $s_fixed, ", ", $s_double, ",")]
+                    /// };
+                    #[doc = concat!("type Fix = ", $s_fixed, "<U4>;")]
+                    #[doc = concat!("type DFix = ", $s_double, "<U", $s_nbits_m1, ">;")]
+                    /// assert_eq!(Fix::MIN.wide_sdiv(-Fix::DELTA), DFix::MIN / -2);
+                    /// ```
+                    ///
+                    /// [`wide_div`]: Self::wide_div
+                    #[inline]
+                    #[must_use]
+                    pub fn wide_sdiv<RhsFrac>(
+                        self,
+                        rhs: $Fixed<RhsFrac>,
+                    ) -> $Double<Diff<Sum<$UNbits_m1, Frac>, RhsFrac>>
+                    where
+                        $UNbits_m1: Add<Frac>,
+                        Sum<$UNbits_m1, Frac>: Sub<RhsFrac>,
+                    {
+                        let self_bits = <$DoubleInner>::from(self.to_bits());
+                        let rhs_bits = <$DoubleInner>::from(rhs.to_bits());
+                        $Double::from_bits((self_bits << $UNbits_m1::U32) / rhs_bits)
+                    }
+
                     /// Multiplies by an unsigned fixed-point number and returns a
                     /// wider signed type to retain all precision.
                     ///

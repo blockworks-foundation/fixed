@@ -8,14 +8,18 @@ as-is, without any warranty. -->
 Version 1.15.0 (unreleased)
 ===========================
 
-  * The [`wide_mul_unsigned`][f-wmu-1-15] and [`wide_div_unsigned`][f-wdu-1-15]
-    methods were added to all fixed-point signed numbers up to 64 bits wide.
+  * The following methods were added to all fixed-point signed numbers up to 64
+    bits wide:
+      * [`wide_mul_unsigned`][f-wmu-1-15]
+      * [`wide_sdiv`][f-ws-1-15]
+      * [`wide_div_unsigned`][f-wdu-1-15]
   * The [`wide_mul_signed`][f-wms-1-15] method was added to all fixed-point
     unsigned numbers up to 64 bits wide.
 
 [f-wdu-1-15]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wide_div_unsigned
 [f-wms-1-15]: https://docs.rs/fixed/~1.15/fixed/struct.FixedU32.html#method.wide_mul_signed
 [f-wmu-1-15]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wide_mul_unsigned
+[f-ws-1-15]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wide_sdiv
 
 Version 1.14.0 (2022-03-20)
 ===========================
