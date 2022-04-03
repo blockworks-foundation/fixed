@@ -131,7 +131,7 @@ representation identical to the given integer.
 ```rust
 use fixed::{types::extra::U4, ", $s_fixed, "};
 type Fix = ", $s_fixed, "<U4>;
-// 0010.0000 == 2
+// 0010.0000 = 2
 assert_eq!(Fix::from_bits(0b10_0000), 2);
 ```
 ";
@@ -752,7 +752,7 @@ use fixed::{
     ", $s_fixed, ",
 };
 // decimal: 1.25 × 1.0625 = 1.328_125
-// binary: 1.01 × 1.0001 == 1.010101
+// binary: 1.01 × 1.0001 = 1.010101
 let a = ", $s_fixed, "::<U2>::from_num(1.25);
 let b = ", $s_fixed, "::<U4>::from_num(1.0625);
 assert_eq!(a.wide_mul(b), 1.328_125);
@@ -798,7 +798,7 @@ assert_eq!(a.wide_mul(b), 1.328_125);
                     #[doc = concat!("     ", $s_fixed, ", ", $s_ufixed, ",")]
                     /// };
                     /// // decimal: -1.25 × 1.0625 = -1.328_125
-                    /// // binary: -1.01 × 1.0001 == -1.010101
+                    /// // binary: -1.01 × 1.0001 = -1.010101
                     #[doc = concat!("let a = ", $s_fixed, "::<U2>::from_num(-1.25);")]
                     #[doc = concat!("let b = ", $s_ufixed, "::<U4>::from_num(1.0625);")]
                     /// assert_eq!(a.wide_mul_unsigned(b), -1.328_125);
@@ -850,7 +850,7 @@ assert_eq!(a.wide_mul(b), 1.328_125);
                     #[doc = concat!("     ", $s_ifixed, ", ", $s_fixed, ",")]
                     /// };
                     /// // decimal: 1.25 × -1.0625 = -1.328_125
-                    /// // binary: 1.01 × -1.0001 == -1.010101
+                    /// // binary: 1.01 × -1.0001 = -1.010101
                     #[doc = concat!("let a = ", $s_fixed, "::<U2>::from_num(1.25);")]
                     #[doc = concat!("let b = ", $s_ifixed, "::<U4>::from_num(-1.0625);")]
                     /// assert_eq!(a.wide_mul_signed(b), -1.328_125);
@@ -917,7 +917,7 @@ use fixed::{
     ", $s_fixed, ", ", $s_double, ",
 };
 // decimal: 4.625 / 0.03125 = 148
-// binary: 100.101 / 0.00001 == 10010100
+// binary: 100.101 / 0.00001 = 10010100
 let a = ", $s_fixed, "::<U3>::from_num(4.625);
 let b = ", $s_fixed, "::<U5>::from_num(0.03125);
 let ans: ", $s_double, "<U", $s_nbits_m2, "> = a.wide_div(b);
@@ -941,6 +941,57 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
                     pub fn wide_div<RhsFrac>(
                         self,
                         rhs: $Fixed<RhsFrac>,
+                    ) -> $Double<Diff<Sum<$UNbits, Frac>, RhsFrac>>
+                    where
+                        $UNbits: Add<Frac>,
+                        Sum<$UNbits, Frac>: Sub<RhsFrac>,
+                    {
+                        let self_bits = <$DoubleInner>::from(self.to_bits());
+                        let rhs_bits = <$DoubleInner>::from(rhs.to_bits());
+                        $Double::from_bits((self_bits << $UNbits::U32) / rhs_bits)
+                    }
+                }
+
+                if_signed! {
+                    $Signedness;
+                    /// Multiplies by an unsigned fixed-point number and returns a
+                    /// wider signed type to retain all precision.
+                    ///
+                    /// If `self` has <i>f</i> fractional bits and
+                    #[doc = concat!($s_nbits, "&nbsp;&minus;&nbsp;<i>f</i>")]
+                    /// integer bits, and `rhs` has <i>g</i> fractional bits and
+                    #[doc = concat!($s_nbits, "&nbsp;&minus;&nbsp;<i>g</i>")]
+                    /// integer bits, then the returned fixed-point number will have
+                    #[doc = concat!($s_nbits, "&nbsp;+&nbsp;<i>f</i>&nbsp;&minus;&nbsp;<i>g</i>")]
+                    /// fractional bits and
+                    #[doc = concat!($s_nbits, "&nbsp;&minus;&nbsp;<i>f</i>&nbsp;+&nbsp;<i>g</i>")]
+                    /// integer bits.
+                    ///
+                    /// # Panics
+                    ///
+                    /// Panics if the divisor is zero.
+                    ///
+                    /// # Examples
+                    ///
+                    /// ```rust
+                    /// use fixed::{
+                    #[doc = concat!("     types::extra::{U3, U5, U", $s_nbits_m2, "},")]
+                    #[doc = concat!("     ", $s_fixed, ", ", $s_double, ", ", $s_ufixed, ",")]
+                    /// };
+                    /// // decimal: -4.625 / 0.03125 = -148
+                    /// // binary: -100.101 / 0.00001 = -10010100
+                    #[doc = concat!("let a = ", $s_fixed, "::<U3>::from_num(-4.625);")]
+                    #[doc = concat!("let b = ", $s_ufixed, "::<U5>::from_num(0.03125);")]
+                    #[doc = concat!(
+                        "let ans: ", $s_double, "<U", $s_nbits_m2, "> = a.wide_div_unsigned(b);"
+                    )]
+                    /// assert_eq!(ans, -148);
+                    /// ```
+                    #[inline]
+                    #[must_use]
+                    pub fn wide_div_unsigned<RhsFrac>(
+                        self,
+                        rhs: $UFixed<RhsFrac>,
                     ) -> $Double<Diff<Sum<$UNbits, Frac>, RhsFrac>>
                     where
                         $UNbits: Add<Frac>,
