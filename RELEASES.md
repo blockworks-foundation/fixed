@@ -5,7 +5,7 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Version 1.15.0 (unreleased)
+Version 1.15.0 (2022-04-28)
 ===========================
 
   * The following methods were added to all fixed-point signed numbers up to 64
