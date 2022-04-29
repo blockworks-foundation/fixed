@@ -102,6 +102,10 @@ The conversions supported cover the following cases.
 
 ## What’s new
 
+### Version 1.16.0 news (unreleased)
+
+  * The crate now requires rustc version 1.60.0 or later.
+
 ### Version 1.15.0 news (2022-04-28)
 
   * The following methods were added to all fixed-point signed numbers up to 64
@@ -203,7 +207,7 @@ crate, add it as a dependency inside [*Cargo.toml*]:
 fixed = "1.15"
 ```
 
-The *fixed* crate requires rustc version 1.57.0 or later.
+The *fixed* crate requires rustc version 1.60.0 or later.
 
 ## Optional features
 
