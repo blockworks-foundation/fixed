@@ -357,7 +357,6 @@ use core::{
     cmp::Ordering,
     hash::{Hash, Hasher},
     marker::PhantomData,
-    mem,
     ops::{Add, Sub},
 };
 

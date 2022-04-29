@@ -35,7 +35,7 @@ type Fix = ", $s_fixed, "<U6>;
 assert_eq!(Fix::INT_NBITS, ", $s_nbits, " - 6);
 ```
 ";
-                pub const INT_NBITS: u32 = mem::size_of::<$Inner>() as u32 * 8 - Self::FRAC_NBITS;
+                pub const INT_NBITS: u32 = $Inner::BITS - Self::FRAC_NBITS;
             }
 
             comment! {

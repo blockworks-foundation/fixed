@@ -544,7 +544,7 @@ assert_eq!(Fix::from_num(3).significant_bits(), 6);      // “__11.0000”
 ";
                     #[inline]
                     pub const fn significant_bits(self) -> u32 {
-                        mem::size_of::<$Inner>() as u32 * 8 - self.leading_zeros()
+                        $Inner::BITS - self.leading_zeros()
                     }
                 }
             }
@@ -578,7 +578,7 @@ assert_eq!(Fix::from_num(3).signed_bits(), 7);       // “_011.0000”
                         } else {
                             self.leading_zeros()
                         };
-                        mem::size_of::<$Inner>() as u32 * 8 + 1 - leading
+                        $Inner::BITS + 1 - leading
                     }
                 }
             }
