@@ -16,13 +16,10 @@
 macro_rules! shift {
     // in case of 128, split shift in two parts to avoid >> 128
     ($SRC:ident, $Fixed:ident<$Frac:ident>) => {
-        $Fixed::<$Frac>::from_bits(
-            (consts::$SRC.to_bits() >> (64 - $Frac::U32 / 2) >> (64 + $Frac::U32 / 2 - $Frac::U32))
-                as _,
-        )
+        $Fixed::from_bits(shrl(consts::$SRC, 128, $Frac::U32) as _)
     };
     ($SRC:ident, $src_frac_nbits:literal, $Fixed:ident<$Frac:ident>) => {
-        $Fixed::<$Frac>::from_bits((consts::$SRC.to_bits() >> ($src_frac_nbits - $Frac::U32)) as _)
+        $Fixed::from_bits(shrl(consts::$SRC, $src_frac_nbits, $Frac::U32) as _)
     };
 }
 
