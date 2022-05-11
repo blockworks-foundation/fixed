@@ -8,7 +8,7 @@ as-is, without any warranty. -->
 Version 1.16.0 (unreleased)
 ===========================
 
-  * The crate now requires rustc version 1.60.0 or later.
+  * The crate now requires rustc version 1.61.0 or later.
 
 Version 1.15.0 (2022-04-28)
 ===========================
