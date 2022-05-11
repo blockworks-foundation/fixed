@@ -128,12 +128,16 @@ The conversions supported cover the following cases.
         [`wide_mul_signed`][f-wms-1-16]
       * [`wide_div`][f-wd-1-16], [`wide_sdiv`][f-ws-1-16],
         [`wide_div_unsigned`][f-wdu-1-16], [`wide_sdiv_signed`][f-wss-1-16]
+      * [`checked_mul`][f-cm-1-16], [`saturating_mul`][f-sm-1-16],
+        [`wrapping_mul`][f-wm-1-16], [`unwrapped_mul`][f-um-1-16],
+        [`overflowing_mul`][f-om-1-16],
 
 [f-c-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.ceil
 [f-cc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_ceil
 [f-cf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_floor
 [f-cil10-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_int_log10
 [f-cil2-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_int_log2
+[f-cm-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_mul
 [f-cr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_round
 [f-crtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_round_ties_to_even
 [f-f-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.floor
@@ -143,6 +147,7 @@ The conversions supported cover the following cases.
 [f-il2-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.int_log2
 [f-oc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_ceil
 [f-of-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_floor
+[f-om-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_mul
 [f-or-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_round
 [f-ortte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_round_ties_to_even
 [f-r-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.round
@@ -151,10 +156,12 @@ The conversions supported cover the following cases.
 [f-rtz-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.round_to_zero
 [f-sc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_ceil
 [f-sf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_floor
+[f-sm-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_mul
 [f-sr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_round
 [f-srtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_round_ties_to_even
 [f-uc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_ceil
 [f-uf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_floor
+[f-um-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_mul
 [f-ur-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_round
 [f-urtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_round_ties_to_even
 [f-wc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_ceil
@@ -162,6 +169,7 @@ The conversions supported cover the following cases.
 [f-wdu-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wide_div_unsigned
 [f-wf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_floor
 [f-wim-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wide_mul
+[f-wm-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_mul
 [f-wms-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedU32.html#method.wide_mul_signed
 [f-wmu-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wide_mul_unsigned
 [f-wr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_round

@@ -560,8 +560,8 @@ assert_eq!(Fix::MAX.checked_mul(Fix::from_num(2)), None);
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn checked_mul(self, rhs: $Fixed<Frac>) -> Option<$Fixed<Frac>> {
-                    match arith::overflowing_mul(self.to_bits(), rhs.to_bits(), Frac::U32) {
+                pub const fn checked_mul(self, rhs: $Fixed<Frac>) -> Option<$Fixed<Frac>> {
+                    match arith::$Inner::overflowing_mul(self.to_bits(), rhs.to_bits(), Frac::U32) {
                         (ans, false) => Some(Self::from_bits(ans)),
                         (_, true) => None,
                     }
@@ -964,15 +964,19 @@ assert_eq!(Fix::MAX.saturating_mul(Fix::from_num(2)), Fix::MAX);
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn saturating_mul(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
-                    match arith::overflowing_mul(self.to_bits(), rhs.to_bits(), Frac::U32) {
+                pub const fn saturating_mul(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
+                    match arith::$Inner::overflowing_mul(self.to_bits(), rhs.to_bits(), Frac::U32) {
                         (ans, false) => Self::from_bits(ans),
                         (_, true) => {
-                            if (self < 0) != (rhs < 0) {
-                                Self::MIN
-                            } else {
-                                Self::MAX
-                            }
+                            if_signed_unsigned!(
+                                $Signedness,
+                                if self.is_negative() != rhs.is_negative() {
+                                    Self::MIN
+                                } else {
+                                    Self::MAX
+                                },
+                                Self::MAX,
+                            )
                         }
                     }
                 }
@@ -1351,9 +1355,9 @@ assert_eq!(Fix::MAX.wrapping_mul(Fix::from_num(4)), wrapped);
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn wrapping_mul(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
+                pub const fn wrapping_mul(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
                     let (ans, _) =
-                        arith::overflowing_mul(self.to_bits(), rhs.to_bits(), Frac::U32);
+                        arith::$Inner::overflowing_mul(self.to_bits(), rhs.to_bits(), Frac::U32);
                     Self::from_bits(ans)
                 }
             }
@@ -1656,8 +1660,11 @@ let _overflow = Fix::MAX.unwrapped_mul(Fix::from_num(4));
                 #[inline]
                 #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn unwrapped_mul(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
-                    self.checked_mul(rhs).expect("overflow")
+                pub const fn unwrapped_mul(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
+                    match self.checked_mul(rhs) {
+                        Some(s) => s,
+                        None => panic!("overflow"),
+                    }
                 }
             }
 
@@ -2074,9 +2081,9 @@ assert_eq!(Fix::MAX.overflowing_mul(Fix::from_num(4)), (wrapped, true));
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn overflowing_mul(self, rhs: $Fixed<Frac>) -> ($Fixed<Frac>, bool) {
+                pub const fn overflowing_mul(self, rhs: $Fixed<Frac>) -> ($Fixed<Frac>, bool) {
                     let (ans, overflow) =
-                        arith::overflowing_mul(self.to_bits(), rhs.to_bits(), Frac::U32);
+                        arith::$Inner::overflowing_mul(self.to_bits(), rhs.to_bits(), Frac::U32);
                     (Self::from_bits(ans), overflow)
                 }
             }
