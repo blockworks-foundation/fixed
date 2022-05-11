@@ -217,12 +217,10 @@ assert_eq!(Fix::from_num(-5).signum(), -1);
 ";
                     #[inline]
                     #[must_use]
-                    pub fn signum(self) -> $Fixed<Frac> {
-                        match self.to_bits().cmp(&0) {
-                            Ordering::Equal => Self::ZERO,
-                            Ordering::Greater => Self::from_num(1),
-                            Ordering::Less => Self::from_num(-1),
-                        }
+                    pub const fn signum(self) -> $Fixed<Frac> {
+                        let (ans, overflow) = self.overflowing_signum();
+                        debug_assert!(!overflow, "overflow");
+                        ans
                     }
                 }
             }
@@ -536,11 +534,10 @@ assert_eq!(ZeroIntBits::from_num(-0.5).checked_signum(), None);
 ```
 ";
                     #[inline]
-                    pub fn checked_signum(self) -> Option<$Fixed<Frac>> {
-                        match self.to_bits().cmp(&0) {
-                            Ordering::Equal => Some(Self::ZERO),
-                            Ordering::Greater => Self::checked_from_num(1),
-                            Ordering::Less => Self::checked_from_num(-1),
+                    pub const fn checked_signum(self) -> Option<$Fixed<Frac>> {
+                        match self.overflowing_signum() {
+                            (ans, false) => Some(ans),
+                            (_, true) => None,
                         }
                     }
                 }
@@ -940,11 +937,16 @@ assert_eq!(ZeroIntBits::from_num(-0.5).saturating_signum(), ZeroIntBits::MIN);
 ";
                     #[inline]
                     #[must_use]
-                    pub fn saturating_signum(self) -> $Fixed<Frac> {
-                        match self.to_bits().cmp(&0) {
-                            Ordering::Equal => Self::ZERO,
-                            Ordering::Greater => Self::saturating_from_num(1),
-                            Ordering::Less => Self::saturating_from_num(-1),
+                    pub const fn saturating_signum(self) -> $Fixed<Frac> {
+                        match self.overflowing_signum() {
+                            (ans, false) => ans,
+                            (_, true) => {
+                                if self.is_negative() {
+                                    $Fixed::MIN
+                                } else {
+                                    $Fixed::MAX
+                                }
+                            }
                         }
                     }
                 }
@@ -1330,12 +1332,8 @@ assert_eq!(ZeroIntBits::from_num(-0.5).wrapping_signum(), 0);
 ";
                     #[inline]
                     #[must_use]
-                    pub fn wrapping_signum(self) -> $Fixed<Frac> {
-                        match self.to_bits().cmp(&0) {
-                            Ordering::Equal => Self::ZERO,
-                            Ordering::Greater => Self::wrapping_from_num(1),
-                            Ordering::Less => Self::wrapping_from_num(-1),
-                        }
+                    pub const fn wrapping_signum(self) -> $Fixed<Frac> {
+                        self.overflowing_signum().0
                     }
                 }
             }
@@ -1628,8 +1626,10 @@ let _overflow = OneIntBit::from_num(0.5).unwrapped_signum();
                     #[inline]
                     #[track_caller]
                     #[must_use]
-                    pub fn unwrapped_signum(self) -> $Fixed<Frac> {
-                        self.checked_signum().expect("overflow")
+                    pub const fn unwrapped_signum(self) -> $Fixed<Frac> {
+                        let (ans, overflow) = self.overflowing_signum();
+                        assert!(!overflow, "overflow");
+                        ans
                     }
                 }
             }
@@ -2053,11 +2053,15 @@ assert_eq!(ZeroIntBits::from_num(-0.5).overflowing_signum(), (ZeroIntBits::ZERO,
 ```
 ";
                     #[inline]
-                    pub fn overflowing_signum(self) -> ($Fixed<Frac>, bool) {
-                        match self.to_bits().cmp(&0) {
-                            Ordering::Equal => (Self::ZERO, false),
-                            Ordering::Greater => Self::overflowing_from_num(1),
-                            Ordering::Less => Self::overflowing_from_num(-1),
+                    pub const fn overflowing_signum(self) -> ($Fixed<Frac>, bool) {
+                        if self.to_bits() == 0 {
+                            ($Fixed::ZERO, false)
+                        } else if Frac::U32 == $Inner::BITS {
+                            ($Fixed::ZERO, true)
+                        } else if self.to_bits() < 0 {
+                            ($Fixed::from_bits(-1 << Frac::U32), false)
+                        } else {
+                            ($Fixed::from_bits(1 << Frac::U32), Frac::U32 == $Inner::BITS - 1)
                         }
                     }
                 }

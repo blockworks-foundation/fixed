@@ -426,7 +426,7 @@ fixed_cmp! { FixedI128(i128, LeEqU128, 128) }
 #[cfg(test)]
 mod tests {
     use crate::*;
-    use core::f32;
+    use core::{cmp::Ordering, f32};
 
     #[test]
     fn cmp_signed() {

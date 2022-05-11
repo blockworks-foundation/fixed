@@ -39,6 +39,9 @@ Version 1.16.0 (unreleased)
         [`saturating_mul_add`][f-sma-1-16], [`wrapping_mul_add`][f-wma-1-16],
         [`unwrapped_mul_add`][f-uma-1-16],
         [`overflowing_mul_add`][f-oma-1-16]
+      * [`signum`][f-s-1-16], [`checked_signum`][f-cs-1-16],
+        [`saturating_signum`][f-ss-1-16], [`wrapping_signum`][f-ws-1-16],
+        [`unwrapped_signum`][f-us-1-16], [`overflowing_signum`][f-os-1-16]
 
 [f-c-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.ceil
 [f-cc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_ceil
@@ -49,6 +52,7 @@ Version 1.16.0 (unreleased)
 [f-cma-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_mul_add
 [f-cr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_round
 [f-crtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_round_ties_to_even
+[f-cs-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_signum
 [f-f-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.floor
 [f-fr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.frac
 [f-i-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.int
@@ -61,22 +65,26 @@ Version 1.16.0 (unreleased)
 [f-oma-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_mul_add
 [f-or-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_round
 [f-ortte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_round_ties_to_even
+[f-os-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_signum
 [f-r-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.round
 [f-rtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.round_ties_to_even
 [f-rtz-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.round_to_zero
 [f-rtz-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.round_to_zero
+[f-s-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.signum
 [f-sc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_ceil
 [f-sf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_floor
 [f-sm-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_mul
 [f-sma-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_mul_add
 [f-sr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_round
 [f-srtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_round_ties_to_even
+[f-ss-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_signum
 [f-uc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_ceil
 [f-uf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_floor
 [f-um-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_mul
 [f-uma-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_mul_add
 [f-ur-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_round
 [f-urtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_round_ties_to_even
+[f-us-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_signum
 [f-wc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_ceil
 [f-wd-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wide_div
 [f-wdu-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wide_div_unsigned
@@ -89,6 +97,7 @@ Version 1.16.0 (unreleased)
 [f-wr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_round
 [f-wrtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_round_ties_to_even
 [f-ws-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wide_sdiv
+[f-ws-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_signum
 [f-wss-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedU32.html#method.wide_sdiv_signed
 
 Version 1.15.0 (2022-04-28)
