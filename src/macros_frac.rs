@@ -87,8 +87,11 @@ assert_eq!(Fix::from_num(0.1875).int_log2(), -3);
 ```
 ";
                 #[inline]
-                pub fn int_log2(self) -> i32 {
-                    self.checked_int_log2().expect("log of non-positive number")
+                pub const fn int_log2(self) -> i32 {
+                    match self.checked_int_log2() {
+                        Some(s) => s,
+                        None => panic!("log of non-positive number"),
+                    }
                 }
             }
 
@@ -113,8 +116,11 @@ assert_eq!(", $s_fixed, "::<U6>::from_num(0.09375).int_log10(), -2);
 ```
 ";
                 #[inline]
-                pub fn int_log10(self) -> i32 {
-                    self.checked_int_log10().expect("log of non-positive number")
+                pub const fn int_log10(self) -> i32 {
+                    match self.checked_int_log10() {
+                        Some(s) => s,
+                        None => panic!("log of non-positive number"),
+                    }
                 }
             }
 
@@ -136,8 +142,8 @@ assert_eq!(Fix::from_num(0.1875).checked_int_log2(), Some(-3));
 ```
 ";
                 #[inline]
-                pub fn checked_int_log2(self) -> Option<i32> {
-                    if self <= 0 {
+                pub const fn checked_int_log2(self) -> Option<i32> {
+                    if self.to_bits() <= 0 {
                         None
                     } else {
                         Some(Self::INT_NBITS as i32 - 1 - self.leading_zeros() as i32)
@@ -165,8 +171,8 @@ assert_eq!(", $s_fixed, "::<U6>::from_num(0.09375).checked_int_log10(), Some(-2)
 ```
 ";
                 #[inline]
-                pub fn checked_int_log10(self) -> Option<i32> {
-                    if self <= 0 {
+                pub const fn checked_int_log10(self) -> Option<i32> {
+                    if self.to_bits() <= 0 {
                         return None;
                     }
                     // Use unsigned representation because we use all bits in fractional part.

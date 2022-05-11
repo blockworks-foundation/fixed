@@ -122,15 +122,21 @@ The conversions supported cover the following cases.
         [`wrapping_round_ties_to_even`][f-wrtte-1-16],
         [`unwrapped_round_ties_to_even`][f-urtte-1-16],
         [`overflowing_round_ties_to_even`][f-ortte-1-16],
+      * [`int_log2`][f-il2-1-16], [`checked_int_log2`][f-cil2-1-16],
+        [`int_log10`][f-il10-1-16], [`checked_int_log2`][f-cil10-1-16]
 
 [f-c-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.ceil
 [f-cc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_ceil
 [f-cf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_floor
+[f-cil10-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_int_log10
+[f-cil2-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_int_log2
 [f-cr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_round
 [f-crtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_round_ties_to_even
 [f-f-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.floor
 [f-fr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.frac
 [f-i-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.int
+[f-il10-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.int_log10
+[f-il2-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.int_log2
 [f-oc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_ceil
 [f-of-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_floor
 [f-or-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_round
