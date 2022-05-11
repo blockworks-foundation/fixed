@@ -105,6 +105,52 @@ The conversions supported cover the following cases.
 ### Version 1.16.0 news (unreleased)
 
   * The crate now requires rustc version 1.61.0 or later.
+  * The following methods are now `const` functions:
+      * [`int`][f-i-1-16], [`frac`][f-fr-1-16], [`round_to_zero`][f-rtz-1-16]
+      * [`ceil`][f-c-1-16], [`checked_ceil`][f-cc-1-16],
+        [`saturating_ceil`][f-sc-1-16], [`wrapping_ceil`][f-wc-1-16],
+        [`unwrapped_ceil`][f-uc-1-16], [`overflowing_ceil`][f-oc-1-16],
+      * [`floor`][f-f-1-16], [`checked_floor`][f-cf-1-16],
+        [`saturating_floor`][f-sf-1-16], [`wrapping_floor`][f-wf-1-16],
+        [`unwrapped_floor`][f-uf-1-16], [`overflowing_floor`][f-of-1-16],
+      * [`round`][f-r-1-16], [`checked_round`][f-cr-1-16],
+        [`saturating_round`][f-sr-1-16], [`wrapping_round`][f-wr-1-16],
+        [`unwrapped_round`][f-ur-1-16], [`overflowing_round`][f-or-1-16],
+      * [`round_ties_to_even`][f-rtte-1-16],
+        [`checked_round_ties_to_even`][f-crtte-1-16],
+        [`saturating_round_ties_to_even`][f-srtte-1-16],
+        [`wrapping_round_ties_to_even`][f-wrtte-1-16],
+        [`unwrapped_round_ties_to_even`][f-urtte-1-16],
+        [`overflowing_round_ties_to_even`][f-ortte-1-16],
+
+[f-c-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.ceil
+[f-cc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_ceil
+[f-cf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_floor
+[f-cr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_round
+[f-crtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_round_ties_to_even
+[f-f-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.floor
+[f-fr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.frac
+[f-i-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.int
+[f-oc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_ceil
+[f-of-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_floor
+[f-or-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_round
+[f-ortte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_round_ties_to_even
+[f-r-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.round
+[f-rtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.round_ties_to_even
+[f-rtz-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.round_to_zero
+[f-rtz-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.round_to_zero
+[f-sc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_ceil
+[f-sf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_floor
+[f-sr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_round
+[f-srtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_round_ties_to_even
+[f-uc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_ceil
+[f-uf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_floor
+[f-ur-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_round
+[f-urtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_round_ties_to_even
+[f-wc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_ceil
+[f-wf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_floor
+[f-wr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_round
+[f-wrtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_round_ties_to_even
 
 ### Version 1.15.0 news (2022-04-28)
 
