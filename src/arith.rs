@@ -14,7 +14,6 @@
 // <https://opensource.org/licenses/MIT>.
 
 use crate::{
-    int256::{self, I256, U256},
     traits::ToFixed,
     types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8},
     FixedI128, FixedI16, FixedI32, FixedI64, FixedI8, FixedU128, FixedU16, FixedU32, FixedU64,
@@ -272,7 +271,8 @@ macro_rules! fixed_arith {
             type Output = $Fixed<Frac>;
             #[inline]
             fn div(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
-                let (ans, overflow) = overflowing_div(self.to_bits(), rhs.to_bits(), Frac::U32);
+                let (ans, overflow) =
+                    $Inner::overflowing_div(self.to_bits(), rhs.to_bits(), Frac::U32);
                 debug_assert!(!overflow, "overflow");
                 Self::from_bits(ans)
             }
@@ -589,28 +589,6 @@ fixed_arith! { FixedI32(i32, LeEqU32, 32, NonZeroI32), Signed }
 fixed_arith! { FixedI64(i64, LeEqU64, 64, NonZeroI64), Signed }
 fixed_arith! { FixedI128(i128, LeEqU128, 128, NonZeroI128), Signed }
 
-pub(crate) trait OverflowingMulDiv: Sized {
-    // -NBITS <= frac_nbits <= 2 * NBITS
-    fn overflowing_mul_add(self, mul: Self, add: Self, frac_nbits: i32) -> (Self, bool);
-    // 0 <= frac_nbits <= NBITS
-    fn overflowing_div(self, rhs: Self, frac_nbits: u32) -> (Self, bool);
-}
-
-#[inline]
-pub(crate) fn overflowing_mul_add<O: OverflowingMulDiv>(
-    mul1: O,
-    mul2: O,
-    add: O,
-    frac_nbits: i32,
-) -> (O, bool) {
-    mul1.overflowing_mul_add(mul2, add, frac_nbits)
-}
-
-#[inline]
-pub(crate) fn overflowing_div<O: OverflowingMulDiv>(lhs: O, rhs: O, frac_nbits: u32) -> (O, bool) {
-    lhs.overflowing_div(rhs, frac_nbits)
-}
-
 macro_rules! mul_div_widen {
     ($Single:ident, $Double:ty, $Signedness:tt, $Unsigned:ty) => {
         pub mod $Single {
@@ -628,20 +606,19 @@ macro_rules! mul_div_widen {
                 let (prod2, overflow) = lhs2.overflowing_mul(rhs2);
                 ((prod2 >> NBITS) as $Single, overflow)
             }
-        }
 
-        impl OverflowingMulDiv for $Single {
+            // -NBITS <= frac_nbits <= 2 * NBITS
             #[inline]
-            fn overflowing_mul_add(
-                self,
+            pub fn overflowing_mul_add(
+                lhs: $Single,
                 mul: $Single,
                 add: $Single,
                 mut frac_nbits: i32,
             ) -> ($Single, bool) {
                 const NBITS: i32 = <$Single>::BITS as i32;
-                let self2 = <$Double>::from(self);
+                let lhs2 = <$Double>::from(lhs);
                 let mul2 = <$Double>::from(mul);
-                let prod2 = self2 * mul2;
+                let prod2 = lhs2 * mul2;
                 let (prod2, overflow2) = if frac_nbits < 0 {
                     frac_nbits += NBITS;
                     debug_assert!(frac_nbits >= 0);
@@ -674,10 +651,11 @@ macro_rules! mul_div_widen {
                 )
             }
 
+            // 0 <= frac_nbits <= NBITS
             #[inline]
-            fn overflowing_div(self, rhs: $Single, frac_nbits: u32) -> ($Single, bool) {
+            pub fn overflowing_div(lhs: $Single, rhs: $Single, frac_nbits: u32) -> ($Single, bool) {
                 const NBITS: u32 = <$Single>::BITS;
-                let lhs2 = <$Double>::from(self) << frac_nbits;
+                let lhs2 = <$Double>::from(lhs) << frac_nbits;
                 let rhs2 = <$Double>::from(rhs);
                 let quot2 = lhs2 / rhs2;
                 let quot = quot2 as $Single;
@@ -702,23 +680,24 @@ mul_div_widen! { i32, i64, Signed, u32 }
 mul_div_widen! { i64, i128, Signed, u64 }
 
 pub mod u128 {
+    use crate::int256::{self, U256};
+
     // 0 <= frac_nbits <= NBITS
     #[inline]
     pub const fn overflowing_mul(lhs: u128, rhs: u128, frac_nbits: u32) -> (u128, bool) {
         if frac_nbits == 0 {
             lhs.overflowing_mul(rhs)
         } else {
-            let prod = crate::int256::wide_mul_u128(lhs, rhs);
-            crate::int256::overflowing_shl_u256_into_u128(prod, frac_nbits)
+            let prod = int256::wide_mul_u128(lhs, rhs);
+            int256::overflowing_shl_u256_into_u128(prod, frac_nbits)
         }
     }
-}
 
-impl OverflowingMulDiv for u128 {
+    // -NBITS <= frac_nbits <= 2 * NBITS
     #[inline]
-    fn overflowing_mul_add(self, mul: u128, add: u128, mut frac_nbits: i32) -> (u128, bool) {
+    pub fn overflowing_mul_add(m1: u128, m2: u128, add: u128, mut frac_nbits: i32) -> (u128, bool) {
         // l * r + a
-        let mut prod = int256::wide_mul_u128(self, mul);
+        let mut prod = int256::wide_mul_u128(m1, m2);
 
         let mut overflow1 = false;
         if frac_nbits < 0 {
@@ -739,14 +718,15 @@ impl OverflowingMulDiv for u128 {
         (ans, overflow1 | overflow2 | overflow3)
     }
 
+    // 0 <= frac_nbits <= NBITS
     #[inline]
-    fn overflowing_div(self, rhs: u128, frac_nbits: u32) -> (u128, bool) {
+    pub fn overflowing_div(lhs: u128, rhs: u128, frac_nbits: u32) -> (u128, bool) {
         if frac_nbits == 0 {
-            self.overflowing_div(rhs)
+            lhs.overflowing_div(rhs)
         } else {
             let lhs2 = U256 {
-                lo: self << frac_nbits,
-                hi: self >> (128 - frac_nbits),
+                lo: lhs << frac_nbits,
+                hi: lhs >> (128 - frac_nbits),
             };
             let (quot2, _) = int256::div_rem_u256_u128(lhs2, rhs);
             let quot = quot2.lo;
@@ -757,23 +737,24 @@ impl OverflowingMulDiv for u128 {
 }
 
 pub mod i128 {
+    use crate::int256::{self, I256};
+
     // 0 <= frac_nbits <= NBITS
     #[inline]
     pub const fn overflowing_mul(lhs: i128, rhs: i128, frac_nbits: u32) -> (i128, bool) {
         if frac_nbits == 0 {
             lhs.overflowing_mul(rhs)
         } else {
-            let prod = crate::int256::wide_mul_i128(lhs, rhs);
-            crate::int256::overflowing_shl_i256_into_i128(prod, frac_nbits)
+            let prod = int256::wide_mul_i128(lhs, rhs);
+            int256::overflowing_shl_i256_into_i128(prod, frac_nbits)
         }
     }
-}
 
-impl OverflowingMulDiv for i128 {
+    // -NBITS <= frac_nbits <= 2 * NBITS
     #[inline]
-    fn overflowing_mul_add(self, mul: i128, add: i128, mut frac_nbits: i32) -> (i128, bool) {
+    pub fn overflowing_mul_add(m1: i128, m2: i128, add: i128, mut frac_nbits: i32) -> (i128, bool) {
         // l * r + a
-        let mut prod = int256::wide_mul_i128(self, mul);
+        let mut prod = int256::wide_mul_i128(m1, m2);
 
         let mut overflow1 = false;
         if frac_nbits < 0 {
@@ -802,14 +783,15 @@ impl OverflowingMulDiv for i128 {
         (ans, overflow1 | (shifted.hi != expected_hi))
     }
 
+    // 0 <= frac_nbits <= NBITS
     #[inline]
-    fn overflowing_div(self, rhs: i128, frac_nbits: u32) -> (i128, bool) {
+    pub fn overflowing_div(lhs: i128, rhs: i128, frac_nbits: u32) -> (i128, bool) {
         if frac_nbits == 0 {
-            self.overflowing_div(rhs)
+            lhs.overflowing_div(rhs)
         } else {
             let lhs2 = I256 {
-                lo: (self << frac_nbits) as u128,
-                hi: self >> (128 - frac_nbits),
+                lo: (lhs << frac_nbits) as u128,
+                hi: lhs >> (128 - frac_nbits),
             };
             let (quot2, _) = int256::div_rem_i256_i128(lhs2, rhs);
             let quot = quot2.lo as i128;
@@ -1240,56 +1222,56 @@ mod tests {
         let max = u64::MAX;
 
         assert_eq!(
-            arith::overflowing_mul_add(max, max, max, nbits_2),
+            arith::u64::overflowing_mul_add(max, max, max, nbits_2),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(max, max, max, nbits_2 - 1),
+            arith::u64::overflowing_mul_add(max, max, max, nbits_2 - 1),
             (0, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(max, max, max - 1, nbits_2 - 1),
+            arith::u64::overflowing_mul_add(max, max, max - 1, nbits_2 - 1),
             (max, false)
         );
 
         let (min, max) = (i64::MIN, i64::MAX);
 
         assert_eq!(
-            arith::overflowing_mul_add(max, max, max, nbits_2 - 2),
+            arith::i64::overflowing_mul_add(max, max, max, nbits_2 - 2),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(max, max, max, nbits_2 - 3),
+            arith::i64::overflowing_mul_add(max, max, max, nbits_2 - 3),
             (min, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(max, max, max - 1, nbits_2 - 3),
+            arith::i64::overflowing_mul_add(max, max, max - 1, nbits_2 - 3),
             (max, false)
         );
 
         assert_eq!(
-            arith::overflowing_mul_add(min, min, max, nbits_2 - 1),
+            arith::i64::overflowing_mul_add(min, min, max, nbits_2 - 1),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(min, min, max, nbits_2 - 2),
+            arith::i64::overflowing_mul_add(min, min, max, nbits_2 - 2),
             (min, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(min, min, max - 1, nbits_2 - 2),
+            arith::i64::overflowing_mul_add(min, min, max - 1, nbits_2 - 2),
             (max, false)
         );
 
         assert_eq!(
-            arith::overflowing_mul_add(max, min, -max, nbits_2 - 2),
+            arith::i64::overflowing_mul_add(max, min, -max, nbits_2 - 2),
             (min, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(max, min, -max, nbits_2 - 3),
+            arith::i64::overflowing_mul_add(max, min, -max, nbits_2 - 3),
             (max, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(max, min, -max + 1, nbits_2 - 3),
+            arith::i64::overflowing_mul_add(max, min, -max + 1, nbits_2 - 3),
             (min, false)
         );
 
@@ -1298,56 +1280,56 @@ mod tests {
         let max = u128::MAX;
 
         assert_eq!(
-            arith::overflowing_mul_add(max, max, max, nbits_2),
+            arith::u128::overflowing_mul_add(max, max, max, nbits_2),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(max, max, max, nbits_2 - 1),
+            arith::u128::overflowing_mul_add(max, max, max, nbits_2 - 1),
             (0, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(max, max, max - 1, nbits_2 - 1),
+            arith::u128::overflowing_mul_add(max, max, max - 1, nbits_2 - 1),
             (max, false)
         );
 
         let (min, max) = (i128::MIN, i128::MAX);
 
         assert_eq!(
-            arith::overflowing_mul_add(max, max, max, nbits_2 - 2),
+            arith::i128::overflowing_mul_add(max, max, max, nbits_2 - 2),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(max, max, max, nbits_2 - 3),
+            arith::i128::overflowing_mul_add(max, max, max, nbits_2 - 3),
             (min, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(max, max, max - 1, nbits_2 - 3),
+            arith::i128::overflowing_mul_add(max, max, max - 1, nbits_2 - 3),
             (max, false)
         );
 
         assert_eq!(
-            arith::overflowing_mul_add(min, min, max, nbits_2 - 1),
+            arith::i128::overflowing_mul_add(min, min, max, nbits_2 - 1),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(min, min, max, nbits_2 - 2),
+            arith::i128::overflowing_mul_add(min, min, max, nbits_2 - 2),
             (min, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(min, min, max - 1, nbits_2 - 2),
+            arith::i128::overflowing_mul_add(min, min, max - 1, nbits_2 - 2),
             (max, false)
         );
 
         assert_eq!(
-            arith::overflowing_mul_add(max, min, -max, nbits_2 - 2),
+            arith::i128::overflowing_mul_add(max, min, -max, nbits_2 - 2),
             (min, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(max, min, -max, nbits_2 - 3),
+            arith::i128::overflowing_mul_add(max, min, -max, nbits_2 - 3),
             (max, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(max, min, -max + 1, nbits_2 - 3),
+            arith::i128::overflowing_mul_add(max, min, -max + 1, nbits_2 - 3),
             (min, false)
         );
     }
@@ -1359,68 +1341,68 @@ mod tests {
         let (zero, one, max) = (0u64, 1u64, u64::MAX);
 
         assert_eq!(
-            arith::overflowing_mul_add(zero, zero, max, -nbits),
+            arith::u64::overflowing_mul_add(zero, zero, max, -nbits),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, one, max, -nbits),
+            arith::u64::overflowing_mul_add(one, one, max, -nbits),
             (max, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, one, zero, 1 - nbits),
+            arith::u64::overflowing_mul_add(one, one, zero, 1 - nbits),
             (max - max / 2, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, one, max, 1 - nbits),
+            arith::u64::overflowing_mul_add(one, one, max, 1 - nbits),
             (max / 2, true)
         );
 
         let (zero, one, min, max) = (0i64, 1i64, i64::MIN, i64::MAX);
 
         assert_eq!(
-            arith::overflowing_mul_add(zero, zero, max, -nbits),
+            arith::i64::overflowing_mul_add(zero, zero, max, -nbits),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, one, max, -nbits),
+            arith::i64::overflowing_mul_add(one, one, max, -nbits),
             (max, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, one, -one, 1 - nbits),
+            arith::i64::overflowing_mul_add(one, one, -one, 1 - nbits),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, one, zero, 1 - nbits),
+            arith::i64::overflowing_mul_add(one, one, zero, 1 - nbits),
             (min, true)
         );
 
         assert_eq!(
-            arith::overflowing_mul_add(-one, -one, max, -nbits),
+            arith::i64::overflowing_mul_add(-one, -one, max, -nbits),
             (max, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(-one, -one, -one, 1 - nbits),
+            arith::i64::overflowing_mul_add(-one, -one, -one, 1 - nbits),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(-one, -one, zero, 1 - nbits),
+            arith::i64::overflowing_mul_add(-one, -one, zero, 1 - nbits),
             (min, true)
         );
 
         assert_eq!(
-            arith::overflowing_mul_add(one, -one, max, -nbits),
+            arith::i64::overflowing_mul_add(one, -one, max, -nbits),
             (max, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, -one, min, -nbits),
+            arith::i64::overflowing_mul_add(one, -one, min, -nbits),
             (min, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, -one, zero, 1 - nbits),
+            arith::i64::overflowing_mul_add(one, -one, zero, 1 - nbits),
             (min, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, -one, max, 1 - nbits),
+            arith::i64::overflowing_mul_add(one, -one, max, 1 - nbits),
             (-one, false)
         );
 
@@ -1429,68 +1411,68 @@ mod tests {
         let (zero, one, max) = (0u128, 1u128, u128::MAX);
 
         assert_eq!(
-            arith::overflowing_mul_add(zero, zero, max, -nbits),
+            arith::u128::overflowing_mul_add(zero, zero, max, -nbits),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, one, max, -nbits),
+            arith::u128::overflowing_mul_add(one, one, max, -nbits),
             (max, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, one, zero, 1 - nbits),
+            arith::u128::overflowing_mul_add(one, one, zero, 1 - nbits),
             (max - max / 2, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, one, max, 1 - nbits),
+            arith::u128::overflowing_mul_add(one, one, max, 1 - nbits),
             (max / 2, true)
         );
 
         let (zero, one, min, max) = (0i128, 1i128, i128::MIN, i128::MAX);
 
         assert_eq!(
-            arith::overflowing_mul_add(zero, zero, max, -nbits),
+            arith::i128::overflowing_mul_add(zero, zero, max, -nbits),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, one, max, -nbits),
+            arith::i128::overflowing_mul_add(one, one, max, -nbits),
             (max, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, one, -one, 1 - nbits),
+            arith::i128::overflowing_mul_add(one, one, -one, 1 - nbits),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, one, zero, 1 - nbits),
+            arith::i128::overflowing_mul_add(one, one, zero, 1 - nbits),
             (min, true)
         );
 
         assert_eq!(
-            arith::overflowing_mul_add(-one, -one, max, -nbits),
+            arith::i128::overflowing_mul_add(-one, -one, max, -nbits),
             (max, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(-one, -one, -one, 1 - nbits),
+            arith::i128::overflowing_mul_add(-one, -one, -one, 1 - nbits),
             (max, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(-one, -one, zero, 1 - nbits),
+            arith::i128::overflowing_mul_add(-one, -one, zero, 1 - nbits),
             (min, true)
         );
 
         assert_eq!(
-            arith::overflowing_mul_add(one, -one, max, -nbits),
+            arith::i128::overflowing_mul_add(one, -one, max, -nbits),
             (max, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, -one, min, -nbits),
+            arith::i128::overflowing_mul_add(one, -one, min, -nbits),
             (min, true)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, -one, zero, 1 - nbits),
+            arith::i128::overflowing_mul_add(one, -one, zero, 1 - nbits),
             (min, false)
         );
         assert_eq!(
-            arith::overflowing_mul_add(one, -one, max, 1 - nbits),
+            arith::i128::overflowing_mul_add(one, -one, max, 1 - nbits),
             (-one, false)
         );
     }

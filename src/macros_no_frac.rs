@@ -1190,7 +1190,7 @@ assert_eq!(Fix::MAX.mul_add(Fix::from_num(1.5), -Fix::MAX), Fix::MAX / 2);
                     mul: $Fixed<MulFrac>,
                     add: $Fixed<Frac>,
                 ) -> $Fixed<Frac> {
-                    let (ans, overflow) = arith::overflowing_mul_add(
+                    let (ans, overflow) = arith::$Inner::overflowing_mul_add(
                         self.to_bits(),
                         mul.to_bits(),
                         add.to_bits(),
@@ -1978,7 +1978,7 @@ assert_eq!(Fix::MAX.checked_mul_add(Fix::from_num(1.5), -Fix::MAX), Some(Fix::MA
                     mul: $Fixed<MulFrac>,
                     add: $Fixed<Frac>,
                 ) -> Option<$Fixed<Frac>> {
-                    match arith::overflowing_mul_add(
+                    match arith::$Inner::overflowing_mul_add(
                         self.to_bits(),
                         mul.to_bits(),
                         add.to_bits(),
@@ -2574,7 +2574,7 @@ assert_eq!(Fix::MAX.saturating_mul_add(Fix::from_num(1.5), -Fix::MAX), half_max)
                     mul: $Fixed<MulFrac>,
                     add: $Fixed<Frac>,
                 ) -> $Fixed<Frac> {
-                    match arith::overflowing_mul_add(
+                    match arith::$Inner::overflowing_mul_add(
                         self.to_bits(),
                         mul.to_bits(),
                         add.to_bits(),
@@ -3024,7 +3024,7 @@ assert_eq!(Fix::MAX.wrapping_mul_add(Fix::from_num(3), Fix::MAX), wrapped);
                     mul: $Fixed<MulFrac>,
                     add: $Fixed<Frac>,
                 ) -> $Fixed<Frac> {
-                    let (ans, _) = arith::overflowing_mul_add(
+                    let (ans, _) = arith::$Inner::overflowing_mul_add(
                         self.to_bits(),
                         mul.to_bits(),
                         add.to_bits(),
@@ -4349,7 +4349,7 @@ assert_eq!(
                     mul: $Fixed<MulFrac>,
                     add: $Fixed<Frac>,
                 ) -> ($Fixed<Frac>, bool) {
-                    let (ans, overflow) = arith::overflowing_mul_add(
+                    let (ans, overflow) = arith::$Inner::overflowing_mul_add(
                         self.to_bits(),
                         mul.to_bits(),
                         add.to_bits(),
