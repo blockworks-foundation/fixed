@@ -186,7 +186,7 @@ pub fn shl_u256_max_128(a: U256, sh: u32) -> U256 {
 }
 
 #[inline]
-pub fn shl_i256_max_128(a: I256, sh: u32) -> I256 {
+pub const fn shl_i256_max_128(a: I256, sh: u32) -> I256 {
     if sh == 0 {
         a
     } else if sh == 128 {

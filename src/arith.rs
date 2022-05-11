@@ -609,20 +609,20 @@ macro_rules! mul_div_widen {
 
             // -NBITS <= frac_nbits <= 2 * NBITS
             #[inline]
-            pub fn overflowing_mul_add(
+            pub const fn overflowing_mul_add(
                 lhs: $Single,
                 mul: $Single,
                 add: $Single,
                 mut frac_nbits: i32,
             ) -> ($Single, bool) {
                 const NBITS: i32 = <$Single>::BITS as i32;
-                let lhs2 = <$Double>::from(lhs);
-                let mul2 = <$Double>::from(mul);
+                let lhs2 = lhs as $Double;
+                let mul2 = mul as $Double;
                 let prod2 = lhs2 * mul2;
                 let (prod2, overflow2) = if frac_nbits < 0 {
                     frac_nbits += NBITS;
                     debug_assert!(frac_nbits >= 0);
-                    prod2.overflowing_mul(<$Double>::from(<$Unsigned>::MAX) + 1)
+                    prod2.overflowing_mul(<$Unsigned>::MAX as $Double + 1)
                 } else if frac_nbits > NBITS {
                     frac_nbits -= NBITS;
                     debug_assert!(frac_nbits <= NBITS);
@@ -695,7 +695,12 @@ pub mod u128 {
 
     // -NBITS <= frac_nbits <= 2 * NBITS
     #[inline]
-    pub fn overflowing_mul_add(m1: u128, m2: u128, add: u128, mut frac_nbits: i32) -> (u128, bool) {
+    pub const fn overflowing_mul_add(
+        m1: u128,
+        m2: u128,
+        add: u128,
+        mut frac_nbits: i32,
+    ) -> (u128, bool) {
         // l * r + a
         let mut prod = int256::wide_mul_u128(m1, m2);
 
@@ -752,7 +757,12 @@ pub mod i128 {
 
     // -NBITS <= frac_nbits <= 2 * NBITS
     #[inline]
-    pub fn overflowing_mul_add(m1: i128, m2: i128, add: i128, mut frac_nbits: i32) -> (i128, bool) {
+    pub const fn overflowing_mul_add(
+        m1: i128,
+        m2: i128,
+        add: i128,
+        mut frac_nbits: i32,
+    ) -> (i128, bool) {
         // l * r + a
         let mut prod = int256::wide_mul_i128(m1, m2);
 

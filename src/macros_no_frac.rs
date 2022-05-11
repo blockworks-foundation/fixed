@@ -1185,7 +1185,7 @@ assert_eq!(Fix::MAX.mul_add(Fix::from_num(1.5), -Fix::MAX), Fix::MAX / 2);
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn mul_add<MulFrac: $LeEqU>(
+                pub const fn mul_add<MulFrac: $LeEqU>(
                     self,
                     mul: $Fixed<MulFrac>,
                     add: $Fixed<Frac>,
@@ -1973,7 +1973,7 @@ assert_eq!(Fix::MAX.checked_mul_add(Fix::from_num(1.5), -Fix::MAX), Some(Fix::MA
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn checked_mul_add<MulFrac: $LeEqU>(
+                pub const fn checked_mul_add<MulFrac: $LeEqU>(
                     self,
                     mul: $Fixed<MulFrac>,
                     add: $Fixed<Frac>,
@@ -2569,7 +2569,7 @@ assert_eq!(Fix::MAX.saturating_mul_add(Fix::from_num(1.5), -Fix::MAX), half_max)
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn saturating_mul_add<MulFrac: $LeEqU>(
+                pub const fn saturating_mul_add<MulFrac: $LeEqU>(
                     self,
                     mul: $Fixed<MulFrac>,
                     add: $Fixed<Frac>,
@@ -3019,7 +3019,7 @@ assert_eq!(Fix::MAX.wrapping_mul_add(Fix::from_num(3), Fix::MAX), wrapped);
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn wrapping_mul_add<MulFrac: $LeEqU>(
+                pub const fn wrapping_mul_add<MulFrac: $LeEqU>(
                     self,
                     mul: $Fixed<MulFrac>,
                     add: $Fixed<Frac>,
@@ -3619,12 +3619,15 @@ let _overflow = Fix::MAX.unwrapped_mul_add(Fix::ONE, Fix::DELTA);
                 #[inline]
                 #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn unwrapped_mul_add<MulFrac: $LeEqU>(
+                pub const fn unwrapped_mul_add<MulFrac: $LeEqU>(
                     self,
                     mul: $Fixed<MulFrac>,
                     add: $Fixed<Frac>,
                 ) -> $Fixed<Frac> {
-                    self.checked_mul_add(mul, add).expect("overflow")
+                    match self.checked_mul_add(mul, add) {
+                        Some(s) => s,
+                        None => panic!("overflow"),
+                    }
                 }
             }
 
@@ -4344,7 +4347,7 @@ assert_eq!(
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn overflowing_mul_add<MulFrac: $LeEqU>(
+                pub const fn overflowing_mul_add<MulFrac: $LeEqU>(
                     self,
                     mul: $Fixed<MulFrac>,
                     add: $Fixed<Frac>,
