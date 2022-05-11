@@ -760,15 +760,15 @@ assert_eq!(a.wide_mul(b), 1.328_125);
 ";
                     #[inline]
                     #[must_use = "this returns the result of the operation, without modifying the original"]
-                    pub fn wide_mul<RhsFrac>(
+                    pub const fn wide_mul<RhsFrac>(
                         self,
                         rhs: $Fixed<RhsFrac>,
                     ) -> $Double<Sum<Frac, RhsFrac>>
                     where
                         Frac: Add<RhsFrac>,
                     {
-                        let self_bits = <$DoubleInner>::from(self.to_bits());
-                        let rhs_bits = <$DoubleInner>::from(rhs.to_bits());
+                        let self_bits = self.to_bits() as $DoubleInner;
+                        let rhs_bits = rhs.to_bits() as $DoubleInner;
                         $Double::from_bits(self_bits * rhs_bits)
                     }
                 }
@@ -805,16 +805,16 @@ assert_eq!(a.wide_mul(b), 1.328_125);
                     /// ```
                     #[inline]
                     #[must_use]
-                    pub fn wide_mul_unsigned<RhsFrac>(
+                    pub const fn wide_mul_unsigned<RhsFrac>(
                         self,
                         rhs: $UFixed<RhsFrac>,
                     ) -> $Double<Sum<Frac, RhsFrac>>
                     where
                         Frac: Add<RhsFrac>,
                     {
-                        let wide_lhs = <$DoubleInner>::from(self.to_bits());
+                        let wide_lhs = self.to_bits() as $DoubleInner;
                         let rhs_signed = rhs.to_bits() as $Inner;
-                        let wide_rhs = <$DoubleInner>::from(rhs_signed);
+                        let wide_rhs = rhs_signed as $DoubleInner;
                         let mut wide_prod = wide_lhs * wide_rhs;
                         if rhs_signed < 0 {
                             // rhs msb treated as -2^(N - 1) instead of +2^(N - 1),
@@ -857,7 +857,7 @@ assert_eq!(a.wide_mul(b), 1.328_125);
                     /// ```
                     #[inline]
                     #[must_use]
-                    pub fn wide_mul_signed<RhsFrac>(
+                    pub const fn wide_mul_signed<RhsFrac>(
                         self,
                         rhs: $IFixed<RhsFrac>,
                     ) -> $IDouble<Sum<Frac, RhsFrac>>
@@ -865,8 +865,8 @@ assert_eq!(a.wide_mul(b), 1.328_125);
                         Frac: Add<RhsFrac>,
                     {
                         let lhs_signed = self.to_bits() as $IInner;
-                        let wide_lhs = <$IDoubleInner>::from(lhs_signed);
-                        let wide_rhs = <$IDoubleInner>::from(rhs.to_bits());
+                        let wide_lhs = lhs_signed as $IDoubleInner;
+                        let wide_rhs = rhs.to_bits() as $IDoubleInner;
                         let mut wide_prod = wide_lhs * wide_rhs;
                         if lhs_signed < 0 {
                             // lhs msb treated as -2^(N - 1) instead of +2^(N - 1),
@@ -939,7 +939,7 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
                     };
                     #[inline]
                     #[must_use = "this returns the result of the operation, without modifying the original"]
-                    pub fn wide_div<RhsFrac>(
+                    pub const fn wide_div<RhsFrac>(
                         self,
                         rhs: $Fixed<RhsFrac>,
                     ) -> $Double<Diff<Sum<$UNbits, Frac>, RhsFrac>>
@@ -947,8 +947,8 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
                         $UNbits: Add<Frac>,
                         Sum<$UNbits, Frac>: Sub<RhsFrac>,
                     {
-                        let self_bits = <$DoubleInner>::from(self.to_bits());
-                        let rhs_bits = <$DoubleInner>::from(rhs.to_bits());
+                        let self_bits = self.to_bits() as $DoubleInner;
+                        let rhs_bits = rhs.to_bits() as $DoubleInner;
                         $Double::from_bits((self_bits << $UNbits::U32) / rhs_bits)
                     }
                 }
@@ -1013,7 +1013,7 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
                     /// [`wide_div`]: Self::wide_div
                     #[inline]
                     #[must_use]
-                    pub fn wide_sdiv<RhsFrac>(
+                    pub const fn wide_sdiv<RhsFrac>(
                         self,
                         rhs: $Fixed<RhsFrac>,
                     ) -> $Double<Diff<Sum<$UNbits_m1, Frac>, RhsFrac>>
@@ -1021,8 +1021,8 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
                         $UNbits_m1: Add<Frac>,
                         Sum<$UNbits_m1, Frac>: Sub<RhsFrac>,
                     {
-                        let self_bits = <$DoubleInner>::from(self.to_bits());
-                        let rhs_bits = <$DoubleInner>::from(rhs.to_bits());
+                        let self_bits = self.to_bits() as $DoubleInner;
+                        let rhs_bits = rhs.to_bits() as $DoubleInner;
                         $Double::from_bits((self_bits << $UNbits_m1::U32) / rhs_bits)
                     }
 
@@ -1061,7 +1061,7 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
                     /// ```
                     #[inline]
                     #[must_use]
-                    pub fn wide_div_unsigned<RhsFrac>(
+                    pub const fn wide_div_unsigned<RhsFrac>(
                         self,
                         rhs: $UFixed<RhsFrac>,
                     ) -> $Double<Diff<Sum<$UNbits, Frac>, RhsFrac>>
@@ -1069,8 +1069,8 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
                         $UNbits: Add<Frac>,
                         Sum<$UNbits, Frac>: Sub<RhsFrac>,
                     {
-                        let self_bits = <$DoubleInner>::from(self.to_bits());
-                        let rhs_bits = <$DoubleInner>::from(rhs.to_bits());
+                        let self_bits = self.to_bits() as $DoubleInner;
+                        let rhs_bits = rhs.to_bits() as $DoubleInner;
                         $Double::from_bits((self_bits << $UNbits::U32) / rhs_bits)
                     }
                 }
@@ -1125,7 +1125,7 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
                     /// ```
                     #[inline]
                     #[must_use]
-                    pub fn wide_sdiv_signed<RhsFrac>(
+                    pub const fn wide_sdiv_signed<RhsFrac>(
                         self,
                         rhs: $IFixed<RhsFrac>,
                     ) -> $IDouble<Diff<Sum<$UNbits_m1, Frac>, RhsFrac>>
@@ -1133,8 +1133,8 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
                         $UNbits_m1: Add<Frac>,
                         Sum<$UNbits_m1, Frac>: Sub<RhsFrac>,
                     {
-                        let self_bits = <$IDoubleInner>::from(self.to_bits());
-                        let rhs_bits = <$IDoubleInner>::from(rhs.to_bits());
+                        let self_bits = self.to_bits() as $IDoubleInner;
+                        let rhs_bits = rhs.to_bits() as $IDoubleInner;
                         $IDouble::from_bits((self_bits << $UNbits_m1::U32) / rhs_bits)
                     }
                 }
