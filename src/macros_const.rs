@@ -13,16 +13,6 @@
 // <https://www.apache.org/licenses/LICENSE-2.0> and
 // <https://opensource.org/licenses/MIT>.
 
-macro_rules! shift {
-    // in case of 128, split shift in two parts to avoid >> 128
-    ($SRC:ident, $Fixed:ident<$Frac:ident>) => {
-        $Fixed::from_bits(shrl(consts::$SRC, 128, $Frac::U32) as _)
-    };
-    ($SRC:ident, $src_frac_nbits:literal, $Fixed:ident<$Frac:ident>) => {
-        $Fixed::from_bits(shrl(consts::$SRC, $src_frac_nbits, $Frac::U32) as _)
-    };
-}
-
 macro_rules! fixed_const {
     (
         $Fixed:ident[$s_fixed:expr](
@@ -32,6 +22,18 @@ macro_rules! fixed_const {
         $LeEqU_C0:tt, $LeEqU_C1:tt, $LeEqU_C2:tt, $LeEqU_C3:tt,
         $Signedness:tt
     ) => {
+        impl<Frac: Unsigned> $Fixed<Frac> {
+            const fn from_const<SrcFrac: Unsigned>(src: FixedU128<SrcFrac>) -> $Fixed<Frac> {
+                let right = SrcFrac::U32 - Frac::U32;
+                let bits128 = if right == 128 {
+                    0
+                } else {
+                    src.to_bits() >> right
+                };
+                $Fixed::from_bits(bits128 as _)
+            }
+        }
+
         comment! {
             "This block contains constants in the range 0&nbsp;<&nbsp;<i>x</i>&nbsp;<&nbsp;0.5.
 
@@ -45,22 +47,22 @@ assert_eq!(Fix::LOG10_2, Fix::from_num(consts::LOG10_2));
 ";
             impl<Frac: $LeEqU> $Fixed<Frac> {
                 /// 1/τ = 0.159154…
-                pub const FRAC_1_TAU: $Fixed<Frac> = shift!(FRAC_1_TAU, $Fixed<Frac>);
+                pub const FRAC_1_TAU: $Fixed<Frac> = Self::from_const(consts::FRAC_1_TAU);
 
                 /// 2/τ = 0.318309…
-                pub const FRAC_2_TAU: $Fixed<Frac> = shift!(FRAC_2_TAU, $Fixed<Frac>);
+                pub const FRAC_2_TAU: $Fixed<Frac> = Self::from_const(consts::FRAC_2_TAU);
 
                 /// π/8 = 0.392699…
-                pub const FRAC_PI_8: $Fixed<Frac> = shift!(FRAC_PI_8, $Fixed<Frac>);
+                pub const FRAC_PI_8: $Fixed<Frac> = Self::from_const(consts::FRAC_PI_8);
 
                 /// 1/π = 0.318309…
-                pub const FRAC_1_PI: $Fixed<Frac> = shift!(FRAC_1_PI, $Fixed<Frac>);
+                pub const FRAC_1_PI: $Fixed<Frac> = Self::from_const(consts::FRAC_1_PI);
 
                 /// log<sub>10</sub> 2 = 0.301029…
-                pub const LOG10_2: $Fixed<Frac> = shift!(LOG10_2, $Fixed<Frac>);
+                pub const LOG10_2: $Fixed<Frac> = Self::from_const(consts::LOG10_2);
 
                 /// log<sub>10</sub> e = 0.434294…
-                pub const LOG10_E: $Fixed<Frac> = shift!(LOG10_E, $Fixed<Frac>);
+                pub const LOG10_E: $Fixed<Frac> = Self::from_const(consts::LOG10_E);
             }
         }
 
@@ -107,43 +109,43 @@ let _ = Fix::LN_2;
                 Frac: IsLessOrEqual<$LeEqU_C0, Output = True>,
             {
                 /// τ/8 = 0.785398…
-                pub const FRAC_TAU_8: $Fixed<Frac> = shift!(FRAC_TAU_8, $Fixed<Frac>);
+                pub const FRAC_TAU_8: $Fixed<Frac> = Self::from_const(consts::FRAC_TAU_8);
 
                 /// τ/12 = 0.523598…
-                pub const FRAC_TAU_12: $Fixed<Frac> = shift!(FRAC_TAU_12, $Fixed<Frac>);
+                pub const FRAC_TAU_12: $Fixed<Frac> = Self::from_const(consts::FRAC_TAU_12);
 
                 /// 4/τ = 0.636619…
-                pub const FRAC_4_TAU: $Fixed<Frac> = shift!(FRAC_4_TAU, $Fixed<Frac>);
+                pub const FRAC_4_TAU: $Fixed<Frac> = Self::from_const(consts::FRAC_4_TAU);
 
                 /// π/4 = 0.785398…
-                pub const FRAC_PI_4: $Fixed<Frac> = shift!(FRAC_PI_4, $Fixed<Frac>);
+                pub const FRAC_PI_4: $Fixed<Frac> = Self::from_const(consts::FRAC_PI_4);
 
                 /// π/6 = 0.523598…
-                pub const FRAC_PI_6: $Fixed<Frac> = shift!(FRAC_PI_6, $Fixed<Frac>);
+                pub const FRAC_PI_6: $Fixed<Frac> = Self::from_const(consts::FRAC_PI_6);
 
                 /// 2/π = 0.636619…
-                pub const FRAC_2_PI: $Fixed<Frac> = shift!(FRAC_2_PI, $Fixed<Frac>);
+                pub const FRAC_2_PI: $Fixed<Frac> = Self::from_const(consts::FRAC_2_PI);
 
                 /// 1/√π = 0.564189…
-                pub const FRAC_1_SQRT_PI: $Fixed<Frac> = shift!(FRAC_1_SQRT_PI, $Fixed<Frac>);
+                pub const FRAC_1_SQRT_PI: $Fixed<Frac> = Self::from_const(consts::FRAC_1_SQRT_PI);
 
                 /// 1/√2 = 0.707106…
-                pub const FRAC_1_SQRT_2: $Fixed<Frac> = shift!(FRAC_1_SQRT_2, $Fixed<Frac>);
+                pub const FRAC_1_SQRT_2: $Fixed<Frac> = Self::from_const(consts::FRAC_1_SQRT_2);
 
                 /// 1/√3 = 0.577350…
-                pub const FRAC_1_SQRT_3: $Fixed<Frac> = shift!(FRAC_1_SQRT_3, $Fixed<Frac>);
+                pub const FRAC_1_SQRT_3: $Fixed<Frac> = Self::from_const(consts::FRAC_1_SQRT_3);
 
                 /// ln 2 = 0.693147…
-                pub const LN_2: $Fixed<Frac> = shift!(LN_2, $Fixed<Frac>);
+                pub const LN_2: $Fixed<Frac> = Self::from_const(consts::LN_2);
 
                 /// The golden ratio conjugate, Φ = 1/φ = 0.618033…
-                pub const FRAC_1_PHI: $Fixed<Frac> = shift!(FRAC_1_PHI, $Fixed<Frac>);
+                pub const FRAC_1_PHI: $Fixed<Frac> = Self::from_const(consts::FRAC_1_PHI);
 
                 /// The Euler-Mascheroni constant, γ = 0.577215…
-                pub const GAMMA: $Fixed<Frac> = shift!(GAMMA, $Fixed<Frac>);
+                pub const GAMMA: $Fixed<Frac> = Self::from_const(consts::GAMMA);
 
                 /// Catalan’s constant = 0.915965…
-                pub const CATALAN: $Fixed<Frac> = shift!(CATALAN, $Fixed<Frac>);
+                pub const CATALAN: $Fixed<Frac> = Self::from_const(consts::CATALAN);
             }
         }
 
@@ -201,45 +203,44 @@ type Fix = ", $s_fixed, "<U4>;
 assert_eq!(Fix::ONE, Fix::from_num(1));
 ```
 ";
-                    pub const ONE: $Fixed<Frac> =
-                        $Fixed::from_bits($Fixed::<Frac>::DELTA.to_bits() << Frac::U32);
+                    pub const ONE: $Fixed<Frac> = Self::DELTA.unwrapped_shl(Frac::U32);
                 }
 
                 /// τ/4 = 1.57079…
-                pub const FRAC_TAU_4: $Fixed<Frac> = shift!(FRAC_TAU_4, 127, $Fixed<Frac>);
+                pub const FRAC_TAU_4: $Fixed<Frac> = Self::from_const(consts::FRAC_TAU_4);
 
                 /// τ/6 = 1.04719…
-                pub const FRAC_TAU_6: $Fixed<Frac> = shift!(FRAC_TAU_6, 127, $Fixed<Frac>);
+                pub const FRAC_TAU_6: $Fixed<Frac> = Self::from_const(consts::FRAC_TAU_6);
 
                 /// π/2 = 1.57079…
-                pub const FRAC_PI_2: $Fixed<Frac> = shift!(FRAC_PI_2, 127, $Fixed<Frac>);
+                pub const FRAC_PI_2: $Fixed<Frac> = Self::from_const(consts::FRAC_PI_2);
 
                 /// π/3 = 1.04719…
-                pub const FRAC_PI_3: $Fixed<Frac> = shift!(FRAC_PI_3, 127, $Fixed<Frac>);
+                pub const FRAC_PI_3: $Fixed<Frac> = Self::from_const(consts::FRAC_PI_3);
 
                 /// √π = 1.77245…
-                pub const SQRT_PI: $Fixed<Frac> = shift!(SQRT_PI, 127, $Fixed<Frac>);
+                pub const SQRT_PI: $Fixed<Frac> = Self::from_const(consts::SQRT_PI);
 
                 /// 2/√π = 1.12837…
-                pub const FRAC_2_SQRT_PI: $Fixed<Frac> = shift!(FRAC_2_SQRT_PI, 127, $Fixed<Frac>);
+                pub const FRAC_2_SQRT_PI: $Fixed<Frac> = Self::from_const(consts::FRAC_2_SQRT_PI);
 
                 /// √2 = 1.41421…
-                pub const SQRT_2: $Fixed<Frac> = shift!(SQRT_2, 127, $Fixed<Frac>);
+                pub const SQRT_2: $Fixed<Frac> = Self::from_const(consts::SQRT_2);
 
                 /// √3 = 1.73205…
-                pub const SQRT_3: $Fixed<Frac> = shift!(SQRT_3, 127, $Fixed<Frac>);
+                pub const SQRT_3: $Fixed<Frac> = Self::from_const(consts::SQRT_3);
 
                 /// √e = 1.64872…
-                pub const SQRT_E: $Fixed<Frac> = shift!(SQRT_E, 127, $Fixed<Frac>);
+                pub const SQRT_E: $Fixed<Frac> = Self::from_const(consts::SQRT_E);
 
                 /// log<sub>2</sub> e = 1.44269…
-                pub const LOG2_E: $Fixed<Frac> = shift!(LOG2_E, 127, $Fixed<Frac>);
+                pub const LOG2_E: $Fixed<Frac> = Self::from_const(consts::LOG2_E);
 
                 /// The golden ratio, φ = 1.61803…
-                pub const PHI: $Fixed<Frac> = shift!(PHI, 127, $Fixed<Frac>);
+                pub const PHI: $Fixed<Frac> = Self::from_const(consts::PHI);
 
                 /// √φ = 1.27201…
-                pub const SQRT_PHI: $Fixed<Frac> = shift!(SQRT_PHI, 127, $Fixed<Frac>);
+                pub const SQRT_PHI: $Fixed<Frac> = Self::from_const(consts::SQRT_PHI);
             }
         }
 
@@ -287,22 +288,22 @@ let _ = Fix::E;
                 Frac: IsLessOrEqual<$LeEqU_C2, Output = True>,
             {
                 /// τ/2 = 3.14159…
-                pub const FRAC_TAU_2: $Fixed<Frac> = shift!(FRAC_TAU_2, 126, $Fixed<Frac>);
+                pub const FRAC_TAU_2: $Fixed<Frac> = Self::from_const(consts::FRAC_TAU_2);
 
                 /// τ/3 = 2.09439…
-                pub const FRAC_TAU_3: $Fixed<Frac> = shift!(FRAC_TAU_3, 126, $Fixed<Frac>);
+                pub const FRAC_TAU_3: $Fixed<Frac> = Self::from_const(consts::FRAC_TAU_3);
 
                 /// Archimedes’ constant, π = 3.14159…
-                pub const PI: $Fixed<Frac> = shift!(PI, 126, $Fixed<Frac>);
+                pub const PI: $Fixed<Frac> = Self::from_const(consts::PI);
 
                 /// Euler’s number, e = 2.71828…
-                pub const E: $Fixed<Frac> = shift!(E, 126, $Fixed<Frac>);
+                pub const E: $Fixed<Frac> = Self::from_const(consts::E);
 
                 /// log<sub>2</sub> 10 = 3.32192…
-                pub const LOG2_10: $Fixed<Frac> = shift!(LOG2_10, 126, $Fixed<Frac>);
+                pub const LOG2_10: $Fixed<Frac> = Self::from_const(consts::LOG2_10);
 
                 /// ln 10 = 2.30258…
-                pub const LN_10: $Fixed<Frac> = shift!(LN_10, 126, $Fixed<Frac>);
+                pub const LN_10: $Fixed<Frac> = Self::from_const(consts::LN_10);
             }
         }
 
@@ -350,7 +351,7 @@ let _ = Fix::TAU;
                 Frac: IsLessOrEqual<$LeEqU_C3, Output = True>,
             {
                 /// A turn, τ = 6.28318…
-                pub const TAU: $Fixed<Frac> = shift!(TAU, 125, $Fixed<Frac>);
+                pub const TAU: $Fixed<Frac> = Self::from_const(consts::TAU);
             }
         }
     };

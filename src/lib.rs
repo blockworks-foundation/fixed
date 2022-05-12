@@ -712,12 +712,6 @@ impl F128Bits {
     }
 }
 
-// used inside macros_const
-const fn shrl<Frac>(src: FixedU128<Frac>, src_frac_bits: u32, dst_frac_bits: u32) -> u128 {
-    let right = src_frac_bits - dst_frac_bits;
-    src.to_bits() >> (right / 2) >> (right - right / 2)
-}
-
 /// Defines constant fixed-point numbers from integer expressions.
 ///
 /// This macro is useful because [`from_num`] cannot be used in constant
