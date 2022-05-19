@@ -465,14 +465,7 @@ assert_eq!(acc, Fix::MAX / 2);
                     a: $Fixed<AFrac>,
                     b: $Fixed<BFrac>,
                 ) {
-                    let (ans, overflow) = arith::$Inner::overflowing_mul_add(
-                        a.to_bits(),
-                        b.to_bits(),
-                        self.to_bits(),
-                        AFrac::I32 + BFrac::I32 - Frac::I32,
-                    );
-                    debug_assert!(!overflow, "overflow");
-                    *self = Self::from_bits(ans);
+                    *self = self.add_prod(a, b);
                 }
             }
 
@@ -831,17 +824,13 @@ assert_eq!(acc, Fix::MAX / 2);
                     a: $Fixed<AFrac>,
                     b: $Fixed<BFrac>,
                 ) -> Option<()> {
-                    let (ans, overflow) = arith::$Inner::overflowing_mul_add(
-                        a.to_bits(),
-                        b.to_bits(),
-                        self.to_bits(),
-                        AFrac::I32 + BFrac::I32 - Frac::I32,
-                    );
-                    if overflow {
-                        return None;
+                    match self.checked_add_prod(a, b) {
+                        Some(s) => {
+                            *self = s;
+                            Some(())
+                        }
+                        None => None,
                     }
-                    *self = Self::from_bits(ans);
-                    Some(())
                 }
             }
 
@@ -1365,26 +1354,7 @@ assert_eq!(acc, Fix::MAX / 2);
                     a: $Fixed<AFrac>,
                     b: $Fixed<BFrac>,
                 ) {
-                    let (ans, overflow) = arith::$Inner::overflowing_mul_add(
-                        a.to_bits(),
-                        b.to_bits(),
-                        self.to_bits(),
-                        AFrac::I32 + BFrac::I32 - Frac::I32,
-                    );
-                    *self = if overflow {
-                        let negative = if_signed_unsigned!(
-                            $Signedness,
-                            a.is_negative() != b.is_negative(),
-                            false,
-                        );
-                        if negative {
-                            Self::MIN
-                        } else {
-                            Self::MAX
-                        }
-                    } else {
-                        Self::from_bits(ans)
-                    };
+                    *self = self.saturating_add_prod(a, b);
                 }
             }
 
@@ -1725,13 +1695,7 @@ assert_eq!(acc, Fix::MAX.wrapping_mul_int(4));
                     a: $Fixed<AFrac>,
                     b: $Fixed<BFrac>,
                 ) {
-                    let (ans, _) = arith::$Inner::overflowing_mul_add(
-                        a.to_bits(),
-                        b.to_bits(),
-                        self.to_bits(),
-                        AFrac::I32 + BFrac::I32 - Frac::I32,
-                    );
-                    *self = Self::from_bits(ans);
+                    *self = self.wrapping_add_prod(a, b);
                 }
             }
 
@@ -2110,14 +2074,7 @@ acc.unwrapped_mul_acc(Fix::MAX, Fix::ONE);
                     a: $Fixed<AFrac>,
                     b: $Fixed<BFrac>,
                 ) {
-                    let (ans, overflow) = arith::$Inner::overflowing_mul_add(
-                        a.to_bits(),
-                        b.to_bits(),
-                        self.to_bits(),
-                        AFrac::I32 + BFrac::I32 - Frac::I32,
-                    );
-                    assert!(!overflow, "overflow");
-                    *self = Self::from_bits(ans);
+                    *self = self.unwrapped_add_prod(a, b);
                 }
             }
 
@@ -2688,13 +2645,8 @@ assert_eq!(acc, Fix::MAX / 2);
                     a: $Fixed<AFrac>,
                     b: $Fixed<BFrac>,
                 ) -> bool {
-                    let (ans, overflow) = arith::$Inner::overflowing_mul_add(
-                        a.to_bits(),
-                        b.to_bits(),
-                        self.to_bits(),
-                        AFrac::I32 + BFrac::I32 - Frac::I32,
-                    );
-                    *self = Self::from_bits(ans);
+                    let (ans, overflow) = self.overflowing_add_prod(a, b);
+                    *self = ans;
                     overflow
                 }
             }
