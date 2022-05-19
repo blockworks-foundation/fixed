@@ -9,6 +9,16 @@ Version 1.16.0 (unreleased)
 ===========================
 
   * The crate now requires rustc version 1.61.0 or later.
+  * The [`add_prod`][f-ap-1-16] method was added to all fixed-point numbers, to
+    the [`Fixed`][tf-1-16] trait, and to the [`Wrapping`][w-1-16] and
+    [`Unwrapped`][u-1-16] wrappers.
+  * The following methods were added to all fixed-point numbers and to the
+    [`Fixed`][tf-1-16] trait:
+      * [`checked_add_prod`][f-cap-1-16],
+        [`saturating_add_prod`][f-sap-1-16],
+        [`wrapping_add_prod`][f-wap-1-16],
+        [`unwrapped_add_prod`][f-uap-1-16],
+        [`overflowing_add_prod`][f-oap-1-16]
   * The following methods are now `const` functions:
       * [`int`][f-i-1-16], [`frac`][f-fr-1-16], [`round_to_zero`][f-rtz-1-16]
       * [`ceil`][f-c-1-16], [`checked_ceil`][f-cc-1-16],
@@ -43,7 +53,9 @@ Version 1.16.0 (unreleased)
         [`saturating_signum`][f-ss-1-16], [`wrapping_signum`][f-ws-1-16],
         [`unwrapped_signum`][f-us-1-16], [`overflowing_signum`][f-os-1-16]
 
+[f-ap-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.add_prod
 [f-c-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.ceil
+[f-cap-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_add_prod
 [f-cc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_ceil
 [f-cf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_floor
 [f-cil10-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.checked_int_log10
@@ -59,6 +71,7 @@ Version 1.16.0 (unreleased)
 [f-il10-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.int_log10
 [f-il2-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.int_log2
 [f-ma-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.mul_add
+[f-oap-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_add_prod
 [f-oc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_ceil
 [f-of-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_floor
 [f-om-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_mul
@@ -71,6 +84,7 @@ Version 1.16.0 (unreleased)
 [f-rtz-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.round_to_zero
 [f-rtz-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.round_to_zero
 [f-s-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.signum
+[f-sap-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_add_prod
 [f-sc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_ceil
 [f-sf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_floor
 [f-sm-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_mul
@@ -78,6 +92,7 @@ Version 1.16.0 (unreleased)
 [f-sr-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_round
 [f-srtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_round_ties_to_even
 [f-ss-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.saturating_signum
+[f-uap-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_add_prod
 [f-uc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_ceil
 [f-uf-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_floor
 [f-um-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_mul
@@ -85,6 +100,7 @@ Version 1.16.0 (unreleased)
 [f-ur-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_round
 [f-urtte-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_round_ties_to_even
 [f-us-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.unwrapped_signum
+[f-wap-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_add_prod
 [f-wc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_ceil
 [f-wd-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wide_div
 [f-wdu-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wide_div_unsigned
@@ -99,6 +115,9 @@ Version 1.16.0 (unreleased)
 [f-ws-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wide_sdiv
 [f-ws-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wrapping_signum
 [f-wss-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedU32.html#method.wide_sdiv_signed
+[tf-1-16]: https://docs.rs/fixed/~1.15/fixed/traits/trait.Fixed.html
+[u-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.Unwrapped.html
+[w-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.Wrapping.html
 
 Version 1.15.0 (2022-04-28)
 ===========================
