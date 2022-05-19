@@ -1073,12 +1073,35 @@ impl<F: Fixed> Wrapping<F> {
     /// let four = Wrapping(I16F16::from_num(4));
     /// let max = Wrapping(I16F16::MAX);
     /// assert_eq!(three.mul_add(half, four), Wrapping(I16F16::from_num(5.5)));
-    /// assert_eq!(max.mul_add(three, max), Wrapping(I16F16::from_bits(!0 << 2)));
+    /// assert_eq!(max.mul_add(three, max), max * 4);
     /// ```
     #[inline]
     #[must_use = "this returns the result of the operation, without modifying the original"]
     pub fn mul_add(self, mul: Wrapping<F>, add: Wrapping<F>) -> Wrapping<F> {
         Wrapping(self.0.wrapping_mul_add(mul.0, add.0))
+    }
+
+    /// Adds the product `a`&nbsp;×&nbsp;`b` to `self`.
+    ///
+    /// See also
+    /// <code>FixedI32::[wrapping\_add\_prod][FixedI32::wrapping_add_prod]</code>
+    /// and
+    /// <code>FixedU32::[wrapping\_add\_prod][FixedU32::wrapping_add_prod]</code>.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use fixed::{types::I16F16, Wrapping};
+    /// let half = Wrapping(I16F16::from_num(0.5));
+    /// let three = Wrapping(I16F16::from_num(3));
+    /// let four = Wrapping(I16F16::from_num(4));
+    /// let max = Wrapping(I16F16::MAX);
+    /// assert_eq!(four.add_prod(three, half), Wrapping(I16F16::from_num(5.5)));
+    /// assert_eq!(max.add_prod(max, three), max * 4);
+    /// ```
+    #[inline]
+    pub fn add_prod(self, a: Wrapping<F>, b: Wrapping<F>) -> Wrapping<F> {
+        Wrapping(self.0.wrapping_add_prod(a.0, b.0))
     }
 
     /// Multiply and accumulate. Adds (`a` × `b`) to `self`.

@@ -1696,6 +1696,18 @@ where
     #[must_use = "this returns the result of the operation, without modifying the original"]
     fn mul_add(self, mul: Self, add: Self) -> Self;
 
+    /// Adds the product `a`&nbsp;×&nbsp;`b` to `self`.
+    ///
+    /// Note that the inherent [`add_prod`] method is more flexible than this
+    /// method and allows the `a` and `b` parameters to have a fixed-point type
+    /// like `self` but with a different number of fractional bits.
+    ///
+    /// [`add_prod`]: FixedI32::add_prod
+    ///
+    /// See also <code>FixedI32::[add\_prod][FixedI32::add_prod]</code> and
+    /// <code>FixedU32::[add\_prod][FixedU32::add_prod]</code>.
+    fn add_prod(self, a: Self, b: Self) -> Self;
+
     /// Multiply and accumulate. Adds (`a` × `b`) to `self`.
     ///
     /// Note that the inherent [`mul_acc`] method is more flexible than this
@@ -1837,6 +1849,15 @@ where
     /// <code>FixedU32::[checked\_mul\_add][FixedU32::checked_mul_add]</code>.
     #[must_use = "this returns the result of the operation, without modifying the original"]
     fn checked_mul_add(self, mul: Self, add: Self) -> Option<Self>;
+
+    /// Adds the product `a`&nbsp;×&nbsp;`b` to `self`, returning [`None`] on overflow.
+    ///
+    /// See also
+    /// <code>FixedI32::[checked\_add\_prod][FixedI32::checked_add_prod]</code>
+    /// and
+    /// <code>FixedU32::[checked\_add\_prod][FixedU32::checked_add_prod]</code>.
+    #[must_use = "this `Option` may be a `None` variant indicating overflow, which should be handled"]
+    fn checked_add_prod(self, a: Self, b: Self) -> Option<Self>;
 
     /// Checked multiply and accumulate. Adds (`a` × `b`) to `self`, or returns
     /// [`None`] on overflow.
@@ -2042,6 +2063,14 @@ where
     #[must_use = "this returns the result of the operation, without modifying the original"]
     fn saturating_mul_add(self, mul: Self, add: Self) -> Self;
 
+    /// Returns `a`&nbsp;×&nbsp;`b` to `self`, saturating on overflow.
+    ///
+    /// See also
+    /// <code>FixedI32::[saturating\_add\_prod][FixedI32::saturating_add_prod]</code>
+    /// and
+    /// <code>FixedU32::[saturating\_add\_prod][FixedU32::saturating_add_prod]</code>.
+    fn saturating_add_prod(self, a: Self, b: Self) -> Self;
+
     /// Saturating multiply and add. Adds (`a` × `b`) to `self`, saturating on overflow.
     ///
     /// See also
@@ -2198,6 +2227,14 @@ where
     /// <code>FixedU32::[wrapping\_mul\_add][FixedU32::wrapping_mul_add]</code>.
     #[must_use = "this returns the result of the operation, without modifying the original"]
     fn wrapping_mul_add(self, mul: Self, add: Self) -> Self;
+
+    /// Returns `a`&nbsp;×&nbsp;`b` to `self`, wrapping on overflow.
+    ///
+    /// See also
+    /// <code>FixedI32::[wrapping\_add\_prod][FixedI32::wrapping_add_prod]</code>
+    /// and
+    /// <code>FixedU32::[wrapping\_add\_prod][FixedU32::wrapping_add_prod]</code>.
+    fn wrapping_add_prod(self, a: Self, b: Self) -> Self;
 
     /// Wrapping multiply and accumulate. Adds (`a` × `b`) to `self`, wrapping on overflow.
     ///
@@ -2436,6 +2473,19 @@ where
     #[track_caller]
     #[must_use = "this returns the result of the operation, without modifying the original"]
     fn unwrapped_mul_add(self, mul: Self, add: Self) -> Self;
+
+    /// Returns `a`&nbsp;×&nbsp;`b` to `self`, panicking on overflow.
+    ///
+    /// See also
+    /// <code>FixedI32::[unwrapped\_add\_prod][FixedI32::unwrapped_add_prod]</code>
+    /// and
+    /// <code>FixedU32::[unwrapped\_add\_prod][FixedU32::unwrapped_add_prod]</code>.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the result does not fit.
+    #[track_caller]
+    fn unwrapped_add_prod(self, a: Self, b: Self) -> Self;
 
     /// Unwrapped multiply and accumulate. Adds (`a` × `b`) to `self`, panicking on overflow.
     ///
@@ -2727,6 +2777,18 @@ where
     /// <code>FixedU32::[overflowing\_mul\_add][FixedU32::overflowing_mul_add]</code>.
     #[must_use = "this returns the result of the operation, without modifying the original"]
     fn overflowing_mul_add(self, mul: Self, add: Self) -> (Self, bool);
+
+    /// Adds the product `a`&nbsp;×&nbsp;`b` to `self`.
+    ///
+    /// Returns a [tuple] of the result and a [`bool`] indicating whether an
+    /// overflow has occurred. On overflow, the wrapped value is returned.
+    ///
+    /// See also
+    /// <code>FixedI32::[overflowing\_add\_prod][FixedI32::overflowing_add_prod]</code>
+    /// and
+    /// <code>FixedU32::[overflowing\_add\_prod][FixedU32::overflowing_add_prod]</code>.
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    fn overflowing_add_prod(self, a: Self, b: Self) -> (Self, bool);
 
     /// Overflowing multiply and accumulate. Adds (`a` × `b`) to `self`,
     /// wrapping and returning [`true`] if overflow occurs.
@@ -3895,6 +3957,7 @@ macro_rules! impl_fixed {
             trait_delegate! { fn recip(self) -> Self }
             trait_delegate! { fn next_multiple_of(self, other: Self) -> Self }
             trait_delegate! { fn mul_add(self, mul: Self, add: Self) -> Self }
+            trait_delegate! { fn add_prod(self, a: Self, b: Self) -> Self }
             trait_delegate! { fn mul_acc(&mut self, a: Self, b: Self) }
             trait_delegate! { fn div_euclid(self, rhs: Self) -> Self }
             trait_delegate! { fn rem_euclid(self, rhs: Self) -> Self }
@@ -3911,6 +3974,7 @@ macro_rules! impl_fixed {
             trait_delegate! { fn checked_recip(self) -> Option<Self> }
             trait_delegate! { fn checked_next_multiple_of(self, other: Self) -> Option<Self> }
             trait_delegate! { fn checked_mul_add(self, mul: Self, add: Self) -> Option<Self> }
+            trait_delegate! { fn checked_add_prod(self, a: Self, b: Self) -> Option<Self> }
             trait_delegate! { fn checked_mul_acc(&mut self, a: Self, b: Self) -> Option<()> }
             trait_delegate! { fn checked_div_euclid(self, rhs: Self) -> Option<Self> }
             trait_delegate! { fn checked_rem_euclid(self, rhs: Self) -> Option<Self> }
@@ -3932,6 +3996,7 @@ macro_rules! impl_fixed {
             trait_delegate! { fn saturating_recip(self) -> Self }
             trait_delegate! { fn saturating_next_multiple_of(self, other: Self) -> Self }
             trait_delegate! { fn saturating_mul_add(self, mul: Self, add: Self) -> Self }
+            trait_delegate! { fn saturating_add_prod(self, a: Self, b: Self) -> Self }
             trait_delegate! { fn saturating_mul_acc(&mut self, a: Self, b: Self) }
             trait_delegate! { fn saturating_div_euclid(self, rhs: Self) -> Self }
             trait_delegate! { fn saturating_mul_int(self, rhs: Self::Bits) -> Self }
@@ -3948,6 +4013,7 @@ macro_rules! impl_fixed {
             trait_delegate! { fn wrapping_recip(self) -> Self }
             trait_delegate! { fn wrapping_next_multiple_of(self, other: Self) -> Self }
             trait_delegate! { fn wrapping_mul_add(self, mul: Self, add: Self) -> Self }
+            trait_delegate! { fn wrapping_add_prod(self, a: Self, b: Self) -> Self }
             trait_delegate! { fn wrapping_mul_acc(&mut self, a: Self, b: Self) }
             trait_delegate! { fn wrapping_div_euclid(self, rhs: Self) -> Self }
             trait_delegate! { fn wrapping_mul_int(self, rhs: Self::Bits) -> Self }
@@ -3968,6 +4034,7 @@ macro_rules! impl_fixed {
             trait_delegate! { fn unwrapped_recip(self) -> Self }
             trait_delegate! { fn unwrapped_next_multiple_of(self, other: Self) -> Self }
             trait_delegate! { fn unwrapped_mul_add(self, mul: Self, add: Self) -> Self }
+            trait_delegate! { fn unwrapped_add_prod(self, a: Self, b: Self) -> Self }
             trait_delegate! { fn unwrapped_mul_acc(&mut self, a: Self, b: Self) }
             trait_delegate! { fn unwrapped_div_euclid(self, rhs: Self) -> Self }
             trait_delegate! { fn unwrapped_rem_euclid(self, rhs: Self) -> Self }
@@ -3989,6 +4056,7 @@ macro_rules! impl_fixed {
             trait_delegate! { fn overflowing_recip(self) -> (Self, bool) }
             trait_delegate! { fn overflowing_next_multiple_of(self, other: Self) -> (Self, bool) }
             trait_delegate! { fn overflowing_mul_add(self, mul: Self, add: Self) -> (Self, bool) }
+            trait_delegate! { fn overflowing_add_prod(self, a: Self, b: Self) -> (Self, bool) }
             trait_delegate! { fn overflowing_mul_acc(&mut self, a: Self, b: Self) -> bool }
             trait_delegate! { fn overflowing_div_euclid(self, rhs: Self) -> (Self, bool) }
             trait_delegate! { fn overflowing_mul_int(self, rhs: Self::Bits) -> (Self, bool) }

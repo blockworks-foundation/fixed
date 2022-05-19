@@ -1171,6 +1171,39 @@ impl<F: Fixed> Unwrapped<F> {
         Unwrapped(self.0.unwrapped_mul_add(mul.0, add.0))
     }
 
+    /// Adds the product `a`&nbsp;×&nbsp;`b` to `self`.
+    ///
+    /// See also
+    /// <code>FixedI32::[unwrapped\_add\_prod][FixedI32::unwrapped_add_prod]</code>
+    /// and
+    /// <code>FixedU32::[unwrapped\_add\_prod][FixedU32::unwrapped_add_prod]</code>.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the result does not fit.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use fixed::{types::I16F16, Unwrapped};
+    /// let half = Unwrapped(I16F16::from_num(0.5));
+    /// let three = Unwrapped(I16F16::from_num(3));
+    /// let four = Unwrapped(I16F16::from_num(4));
+    /// assert_eq!(three.add_prod(four, half), Unwrapped(I16F16::from_num(5)));
+    /// ```
+    ///
+    /// The following panics because of overflow.
+    ///
+    /// ```should_panic
+    /// use fixed::{types::I16F16, Unwrapped};
+    /// let max = Unwrapped(I16F16::MAX);
+    /// let _overflow = max.add_prod(max, Unwrapped(I16F16::from_num(3)));
+    /// ```
+    #[inline]
+    pub fn add_prod(self, a: Unwrapped<F>, b: Unwrapped<F>) -> Unwrapped<F> {
+        Unwrapped(self.0.unwrapped_add_prod(a.0, b.0))
+    }
+
     /// Multiply and accumulate. Adds (`a` × `b`) to `self`.
     ///
     /// See also
