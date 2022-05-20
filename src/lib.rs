@@ -46,10 +46,10 @@ for signed numbers like <code>[FixedI32]\<[U32]></code>, and in the range
 
 In version 1 the [*typenum* crate] is used for the fractional bit count `Frac`;
 the plan is to to have a major version 2 with const generics when the Rust
-compiler’s [`generic_const_expr` feature] is ready and stabilized. An [alpha
+compiler’s [`generic_const_exprs` feature] is ready and stabilized. An [alpha
 version] is already available.
 
-[`generic_const_expr` feature]: https://github.com/rust-lang/rust/issues/76560
+[`generic_const_exprs` feature]: https://github.com/rust-lang/rust/issues/76560
 [alpha version]: https://crates.io/crates/fixed/2.0.0-alpha.2
 
 The main features are
@@ -486,7 +486,7 @@ range ",
 
 `Frac` is an [`Unsigned`] as provided by the [*typenum* crate]; the plan is to
 to have a major version 2 where `Frac` is replaced by `FRAC` of type [`i32`]
-when the Rust compiler’s [`generic_const_expr` feature] is ready and stabilized.
+when the Rust compiler’s [`generic_const_exprs` feature] is ready and stabilized.
 An [alpha version] is already available.
 
 `", $s_fixed, "<Frac>` has the same size, alignment and ABI as [`", $s_inner, "`];
@@ -509,7 +509,7 @@ assert_eq!(two_point_75.to_string(), \"2.8\");
 [*typenum* crate]: https://crates.io/crates/typenum
 [U", $s_nbits, "]: crate::types::extra::U", $s_nbits, "
 [U0]: crate::types::extra::U0
-[`generic_const_expr` feature]: https://github.com/rust-lang/rust/issues/76560
+[`generic_const_exprs` feature]: https://github.com/rust-lang/rust/issues/76560
 [alpha version]: https://crates.io/crates/fixed/2.0.0-alpha.2
 ";
             #[repr(transparent)]

@@ -37,10 +37,10 @@ for signed numbers like <code>[FixedI32]\<[U32]></code>, and in the range
 
 In version 1 the [*typenum* crate] is used for the fractional bit count `Frac`;
 the plan is to to have a major version 2 with const generics when the Rust
-compiler’s [`generic_const_expr` feature] is ready and stabilized. An [alpha
+compiler’s [`generic_const_exprs` feature] is ready and stabilized. An [alpha
 version] is already available.
 
-[`generic_const_expr` feature]: https://github.com/rust-lang/rust/issues/76560
+[`generic_const_exprs` feature]: https://github.com/rust-lang/rust/issues/76560
 [alpha version]: https://crates.io/crates/fixed/2.0.0-alpha.2
 
 The main features are
