@@ -1696,7 +1696,7 @@ where
     #[must_use = "this returns the result of the operation, without modifying the original"]
     fn mul_add(self, mul: Self, add: Self) -> Self;
 
-    /// Adds the product `a`&nbsp;×&nbsp;`b` to `self`.
+    /// Adds `self` to the product `a`&nbsp;×&nbsp;`b`.
     ///
     /// Note that the inherent [`add_prod`] method is more flexible than this
     /// method and allows the `a` and `b` parameters to have a fixed-point type
@@ -1850,7 +1850,7 @@ where
     #[must_use = "this returns the result of the operation, without modifying the original"]
     fn checked_mul_add(self, mul: Self, add: Self) -> Option<Self>;
 
-    /// Adds the product `a`&nbsp;×&nbsp;`b` to `self`, returning [`None`] on overflow.
+    /// Adds `self` to the product `a`&nbsp;×&nbsp;`b`, returning [`None`] on overflow.
     ///
     /// See also
     /// <code>FixedI32::[checked\_add\_prod][FixedI32::checked_add_prod]</code>
@@ -2063,7 +2063,7 @@ where
     #[must_use = "this returns the result of the operation, without modifying the original"]
     fn saturating_mul_add(self, mul: Self, add: Self) -> Self;
 
-    /// Returns `a`&nbsp;×&nbsp;`b` to `self`, saturating on overflow.
+    /// Adds `self` to the product `a`&nbsp;×&nbsp;`b`, saturating on overflow.
     ///
     /// See also
     /// <code>FixedI32::[saturating\_add\_prod][FixedI32::saturating_add_prod]</code>
@@ -2228,7 +2228,7 @@ where
     #[must_use = "this returns the result of the operation, without modifying the original"]
     fn wrapping_mul_add(self, mul: Self, add: Self) -> Self;
 
-    /// Returns `a`&nbsp;×&nbsp;`b` to `self`, wrapping on overflow.
+    /// Adds `self` to the product `a`&nbsp;×&nbsp;`b`, wrapping on overflow.
     ///
     /// See also
     /// <code>FixedI32::[wrapping\_add\_prod][FixedI32::wrapping_add_prod]</code>
@@ -2474,7 +2474,7 @@ where
     #[must_use = "this returns the result of the operation, without modifying the original"]
     fn unwrapped_mul_add(self, mul: Self, add: Self) -> Self;
 
-    /// Returns `a`&nbsp;×&nbsp;`b` to `self`, panicking on overflow.
+    /// Adds `self` to the product `a`&nbsp;×&nbsp;`b`, panicking on overflow.
     ///
     /// See also
     /// <code>FixedI32::[unwrapped\_add\_prod][FixedI32::unwrapped_add_prod]</code>
@@ -2778,7 +2778,7 @@ where
     #[must_use = "this returns the result of the operation, without modifying the original"]
     fn overflowing_mul_add(self, mul: Self, add: Self) -> (Self, bool);
 
-    /// Adds the product `a`&nbsp;×&nbsp;`b` to `self`.
+    /// Adds `self` to the product `a`&nbsp;×&nbsp;`b`.
     ///
     /// Returns a [tuple] of the result and a [`bool`] indicating whether an
     /// overflow has occurred. On overflow, the wrapped value is returned.

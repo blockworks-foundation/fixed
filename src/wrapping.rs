@@ -1081,7 +1081,7 @@ impl<F: Fixed> Wrapping<F> {
         Wrapping(self.0.wrapping_mul_add(mul.0, add.0))
     }
 
-    /// Adds the product `a`&nbsp;×&nbsp;`b` to `self`.
+    /// Adds `self` to the product `a`&nbsp;×&nbsp;`b`.
     ///
     /// See also
     /// <code>FixedI32::[wrapping\_add\_prod][FixedI32::wrapping_add_prod]</code>

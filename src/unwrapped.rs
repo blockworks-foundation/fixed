@@ -1171,7 +1171,7 @@ impl<F: Fixed> Unwrapped<F> {
         Unwrapped(self.0.unwrapped_mul_add(mul.0, add.0))
     }
 
-    /// Adds the product `a`&nbsp;×&nbsp;`b` to `self`.
+    /// Adds `self` to the product `a`&nbsp;×&nbsp;`b`.
     ///
     /// See also
     /// <code>FixedI32::[unwrapped\_add\_prod][FixedI32::unwrapped_add_prod]</code>
