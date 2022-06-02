@@ -1324,11 +1324,7 @@ assert_eq!(Fix::ONE.dist(Fix::from_num(5)), Fix::from_num(4));
                 pub const fn dist(self, other: $Fixed<Frac>) -> $Fixed<Frac> {
                     let s = self.to_bits();
                     let o = other.to_bits();
-                    let d = if_signed_unsigned!(
-                        $Signedness,
-                        if s < o { o - s } else { s - o },
-                        s.abs_diff(o),
-                    );
+                    let d = if_signed_unsigned!($Signedness, (s - o).abs(), s.abs_diff(o));
                     Self::from_bits(d)
                 }
             }
