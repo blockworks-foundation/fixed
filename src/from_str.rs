@@ -1988,11 +1988,6 @@ mod tests {
         }
     }
 
-    fn similar<F: Fixed, G: ToFixed>(a: F, b: F, max_diff: G) -> bool {
-        let abs_diff = if a > b { a - b } else { b - a };
-        abs_diff <= max_diff.to_fixed::<F>()
-    }
-
     #[test]
     fn frac17() {
         for u in 0..(1 << 17) {
@@ -2021,11 +2016,11 @@ mod tests {
             }
             let max_diff = U15F17::from_bits((5 << 17) / 10000 + 1);
             let from_fix_str3 = U15F17::from_str(&fix_str3).unwrap();
-            assert!(similar(from_fix_str3, fix, max_diff));
+            assert!(from_fix_str3.dist(fix) <= max_diff);
             let from_fix_pos_str3 = I15F17::from_str(&fix_pos_str3).unwrap();
-            assert!(similar(from_fix_pos_str3, fix_pos, max_diff));
+            assert!(from_fix_pos_str3.dist(fix_pos) <= max_diff);
             let from_fix_neg_str3 = I15F17::from_str(&fix_neg_str3).unwrap();
-            assert!(similar(from_fix_neg_str3, fix_neg, max_diff));
+            assert!(from_fix_neg_str3.dist(fix_neg) <= max_diff);
 
             let fix_str9 = format!("{:.9}", fix);
             let fix_pos_str9 = format!("{:.9}", fix_pos);
