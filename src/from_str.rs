@@ -870,11 +870,7 @@ impl_from_str! {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        from_str::*,
-        traits::{Fixed, ToFixed},
-        types::*,
-    };
+    use crate::{from_str::*, traits::Fixed, types::*};
     use std::{
         fmt::Debug,
         format,
