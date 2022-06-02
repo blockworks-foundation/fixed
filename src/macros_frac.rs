@@ -372,6 +372,9 @@ overflow.
                 "The `a` and `b` parameters can have a fixed-point type like
 `self` but with a different number of fractional bits.
 
+The [`mul_acc`] method performs the same operation as this method but mutates
+`self` instead of returning the result.
+
 # Panics
 
 When debug assertions are enabled, this method panics if the result overflows.
@@ -394,6 +397,7 @@ assert_eq!((-Fix::MAX).add_prod(Fix::MAX, Fix::from_num(1.5)), Fix::MAX / 2);
                 },
                 "```
 
+[`mul_acc`]: Self::mul_acc
 [`wrapping_add_prod`]: Self::wrapping_add_prod
 ";
                 #[inline]
@@ -429,6 +433,9 @@ this method saves the correct result without overflow.
                 "The `a` and `b` parameters can have a fixed-point type like
 `self` but with a different number of fractional bits.
 
+The [`add_prod`] method performs the same operation as this method but returns
+the result instead of mutating `self`.
+
 # Panics
 
 When debug assertions are enabled, this method panics if the result
@@ -457,6 +464,7 @@ assert_eq!(acc, Fix::MAX / 2);
                 },
                 "```
 
+[`add_prod`]: Self::add_prod
 [`wrapping_mul_acc`]: Self::wrapping_mul_acc
 ";
                 #[inline]
