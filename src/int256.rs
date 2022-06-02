@@ -254,11 +254,7 @@ pub fn div_rem_u256_u128(mut n: U256, mut d: u128) -> (U256, u128) {
 pub fn div_rem_i256_i128(n: I256, d: i128) -> (I256, i128) {
     let (n_neg, n_abs) = if n.hi < 0 {
         let (nl, overflow) = n.lo.overflowing_neg();
-        let nh = if overflow {
-            !n.hi as u128
-        } else {
-            n.hi.wrapping_neg() as u128
-        };
+        let nh = n.hi.wrapping_neg().wrapping_sub(overflow as i128) as u128;
         (true, U256 { lo: nl, hi: nh })
     } else {
         let nl = n.lo;
@@ -275,11 +271,7 @@ pub fn div_rem_i256_i128(n: I256, d: i128) -> (I256, i128) {
 
     let q = if n_neg != d_neg {
         let (ql, overflow) = q_abs.lo.overflowing_neg();
-        let qh = if overflow {
-            !q_abs.hi as i128
-        } else {
-            q_abs.hi.wrapping_neg() as i128
-        };
+        let qh = q_abs.hi.wrapping_neg().wrapping_sub(overflow as u128) as i128;
         I256 { lo: ql, hi: qh }
     } else {
         let ql = q_abs.lo;
