@@ -9,6 +9,8 @@ Version 1.16.0 (unreleased)
 ===========================
 
   * The crate now requires rustc version 1.61.0 or later.
+  * The [`NEG_ONE`][f-no-1-16] constant was added to all signed fixed-point
+    numbers that can represent the value &minus;1.
   * The [`add_prod`][f-ap-1-16] method was added to all fixed-point numbers, to
     the [`Fixed`][tf-1-16] trait, and to the [`Wrapping`][w-1-16] and
     [`Unwrapped`][u-1-16] wrappers.
@@ -71,6 +73,7 @@ Version 1.16.0 (unreleased)
 [f-il10-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.int_log10
 [f-il2-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.int_log2
 [f-ma-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.mul_add
+[f-no-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#associatedconstant.NEG_ONE
 [f-oap-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_add_prod
 [f-oc-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_ceil
 [f-of-1-16]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.overflowing_floor

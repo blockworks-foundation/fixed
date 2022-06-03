@@ -67,17 +67,17 @@ assert_eq!(Fix::LOG10_2, Fix::from_num(consts::LOG10_2));
         }
 
         comment! {
-            "This block contains constants in the range 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1.
-
-",
+            "This block contains constants in the range 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1",
             if_signed_else_empty_str! {
                 $Signedness;
-                "These constants are not representable in signed
-fixed-point numbers with less than 1 integer bit.
+                ", and &minus;1.
 
-"
+These constants are not representable in signed fixed-point numbers with less
+than 1 integer bit"
             },
-            "# Examples
+            ".
+
+# Examples
 
 ```rust
 use fixed::{consts, types::extra::U",
@@ -108,6 +108,35 @@ let _ = Fix::LN_2;
             where
                 Frac: IsLessOrEqual<$LeEqU_C0, Output = True>,
             {
+                if_signed! {
+                    $Signedness;
+                    comment! {
+                        "Negative one.
+
+# Examples
+
+```rust
+use fixed::{types::extra::U", $s_nbits_m1, ", ", $s_fixed, "};
+type Fix = ", $s_fixed, "<U", $s_nbits_m1, ">;
+assert_eq!(Fix::NEG_ONE, Fix::from_num(-1));
+```
+
+The following would fail as
+<code>[", $s_fixed, "]&lt;[U", $s_nbits_m1, "]></code>
+cannot represent 1, so there is no
+<code>[", $s_fixed, "]::&lt;[U", $s_nbits_m1, "]>::[ONE]</code>.
+
+[ONE]: ", $s_fixed, "::ONE
+
+```rust,compile_fail
+use fixed::{types::extra::U", $s_nbits_m1, ", ", $s_fixed, "};
+const _ERROR: ", $s_fixed, "<U", $s_nbits_m1, "> = ", $s_fixed, "::ONE.unwrapped_neg();
+```
+";
+                        pub const NEG_ONE: $Fixed<Frac> = Self::from_bits(-1 << Frac::U32);
+                    }
+                }
+
                 /// τ/8 = 0.785398…
                 pub const FRAC_TAU_8: $Fixed<Frac> = Self::from_const(consts::FRAC_TAU_8);
 
@@ -203,7 +232,7 @@ type Fix = ", $s_fixed, "<U4>;
 assert_eq!(Fix::ONE, Fix::from_num(1));
 ```
 ";
-                    pub const ONE: $Fixed<Frac> = Self::DELTA.unwrapped_shl(Frac::U32);
+                    pub const ONE: $Fixed<Frac> = Self::from_bits(1 << Frac::U32);
                 }
 
                 /// τ/4 = 1.57079…
