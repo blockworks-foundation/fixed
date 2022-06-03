@@ -98,7 +98,7 @@ The conversions supported cover the following cases.
     [`from_num`] and [`to_num`] methods and [their checked
     versions][`checked_from_num`].
   * Additionally, [`az`] casts are implemented for conversion between
-    fixed-point nubmers and numeric primitives.
+    fixed-point numbers and numeric primitives.
   * Fixed-point numbers can be parsed from decimal strings using [`FromStr`],
     and from binary, octal and hexadecimal strings using the
     [`from_str_binary`], [`from_str_octal`] and [`from_str_hex`] methods. The
