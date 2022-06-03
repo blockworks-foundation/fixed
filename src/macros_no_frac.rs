@@ -1308,7 +1308,7 @@ assert_eq!(Fix::ONE.dist(Fix::from_num(5)), Fix::from_num(4));
 ",
                 if_signed_else_empty_str! {
                     $Signedness;
-                    "assert_eq!(Fix::from_num(-1).dist(Fix::from_num(2)), Fix::from_num(3));
+                    "assert_eq!(Fix::NEG_ONE.dist(Fix::from_num(2)), Fix::from_num(3));
 ",
                 },
                 "```
@@ -1343,7 +1343,7 @@ The distance is the absolute value of the difference.
 use fixed::{types::extra::U4, ", $s_fixed, ", ", $s_ufixed, "};
 type Fix = ", $s_fixed, "<U4>;
 type UFix = ", $s_ufixed, "<U4>;
-assert_eq!(Fix::from_num(-1).unsigned_dist(Fix::from_num(2)), UFix::from_num(3));
+assert_eq!(Fix::NEG_ONE.unsigned_dist(Fix::from_num(2)), UFix::from_num(3));
 assert_eq!(Fix::MIN.unsigned_dist(Fix::MAX), UFix::MAX);
 ```
 ";

@@ -583,7 +583,7 @@ use fixed::{
 type Fix = ", $s_fixed, "<U4>;
 assert_eq!(Fix::from_num(5).checked_signum(), Some(Fix::ONE));
 assert_eq!(Fix::ZERO.checked_signum(), Some(Fix::ZERO));
-assert_eq!(Fix::from_num(-5).checked_signum(), Some(Fix::from_num(-1)));
+assert_eq!(Fix::from_num(-5).checked_signum(), Some(Fix::NEG_ONE));
 
 type OneIntBit = ", $s_fixed, "<U", $s_nbits_m1, ">;
 type ZeroIntBits = ", $s_fixed, "<U", $s_nbits, ">;
@@ -2297,11 +2297,11 @@ use fixed::{
 type Fix = ", $s_fixed, "<U4>;
 assert_eq!(Fix::from_num(5).overflowing_signum(), (Fix::ONE, false));
 assert_eq!(Fix::ZERO.overflowing_signum(), (Fix::ZERO, false));
-assert_eq!(Fix::from_num(-5).overflowing_signum(), (Fix::from_num(-1), false));
+assert_eq!(Fix::from_num(-5).overflowing_signum(), (Fix::NEG_ONE, false));
 
 type OneIntBit = ", $s_fixed, "<U", $s_nbits_m1, ">;
 type ZeroIntBits = ", $s_fixed, "<U", $s_nbits, ">;
-assert_eq!(OneIntBit::from_num(0.5).overflowing_signum(), (OneIntBit::from_num(-1), true));
+assert_eq!(OneIntBit::from_num(0.5).overflowing_signum(), (OneIntBit::NEG_ONE, true));
 assert_eq!(ZeroIntBits::from_num(0.25).overflowing_signum(), (ZeroIntBits::ZERO, true));
 assert_eq!(ZeroIntBits::from_num(-0.5).overflowing_signum(), (ZeroIntBits::ZERO, true));
 ```

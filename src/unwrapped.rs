@@ -1550,8 +1550,8 @@ impl<F: FixedSigned> Unwrapped<F> {
     ///
     /// ```rust
     /// use fixed::{types::I16F16, Unwrapped};
-    /// assert_eq!(Unwrapped(<I16F16>::from_num(-3.9)).signum(), Unwrapped(I16F16::from_num(-1)));
-    /// assert_eq!(Unwrapped(<I16F16>::ZERO).signum(), Unwrapped(I16F16::from_num(0)));
+    /// assert_eq!(Unwrapped(<I16F16>::from_num(-3.9)).signum(), Unwrapped(I16F16::NEG_ONE));
+    /// assert_eq!(Unwrapped(<I16F16>::ZERO).signum(), Unwrapped(I16F16::ZERO));
     /// assert_eq!(Unwrapped(<I16F16>::from_num(3.9)).signum(), Unwrapped(I16F16::ONE));
     /// ```
     ///

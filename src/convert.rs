@@ -1550,7 +1550,7 @@ mod tests {
         );
         // -1 -> sign 1, biased exp 3FFF, mantissa 0
         assert_eq!(
-            I8F8::from_num(-1).to_num::<F128Bits>(),
+            I8F8::NEG_ONE.to_num::<F128Bits>(),
             F128Bits(0xBFFF_u128 << 112)
         );
         // -0.5 -> sign 1, biased exp 3FFE, mantissa 0

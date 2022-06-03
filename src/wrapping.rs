@@ -1382,11 +1382,11 @@ impl<F: FixedSigned> Wrapping<F> {
     ///     types::{I0F32, I1F31, I16F16},
     ///     Wrapping,
     /// };
-    /// assert_eq!(Wrapping(<I16F16>::from_num(-3.9)).signum(), Wrapping(I16F16::from_num(-1)));
+    /// assert_eq!(Wrapping(<I16F16>::from_num(-3.9)).signum(), Wrapping(I16F16::NEG_ONE));
     /// assert_eq!(Wrapping(<I16F16>::ZERO).signum(), Wrapping(I16F16::ZERO));
     /// assert_eq!(Wrapping(<I16F16>::from_num(3.9)).signum(), Wrapping(I16F16::ONE));
     ///
-    /// assert_eq!(Wrapping(<I1F31>::from_num(0.5)).signum(), Wrapping(I1F31::from_num(-1)));
+    /// assert_eq!(Wrapping(<I1F31>::from_num(0.5)).signum(), Wrapping(I1F31::NEG_ONE));
     /// assert_eq!(Wrapping(<I0F32>::from_num(0.25)).signum(), Wrapping(I0F32::ZERO));
     /// assert_eq!(Wrapping(<I0F32>::from_num(-0.5)).signum(), Wrapping(I0F32::ZERO));
     /// ```
