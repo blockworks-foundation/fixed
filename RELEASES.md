@@ -5,6 +5,11 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.16.1 (2022-07-22)
+===========================
+
+  * *Cargo.toml* now includes the [`rust-version`] field ([merge request 11]).
+
 Version 1.16.0 (2022-06-30)
 ===========================
 
@@ -118,6 +123,7 @@ Version 1.16.0 (2022-06-30)
 [f-ws-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wide_sdiv
 [f-ws-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_signum
 [f-wss-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.FixedU32.html#method.wide_sdiv_signed
+[merge request 11]: https://gitlab.com/tspiteri/fixed/-/merge_requests/11
 [tf-1-16]: https://docs.rs/fixed/~1.16/fixed/traits/trait.Fixed.html
 [u-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.Unwrapped.html
 [w-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.Wrapping.html
@@ -1085,3 +1091,4 @@ Version 0.1.0 (2018-08-10)
 [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
 [`SubAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.SubAssign.html
 [`Sum`]: https://doc.rust-lang.org/nightly/core/iter/trait.Sum.html
+[`rust-version`]: https://doc.rust-lang.org/nightly/cargo/reference/manifest.html#the-rust-version-field

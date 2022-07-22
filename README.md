@@ -102,7 +102,11 @@ The conversions supported cover the following cases.
 
 ## What’s new
 
-### Version 1.16.0 news (2021-06-30)
+### Version 1.16.1 news (2022-07-22)
+
+  * *Cargo.toml* now includes the [`rust-version`] field ([merge request 11]).
+
+### Version 1.16.0 news (2022-06-30)
 
   * The crate now requires rustc version 1.61.0 or later.
   * The [`NEG_ONE`][f-no-1-16] constant was added to all signed fixed-point
@@ -151,6 +155,7 @@ The conversions supported cover the following cases.
         [`saturating_signum`][f-ss-1-16], [`wrapping_signum`][f-ws-1-16],
         [`unwrapped_signum`][f-us-1-16], [`overflowing_signum`][f-os-1-16]
 
+[`rust-version`]: https://doc.rust-lang.org/nightly/cargo/reference/manifest.html#the-rust-version-field
 [f-ap-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.add_prod
 [f-c-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.ceil
 [f-cap-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_add_prod
@@ -214,6 +219,7 @@ The conversions supported cover the following cases.
 [f-ws-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wide_sdiv
 [f-ws-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_signum
 [f-wss-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.FixedU32.html#method.wide_sdiv_signed
+[merge request 11]: https://gitlab.com/tspiteri/fixed/-/merge_requests/11
 [tf-1-16]: https://docs.rs/fixed/~1.16/fixed/traits/trait.Fixed.html
 [u-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.Unwrapped.html
 [w-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.Wrapping.html
