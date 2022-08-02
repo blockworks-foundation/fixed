@@ -1034,9 +1034,12 @@ impl_from_str! {
 
 #[cfg(test)]
 mod tests {
-    use crate::{from_str::*, traits::Fixed, types::*};
+    use crate::{
+        bytes::Bytes,
+        from_str::{self, parse_bounds, Parse, ParseErrorKind, ParseFixedError, Round},
+        types::*,
+    };
     use std::{
-        fmt::Debug,
         format,
         string::{String, ToString},
     };
@@ -1132,7 +1135,7 @@ mod tests {
         let two_pow = 8f64.exp2();
         let limit = 1000;
         for i in 0..limit {
-            let ans = <u8 as DecToBin>::dec_to_bin(i, 8, Round::Nearest);
+            let ans = from_str::u8::dec_to_bin(i, 8, Round::Nearest);
             let approx = two_pow * f64::from(i) / f64::from(limit);
             let error = (ans.map(f64::from).unwrap_or(two_pow) - approx).abs();
             assert!(
@@ -1151,7 +1154,7 @@ mod tests {
         let two_pow = 16f64.exp2();
         let limit = 1_000_000;
         for i in 0..limit {
-            let ans = <u16 as DecToBin>::dec_to_bin(i, 16, Round::Nearest);
+            let ans = from_str::u16::dec_to_bin(i, 16, Round::Nearest);
             let approx = two_pow * f64::from(i) / f64::from(limit);
             let error = (ans.map(f64::from).unwrap_or(two_pow) - approx).abs();
             assert!(
@@ -1180,7 +1183,7 @@ mod tests {
                 limit / 2 + iter,
                 limit - iter - 1,
             ] {
-                let ans = <u32 as DecToBin>::dec_to_bin(i, 32, Round::Nearest);
+                let ans = from_str::u32::dec_to_bin(i, 32, Round::Nearest);
                 let approx = two_pow * i as f64 / limit as f64;
                 let error = (ans.map(f64::from).unwrap_or(two_pow) - approx).abs();
                 assert!(
@@ -1210,7 +1213,7 @@ mod tests {
                 limit / 2 + iter,
                 limit - iter - 1,
             ] {
-                let ans = <u64 as DecToBin>::dec_to_bin(i, 64, Round::Nearest);
+                let ans = from_str::u64::dec_to_bin(i, 64, Round::Nearest);
                 let approx = two_pow * i as f64 / limit as f64;
                 let error = (ans.map(|x| x as f64).unwrap_or(two_pow) - approx).abs();
                 assert!(
@@ -1229,18 +1232,18 @@ mod tests {
     fn check_dec_128() {
         let nines = 10u128.pow(27) - 1;
         let zeros = 0;
-        let too_big = <u128 as DecToBin>::dec_to_bin((nines, nines), 128, Round::Nearest);
+        let too_big = from_str::u128::dec_to_bin((nines, nines), 128, Round::Nearest);
         assert_eq!(too_big, None);
-        let big = <u128 as DecToBin>::dec_to_bin((nines, zeros), 128, Round::Nearest);
+        let big = from_str::u128::dec_to_bin((nines, zeros), 128, Round::Nearest);
         assert_eq!(
             big,
             Some(340_282_366_920_938_463_463_374_607_091_485_844_535)
         );
-        let small = <u128 as DecToBin>::dec_to_bin((zeros, nines), 128, Round::Nearest);
+        let small = from_str::u128::dec_to_bin((zeros, nines), 128, Round::Nearest);
         assert_eq!(small, Some(340_282_366_921));
-        let zero = <u128 as DecToBin>::dec_to_bin((zeros, zeros), 128, Round::Nearest);
+        let zero = from_str::u128::dec_to_bin((zeros, zeros), 128, Round::Nearest);
         assert_eq!(zero, Some(0));
-        let x = <u128 as DecToBin>::dec_to_bin(
+        let x = from_str::u128::dec_to_bin(
             (
                 123_456_789_012_345_678_901_234_567,
                 987_654_321_098_765_432_109_876_543,
@@ -1251,688 +1254,919 @@ mod tests {
         assert_eq!(x, Some(42_010_168_377_579_896_403_540_037_811_203_677_112));
 
         let eights = 888_888_888_888_888_888_888_888_888;
-        let narrow = <u128 as DecToBin>::dec_to_bin((eights, zeros), 40, Round::Nearest);
+        let narrow = from_str::u128::dec_to_bin((eights, zeros), 40, Round::Nearest);
         assert_eq!(narrow, Some(977_343_669_134));
+    }
+
+    fn check_parse_bounds_ok(bytes: &[u8], radix: u32, check: (bool, &[u8], &[u8])) {
+        let bytes = Bytes::new(bytes);
+        let Parse { neg, int, frac } = parse_bounds(bytes, radix).unwrap();
+        let int = int.slice();
+        let frac = frac.slice();
+        assert_eq!((neg, int, frac), check);
+    }
+
+    fn check_parse_bounds_err(bytes: &[u8], radix: u32, check: ParseErrorKind) {
+        let bytes = Bytes::new(bytes);
+        let ParseFixedError { kind } = parse_bounds(bytes, radix).unwrap_err();
+        assert_eq!(kind, check);
     }
 
     #[test]
     fn check_parse_bounds() {
-        let Parse { neg, int, frac } = parse_bounds(b"-12.34", 10).unwrap();
-        assert_eq!((neg, int, frac), (true, &b"12"[..], &b"34"[..]));
-        let Parse { neg, int, frac } = parse_bounds(b"012.", 10).unwrap();
-        assert_eq!((neg, int, frac), (false, &b"12"[..], &b""[..]));
-        let Parse { neg, int, frac } = parse_bounds(b"+.340", 10).unwrap();
-        assert_eq!((neg, int, frac), (false, &b""[..], &b"34"[..]));
-        let Parse { neg, int, frac } = parse_bounds(b"0", 10).unwrap();
-        assert_eq!((neg, int, frac), (false, &b""[..], &b""[..]));
-        let Parse { neg, int, frac } = parse_bounds(b"-.C1A0", 16).unwrap();
-        assert_eq!((neg, int, frac), (true, &b""[..], &b"C1A"[..]));
+        check_parse_bounds_ok(b"-12.34", 10, (true, &b"12"[..], &b"34"[..]));
+        check_parse_bounds_ok(b"012.", 10, (false, &b"12"[..], &b""[..]));
+        check_parse_bounds_ok(b"+.340", 10, (false, &b""[..], &b"34"[..]));
+        check_parse_bounds_ok(b"0", 10, (false, &b""[..], &b""[..]));
+        check_parse_bounds_ok(b"-.C1A0", 16, (true, &b""[..], &b"C1A"[..]));
 
-        let ParseFixedError { kind } = parse_bounds(b"0 ", 10).unwrap_err();
-        assert_eq!(kind, ParseErrorKind::InvalidDigit);
-        let ParseFixedError { kind } = parse_bounds(b"+-", 10).unwrap_err();
-        assert_eq!(kind, ParseErrorKind::InvalidDigit);
-        let ParseFixedError { kind } = parse_bounds(b"+.", 10).unwrap_err();
-        assert_eq!(kind, ParseErrorKind::NoDigits);
-        let ParseFixedError { kind } = parse_bounds(b".1.", 10).unwrap_err();
-        assert_eq!(kind, ParseErrorKind::TooManyPoints);
-        let ParseFixedError { kind } = parse_bounds(b"1+2", 10).unwrap_err();
-        assert_eq!(kind, ParseErrorKind::InvalidDigit);
-        let ParseFixedError { kind } = parse_bounds(b"1-2", 10).unwrap_err();
-        assert_eq!(kind, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"0 ", 10, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"+-", 10, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"+.", 10, ParseErrorKind::NoDigits);
+        check_parse_bounds_err(b".1.", 10, ParseErrorKind::TooManyPoints);
+        check_parse_bounds_err(b"1+2", 10, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"1-2", 10, ParseErrorKind::InvalidDigit);
     }
 
-    fn assert_ok<F>(s: &str, radix: u32, bits: F::Bits, overflow: bool)
-    where
-        F: Fixed + FromStrRadix<Err = ParseFixedError>,
-        F::Bits: Eq + Debug,
-    {
-        match F::overflowing_from_str_radix(s, radix) {
-            Ok((f, o)) => {
-                assert_eq!(f.to_bits(), bits, "{} -> ({}, {})", s, f, o);
-                assert_eq!(o, overflow, "{} -> ({}, {})", s, f, o);
+    macro_rules! assert_ok {
+        ($T:ty, $str:expr, $radix:expr, $bits:expr, $overflow:expr) => {
+            let m = match $radix {
+                2 => <$T>::overflowing_from_str_binary($str),
+                8 => <$T>::overflowing_from_str_octal($str),
+                10 => <$T>::overflowing_from_str($str),
+                16 => <$T>::overflowing_from_str_hex($str),
+                _ => unreachable!(),
+            };
+            match m {
+                Ok((f, o)) => {
+                    assert_eq!(f.to_bits(), $bits, "{} -> ({}, {})", $str, f, o);
+                    assert_eq!(o, $overflow, "{} -> ({}, {})", $str, f, o);
+                }
+                Err(e) => panic!("could not parse {}: {}", $str, e),
             }
-            Err(e) => panic!("could not parse {}: {}", s, e),
-        }
+        };
     }
 
     #[test]
     fn check_i8_u8_from_str() {
-        assert_ok::<I0F8>("-1", 10, 0x00, true);
-        assert_ok::<I0F8>("-0.502", 10, 0x7F, true);
-        assert_ok::<I0F8>("-0.501", 10, -0x80, false);
-        assert_ok::<I0F8>("0.498", 10, 0x7F, false);
-        assert_ok::<I0F8>("0.499", 10, -0x80, true);
-        assert_ok::<I0F8>("1", 10, 0x00, true);
+        assert_ok!(I0F8, "-1", 10, 0x00, true);
+        assert_ok!(I0F8, "-0.502", 10, 0x7F, true);
+        assert_ok!(I0F8, "-0.501", 10, -0x80, false);
+        assert_ok!(I0F8, "0.498", 10, 0x7F, false);
+        assert_ok!(I0F8, "0.499", 10, -0x80, true);
+        assert_ok!(I0F8, "1", 10, 0x00, true);
 
-        assert_ok::<I4F4>("-8.04", 10, 0x7F, true);
-        assert_ok::<I4F4>("-8.03", 10, -0x80, false);
-        assert_ok::<I4F4>("7.96", 10, 0x7F, false);
-        assert_ok::<I4F4>("7.97", 10, -0x80, true);
+        assert_ok!(I4F4, "-8.04", 10, 0x7F, true);
+        assert_ok!(I4F4, "-8.03", 10, -0x80, false);
+        assert_ok!(I4F4, "7.96", 10, 0x7F, false);
+        assert_ok!(I4F4, "7.97", 10, -0x80, true);
 
-        assert_ok::<I8F0>("-128.501", 10, 0x7F, true);
+        assert_ok!(I8F0, "-128.501", 10, 0x7F, true);
         // exact tie, round up to even
-        assert_ok::<I8F0>("-128.5", 10, -0x80, false);
-        assert_ok::<I8F0>("127.499", 10, 0x7F, false);
+        assert_ok!(I8F0, "-128.5", 10, -0x80, false);
+        assert_ok!(I8F0, "127.499", 10, 0x7F, false);
         // exact tie, round up to even
-        assert_ok::<I8F0>("127.5", 10, -0x80, true);
+        assert_ok!(I8F0, "127.5", 10, -0x80, true);
 
-        assert_ok::<U0F8>("-0", 10, 0x00, false);
-        assert_ok::<U0F8>("0.498", 10, 0x7F, false);
-        assert_ok::<U0F8>("0.499", 10, 0x80, false);
-        assert_ok::<U0F8>("0.998", 10, 0xFF, false);
-        assert_ok::<U0F8>("0.999", 10, 0x00, true);
-        assert_ok::<U0F8>("1", 10, 0x00, true);
+        assert_ok!(U0F8, "-0", 10, 0x00, false);
+        assert_ok!(U0F8, "0.498", 10, 0x7F, false);
+        assert_ok!(U0F8, "0.499", 10, 0x80, false);
+        assert_ok!(U0F8, "0.998", 10, 0xFF, false);
+        assert_ok!(U0F8, "0.999", 10, 0x00, true);
+        assert_ok!(U0F8, "1", 10, 0x00, true);
 
-        assert_ok::<U4F4>("7.96", 10, 0x7F, false);
-        assert_ok::<U4F4>("7.97", 10, 0x80, false);
-        assert_ok::<U4F4>("15.96", 10, 0xFF, false);
-        assert_ok::<U4F4>("15.97", 10, 0x00, true);
+        assert_ok!(U4F4, "7.96", 10, 0x7F, false);
+        assert_ok!(U4F4, "7.97", 10, 0x80, false);
+        assert_ok!(U4F4, "15.96", 10, 0xFF, false);
+        assert_ok!(U4F4, "15.97", 10, 0x00, true);
 
-        assert_ok::<U8F0>("127.499", 10, 0x7F, false);
+        assert_ok!(U8F0, "127.499", 10, 0x7F, false);
         // exact tie, round up to even
-        assert_ok::<U8F0>("127.5", 10, 0x80, false);
-        assert_ok::<U8F0>("255.499", 10, 0xFF, false);
+        assert_ok!(U8F0, "127.5", 10, 0x80, false);
+        assert_ok!(U8F0, "255.499", 10, 0xFF, false);
         // exact tie, round up to even
-        assert_ok::<U8F0>("255.5", 10, 0x00, true);
+        assert_ok!(U8F0, "255.5", 10, 0x00, true);
     }
 
     #[test]
     fn check_i16_u16_from_str() {
-        assert_ok::<I0F16>("-1", 10, 0x00, true);
-        assert_ok::<I0F16>("-0.500008", 10, 0x7FFF, true);
-        assert_ok::<I0F16>("-0.500007", 10, -0x8000, false);
-        assert_ok::<I0F16>("+0.499992", 10, 0x7FFF, false);
-        assert_ok::<I0F16>("+0.499993", 10, -0x8000, true);
-        assert_ok::<I0F16>("1", 10, 0x0000, true);
+        assert_ok!(I0F16, "-1", 10, 0x00, true);
+        assert_ok!(I0F16, "-0.500008", 10, 0x7FFF, true);
+        assert_ok!(I0F16, "-0.500007", 10, -0x8000, false);
+        assert_ok!(I0F16, "+0.499992", 10, 0x7FFF, false);
+        assert_ok!(I0F16, "+0.499993", 10, -0x8000, true);
+        assert_ok!(I0F16, "1", 10, 0x0000, true);
 
-        assert_ok::<I8F8>("-128.002", 10, 0x7FFF, true);
-        assert_ok::<I8F8>("-128.001", 10, -0x8000, false);
-        assert_ok::<I8F8>("+127.998", 10, 0x7FFF, false);
-        assert_ok::<I8F8>("+127.999", 10, -0x8000, true);
+        assert_ok!(I8F8, "-128.002", 10, 0x7FFF, true);
+        assert_ok!(I8F8, "-128.001", 10, -0x8000, false);
+        assert_ok!(I8F8, "+127.998", 10, 0x7FFF, false);
+        assert_ok!(I8F8, "+127.999", 10, -0x8000, true);
 
-        assert_ok::<I16F0>("-32768.500001", 10, 0x7FFF, true);
+        assert_ok!(I16F0, "-32768.500001", 10, 0x7FFF, true);
         // exact tie, round up to even
-        assert_ok::<I16F0>("-32768.5", 10, -0x8000, false);
-        assert_ok::<I16F0>("+32767.499999", 10, 0x7FFF, false);
+        assert_ok!(I16F0, "-32768.5", 10, -0x8000, false);
+        assert_ok!(I16F0, "+32767.499999", 10, 0x7FFF, false);
         // exact tie, round up to even
-        assert_ok::<I16F0>("+32767.5", 10, -0x8000, true);
+        assert_ok!(I16F0, "+32767.5", 10, -0x8000, true);
 
-        assert_ok::<U0F16>("-0", 10, 0x0000, false);
-        assert_ok::<U0F16>("0.499992", 10, 0x7FFF, false);
-        assert_ok::<U0F16>("0.499993", 10, 0x8000, false);
-        assert_ok::<U0F16>("0.999992", 10, 0xFFFF, false);
-        assert_ok::<U0F16>("0.999993", 10, 0x0000, true);
-        assert_ok::<U0F16>("1", 10, 0x0000, true);
+        assert_ok!(U0F16, "-0", 10, 0x0000, false);
+        assert_ok!(U0F16, "0.499992", 10, 0x7FFF, false);
+        assert_ok!(U0F16, "0.499993", 10, 0x8000, false);
+        assert_ok!(U0F16, "0.999992", 10, 0xFFFF, false);
+        assert_ok!(U0F16, "0.999993", 10, 0x0000, true);
+        assert_ok!(U0F16, "1", 10, 0x0000, true);
 
-        assert_ok::<U8F8>("127.998", 10, 0x7FFF, false);
-        assert_ok::<U8F8>("127.999", 10, 0x8000, false);
-        assert_ok::<U8F8>("255.998", 10, 0xFFFF, false);
-        assert_ok::<U8F8>("255.999", 10, 0x0000, true);
+        assert_ok!(U8F8, "127.998", 10, 0x7FFF, false);
+        assert_ok!(U8F8, "127.999", 10, 0x8000, false);
+        assert_ok!(U8F8, "255.998", 10, 0xFFFF, false);
+        assert_ok!(U8F8, "255.999", 10, 0x0000, true);
 
-        assert_ok::<U16F0>("32767.499999", 10, 0x7FFF, false);
+        assert_ok!(U16F0, "32767.499999", 10, 0x7FFF, false);
         // exact tie, round up to even
-        assert_ok::<U16F0>("32767.5", 10, 0x8000, false);
-        assert_ok::<U16F0>("65535.499999", 10, 0xFFFF, false);
+        assert_ok!(U16F0, "32767.5", 10, 0x8000, false);
+        assert_ok!(U16F0, "65535.499999", 10, 0xFFFF, false);
         // exact tie, round up to even
-        assert_ok::<U16F0>("65535.5", 10, 0x0000, true);
+        assert_ok!(U16F0, "65535.5", 10, 0x0000, true);
     }
 
     #[test]
     fn check_i32_u32_from_str() {
-        assert_ok::<I0F32>("-1", 10, 0x0000_0000, true);
-        assert_ok::<I0F32>("-0.5000000002", 10, 0x7FFF_FFFF, true);
-        assert_ok::<I0F32>("-0.5000000001", 10, -0x8000_0000, false);
-        assert_ok::<I0F32>("0.4999999998", 10, 0x7FFF_FFFF, false);
-        assert_ok::<I0F32>("0.4999999999", 10, -0x8000_0000, true);
-        assert_ok::<I0F32>("1", 10, 0x0000_0000, true);
+        assert_ok!(I0F32, "-1", 10, 0x0000_0000, true);
+        assert_ok!(I0F32, "-0.5000000002", 10, 0x7FFF_FFFF, true);
+        assert_ok!(I0F32, "-0.5000000001", 10, -0x8000_0000, false);
+        assert_ok!(I0F32, "0.4999999998", 10, 0x7FFF_FFFF, false);
+        assert_ok!(I0F32, "0.4999999999", 10, -0x8000_0000, true);
+        assert_ok!(I0F32, "1", 10, 0x0000_0000, true);
 
-        assert_ok::<I16F16>("-32768.000008", 10, 0x7FFF_FFFF, true);
-        assert_ok::<I16F16>("-32768.000007", 10, -0x8000_0000, false);
-        assert_ok::<I16F16>("32767.999992", 10, 0x7FFF_FFFF, false);
-        assert_ok::<I16F16>("32767.999993", 10, -0x8000_0000, true);
+        assert_ok!(I16F16, "-32768.000008", 10, 0x7FFF_FFFF, true);
+        assert_ok!(I16F16, "-32768.000007", 10, -0x8000_0000, false);
+        assert_ok!(I16F16, "32767.999992", 10, 0x7FFF_FFFF, false);
+        assert_ok!(I16F16, "32767.999993", 10, -0x8000_0000, true);
 
-        assert_ok::<I32F0>("-2147483648.5000000001", 10, 0x7FFF_FFFF, true);
+        assert_ok!(I32F0, "-2147483648.5000000001", 10, 0x7FFF_FFFF, true);
         // exact tie, round up to even
-        assert_ok::<I32F0>("-2147483648.5", 10, -0x8000_0000, false);
-        assert_ok::<I32F0>("2147483647.4999999999", 10, 0x7FFF_FFFF, false);
+        assert_ok!(I32F0, "-2147483648.5", 10, -0x8000_0000, false);
+        assert_ok!(I32F0, "2147483647.4999999999", 10, 0x7FFF_FFFF, false);
         // exact tie, round up to even
-        assert_ok::<I32F0>("2147483647.5", 10, -0x8000_0000, true);
+        assert_ok!(I32F0, "2147483647.5", 10, -0x8000_0000, true);
 
-        assert_ok::<U0F32>("-0", 10, 0x0000_0000, false);
-        assert_ok::<U0F32>("0.4999999998", 10, 0x7FFF_FFFF, false);
-        assert_ok::<U0F32>("0.4999999999", 10, 0x8000_0000, false);
-        assert_ok::<U0F32>("0.9999999998", 10, 0xFFFF_FFFF, false);
-        assert_ok::<U0F32>("0.9999999999", 10, 0x0000_0000, true);
-        assert_ok::<U0F32>("1", 10, 0x0000_0000, true);
+        assert_ok!(U0F32, "-0", 10, 0x0000_0000, false);
+        assert_ok!(U0F32, "0.4999999998", 10, 0x7FFF_FFFF, false);
+        assert_ok!(U0F32, "0.4999999999", 10, 0x8000_0000, false);
+        assert_ok!(U0F32, "0.9999999998", 10, 0xFFFF_FFFF, false);
+        assert_ok!(U0F32, "0.9999999999", 10, 0x0000_0000, true);
+        assert_ok!(U0F32, "1", 10, 0x0000_0000, true);
 
-        assert_ok::<U16F16>("32767.999992", 10, 0x7FFF_FFFF, false);
-        assert_ok::<U16F16>("32767.999993", 10, 0x8000_0000, false);
-        assert_ok::<U16F16>("65535.999992", 10, 0xFFFF_FFFF, false);
-        assert_ok::<U16F16>("65535.999993", 10, 0x0000_0000, true);
+        assert_ok!(U16F16, "32767.999992", 10, 0x7FFF_FFFF, false);
+        assert_ok!(U16F16, "32767.999993", 10, 0x8000_0000, false);
+        assert_ok!(U16F16, "65535.999992", 10, 0xFFFF_FFFF, false);
+        assert_ok!(U16F16, "65535.999993", 10, 0x0000_0000, true);
 
-        assert_ok::<U32F0>("2147483647.4999999999", 10, 0x7FFF_FFFF, false);
+        assert_ok!(U32F0, "2147483647.4999999999", 10, 0x7FFF_FFFF, false);
         // exact tie, round up to even
-        assert_ok::<U32F0>("2147483647.5", 10, 0x8000_0000, false);
-        assert_ok::<U32F0>("4294967295.4999999999", 10, 0xFFFF_FFFF, false);
+        assert_ok!(U32F0, "2147483647.5", 10, 0x8000_0000, false);
+        assert_ok!(U32F0, "4294967295.4999999999", 10, 0xFFFF_FFFF, false);
         // exact tie, round up to even
-        assert_ok::<U32F0>("4294967295.5", 10, 0x0000_0000, true);
+        assert_ok!(U32F0, "4294967295.5", 10, 0x0000_0000, true);
     }
 
     #[test]
     fn check_i64_u64_from_str() {
-        assert_ok::<I0F64>("-1", 10, 0x0000_0000_0000_0000, true);
-        assert_ok::<I0F64>("-0.50000000000000000003", 10, 0x7FFF_FFFF_FFFF_FFFF, true);
-        assert_ok::<I0F64>("-0.50000000000000000002", 10, -0x8000_0000_0000_0000, false);
-        assert_ok::<I0F64>("+0.49999999999999999997", 10, 0x7FFF_FFFF_FFFF_FFFF, false);
-        assert_ok::<I0F64>("+0.49999999999999999998", 10, -0x8000_0000_0000_0000, true);
-        assert_ok::<I0F64>("1", 10, 0x0000_0000_0000_0000, true);
+        assert_ok!(I0F64, "-1", 10, 0x0000_0000_0000_0000, true);
+        assert_ok!(
+            I0F64,
+            "-0.50000000000000000003",
+            10,
+            0x7FFF_FFFF_FFFF_FFFF,
+            true
+        );
+        assert_ok!(
+            I0F64,
+            "-0.50000000000000000002",
+            10,
+            -0x8000_0000_0000_0000,
+            false
+        );
+        assert_ok!(
+            I0F64,
+            "+0.49999999999999999997",
+            10,
+            0x7FFF_FFFF_FFFF_FFFF,
+            false
+        );
+        assert_ok!(
+            I0F64,
+            "+0.49999999999999999998",
+            10,
+            -0x8000_0000_0000_0000,
+            true
+        );
+        assert_ok!(I0F64, "1", 10, 0x0000_0000_0000_0000, true);
 
-        assert_ok::<I32F32>("-2147483648.0000000002", 10, 0x7FFF_FFFF_FFFF_FFFF, true);
-        assert_ok::<I32F32>("-2147483648.0000000001", 10, -0x8000_0000_0000_0000, false);
-        assert_ok::<I32F32>("2147483647.9999999998", 10, 0x7FFF_FFFF_FFFF_FFFF, false);
-        assert_ok::<I32F32>("2147483647.9999999999", 10, -0x8000_0000_0000_0000, true);
+        assert_ok!(
+            I32F32,
+            "-2147483648.0000000002",
+            10,
+            0x7FFF_FFFF_FFFF_FFFF,
+            true
+        );
+        assert_ok!(
+            I32F32,
+            "-2147483648.0000000001",
+            10,
+            -0x8000_0000_0000_0000,
+            false
+        );
+        assert_ok!(
+            I32F32,
+            "2147483647.9999999998",
+            10,
+            0x7FFF_FFFF_FFFF_FFFF,
+            false
+        );
+        assert_ok!(
+            I32F32,
+            "2147483647.9999999999",
+            10,
+            -0x8000_0000_0000_0000,
+            true
+        );
 
-        assert_ok::<I64F0>(
+        assert_ok!(
+            I64F0,
             "-9223372036854775808.50000000000000000001",
             10,
             0x7FFF_FFFF_FFFF_FFFF,
-            true,
+            true
         );
         // exact tie, round up to even
-        assert_ok::<I64F0>("-9223372036854775808.5", 10, -0x8000_0000_0000_0000, false);
-        assert_ok::<I64F0>(
+        assert_ok!(
+            I64F0,
+            "-9223372036854775808.5",
+            10,
+            -0x8000_0000_0000_0000,
+            false
+        );
+        assert_ok!(
+            I64F0,
             "9223372036854775807.49999999999999999999",
             10,
             0x7FFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
         // exact tie, round up to even
-        assert_ok::<I64F0>("9223372036854775807.5", 10, -0x8000_0000_0000_0000, true);
+        assert_ok!(
+            I64F0,
+            "9223372036854775807.5",
+            10,
+            -0x8000_0000_0000_0000,
+            true
+        );
 
-        assert_ok::<U0F64>("-0", 10, 0x0000_0000_0000_0000, false);
-        assert_ok::<U0F64>("0.49999999999999999997", 10, 0x7FFF_FFFF_FFFF_FFFF, false);
-        assert_ok::<U0F64>("0.49999999999999999998", 10, 0x8000_0000_0000_0000, false);
-        assert_ok::<U0F64>("0.99999999999999999997", 10, 0xFFFF_FFFF_FFFF_FFFF, false);
-        assert_ok::<U0F64>("0.99999999999999999998", 10, 0x0000_0000_0000_0000, true);
-        assert_ok::<U0F64>("1", 10, 0x0000_0000_0000_0000, true);
+        assert_ok!(U0F64, "-0", 10, 0x0000_0000_0000_0000, false);
+        assert_ok!(
+            U0F64,
+            "0.49999999999999999997",
+            10,
+            0x7FFF_FFFF_FFFF_FFFF,
+            false
+        );
+        assert_ok!(
+            U0F64,
+            "0.49999999999999999998",
+            10,
+            0x8000_0000_0000_0000,
+            false
+        );
+        assert_ok!(
+            U0F64,
+            "0.99999999999999999997",
+            10,
+            0xFFFF_FFFF_FFFF_FFFF,
+            false
+        );
+        assert_ok!(
+            U0F64,
+            "0.99999999999999999998",
+            10,
+            0x0000_0000_0000_0000,
+            true
+        );
+        assert_ok!(U0F64, "1", 10, 0x0000_0000_0000_0000, true);
 
-        assert_ok::<U32F32>("2147483647.9999999998", 10, 0x7FFF_FFFF_FFFF_FFFF, false);
-        assert_ok::<U32F32>("2147483647.9999999999", 10, 0x8000_0000_0000_0000, false);
-        assert_ok::<U32F32>("4294967295.9999999998", 10, 0xFFFF_FFFF_FFFF_FFFF, false);
-        assert_ok::<U32F32>("4294967295.9999999999", 10, 0x0000_0000_0000_0000, true);
+        assert_ok!(
+            U32F32,
+            "2147483647.9999999998",
+            10,
+            0x7FFF_FFFF_FFFF_FFFF,
+            false
+        );
+        assert_ok!(
+            U32F32,
+            "2147483647.9999999999",
+            10,
+            0x8000_0000_0000_0000,
+            false
+        );
+        assert_ok!(
+            U32F32,
+            "4294967295.9999999998",
+            10,
+            0xFFFF_FFFF_FFFF_FFFF,
+            false
+        );
+        assert_ok!(
+            U32F32,
+            "4294967295.9999999999",
+            10,
+            0x0000_0000_0000_0000,
+            true
+        );
 
-        assert_ok::<U64F0>(
+        assert_ok!(
+            U64F0,
             "9223372036854775807.49999999999999999999",
             10,
             0x7FFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
         // exact tie, round up to even
-        assert_ok::<U64F0>("9223372036854775807.5", 10, 0x8000_0000_0000_0000, false);
-        assert_ok::<U64F0>(
+        assert_ok!(
+            U64F0,
+            "9223372036854775807.5",
+            10,
+            0x8000_0000_0000_0000,
+            false
+        );
+        assert_ok!(
+            U64F0,
             "18446744073709551615.49999999999999999999",
             10,
             0xFFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
         // exact tie, round up to even
-        assert_ok::<U64F0>("18446744073709551615.5", 10, 0x0000_0000_0000_0000, true);
+        assert_ok!(
+            U64F0,
+            "18446744073709551615.5",
+            10,
+            0x0000_0000_0000_0000,
+            true
+        );
     }
 
     #[test]
     fn check_i128_u128_from_str() {
-        assert_ok::<I0F128>("-1", 10, 0x0000_0000_0000_0000_0000_0000_0000_0000, true);
-        assert_ok::<I0F128>(
+        assert_ok!(
+            I0F128,
+            "-1",
+            10,
+            0x0000_0000_0000_0000_0000_0000_0000_0000,
+            true
+        );
+        assert_ok!(
+            I0F128,
             "-0.500000000000000000000000000000000000002",
             10,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            true,
+            true
         );
-        assert_ok::<I0F128>(
+        assert_ok!(
+            I0F128,
             "-0.500000000000000000000000000000000000001",
             10,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<I0F128>(
+        assert_ok!(
+            I0F128,
             "0.499999999999999999999999999999999999998",
             10,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<I0F128>(
+        assert_ok!(
+            I0F128,
             "0.499999999999999999999999999999999999999",
             10,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            true,
+            true
         );
-        assert_ok::<I0F128>("1", 10, 0x0000_0000_0000_0000_0000_0000_0000_0000, true);
+        assert_ok!(
+            I0F128,
+            "1",
+            10,
+            0x0000_0000_0000_0000_0000_0000_0000_0000,
+            true
+        );
 
-        assert_ok::<I64F64>(
+        assert_ok!(
+            I64F64,
             "-9223372036854775808.00000000000000000003",
             10,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            true,
+            true
         );
-        assert_ok::<I64F64>(
+        assert_ok!(
+            I64F64,
             "-9223372036854775808.00000000000000000002",
             10,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<I64F64>(
+        assert_ok!(
+            I64F64,
             "9223372036854775807.99999999999999999997",
             10,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<I64F64>(
+        assert_ok!(
+            I64F64,
             "9223372036854775807.99999999999999999998",
             10,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            true,
+            true
         );
 
-        assert_ok::<I128F0>(
+        assert_ok!(
+            I128F0,
             "-170141183460469231731687303715884105728.5000000000000000000000000000000000000001",
             10,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            true,
+            true
         );
         // exact tie, round up to even
-        assert_ok::<I128F0>(
+        assert_ok!(
+            I128F0,
             "-170141183460469231731687303715884105728.5",
             10,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<I128F0>(
+        assert_ok!(
+            I128F0,
             "170141183460469231731687303715884105727.4999999999999999999999999999999999999999",
             10,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
         // exact tie, round up to even
-        assert_ok::<I128F0>(
+        assert_ok!(
+            I128F0,
             "170141183460469231731687303715884105727.5",
             10,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            true,
+            true
         );
 
-        assert_ok::<U0F128>("-0", 10, 0x0000_0000_0000_0000_0000_0000_0000_0000, false);
-        assert_ok::<U0F128>(
+        assert_ok!(
+            U0F128,
+            "-0",
+            10,
+            0x0000_0000_0000_0000_0000_0000_0000_0000,
+            false
+        );
+        assert_ok!(
+            U0F128,
             "0.499999999999999999999999999999999999998",
             10,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<U0F128>(
+        assert_ok!(
+            U0F128,
             "0.499999999999999999999999999999999999999",
             10,
             0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<U0F128>(
+        assert_ok!(
+            U0F128,
             "0.999999999999999999999999999999999999998",
             10,
             0xFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<U0F128>(
+        assert_ok!(
+            U0F128,
             "0.999999999999999999999999999999999999999",
             10,
             0x0000_0000_0000_0000_0000_0000_0000_0000,
-            true,
+            true
         );
-        assert_ok::<U0F128>("1", 10, 0x0000_0000_0000_0000_0000_0000_0000_0000, true);
+        assert_ok!(
+            U0F128,
+            "1",
+            10,
+            0x0000_0000_0000_0000_0000_0000_0000_0000,
+            true
+        );
 
-        assert_ok::<U64F64>(
+        assert_ok!(
+            U64F64,
             "9223372036854775807.99999999999999999997",
             10,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<U64F64>(
+        assert_ok!(
+            U64F64,
             "9223372036854775807.99999999999999999998",
             10,
             0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<U64F64>(
+        assert_ok!(
+            U64F64,
             "18446744073709551615.99999999999999999997",
             10,
             0xFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<U64F64>(
+        assert_ok!(
+            U64F64,
             "18446744073709551615.99999999999999999998",
             10,
             0x0000_0000_0000_0000_0000_0000_0000_0000,
-            true,
+            true
         );
 
-        assert_ok::<U128F0>(
+        assert_ok!(
+            U128F0,
             "170141183460469231731687303715884105727.4999999999999999999999999999999999999999",
             10,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        // exact tie, round up to even
-        assert_ok::<U128F0>(
+        // exact tie(ound up to even
+        assert_ok!(
+            U128F0,
             "170141183460469231731687303715884105727.5",
             10,
             0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<U128F0>(
+        assert_ok!(
+            U128F0,
             "340282366920938463463374607431768211455.4999999999999999999999999999999999999999",
             10,
             0xFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
         // exact tie, round up to even
-        assert_ok::<U128F0>(
+        assert_ok!(
+            U128F0,
             "340282366920938463463374607431768211455.5",
             10,
             0x0000_0000_0000_0000_0000_0000_0000_0000,
-            true,
+            true
         );
     }
 
     #[test]
     fn check_i16_u16_from_str_binary() {
-        assert_ok::<I0F16>("-1", 2, 0x0000, true);
-        assert_ok::<I0F16>("-0.100000000000000011", 2, 0x7FFF, true);
-        assert_ok::<I0F16>("-0.100000000000000010", 2, -0x8000, false);
-        assert_ok::<I0F16>("-0.011111111111111110", 2, -0x8000, false);
-        assert_ok::<I0F16>("+0.011111111111111101", 2, 0x7FFF, false);
-        assert_ok::<I0F16>("+0.011111111111111110", 2, -0x8000, true);
-        assert_ok::<I0F16>("1", 2, 0x0000, true);
+        assert_ok!(I0F16, "-1", 2, 0x0000, true);
+        assert_ok!(I0F16, "-0.100000000000000011", 2, 0x7FFF, true);
+        assert_ok!(I0F16, "-0.100000000000000010", 2, -0x8000, false);
+        assert_ok!(I0F16, "-0.011111111111111110", 2, -0x8000, false);
+        assert_ok!(I0F16, "+0.011111111111111101", 2, 0x7FFF, false);
+        assert_ok!(I0F16, "+0.011111111111111110", 2, -0x8000, true);
+        assert_ok!(I0F16, "1", 2, 0x0000, true);
 
-        assert_ok::<I8F8>("-10000000.0000000011", 2, 0x7FFF, true);
-        assert_ok::<I8F8>("-10000000.0000000010", 2, -0x8000, false);
-        assert_ok::<I8F8>("-01111111.1111111110", 2, -0x8000, false);
-        assert_ok::<I8F8>("+01111111.1111111101", 2, 0x7FFF, false);
-        assert_ok::<I8F8>("+01111111.1111111110", 2, -0x8000, true);
+        assert_ok!(I8F8, "-10000000.0000000011", 2, 0x7FFF, true);
+        assert_ok!(I8F8, "-10000000.0000000010", 2, -0x8000, false);
+        assert_ok!(I8F8, "-01111111.1111111110", 2, -0x8000, false);
+        assert_ok!(I8F8, "+01111111.1111111101", 2, 0x7FFF, false);
+        assert_ok!(I8F8, "+01111111.1111111110", 2, -0x8000, true);
 
-        assert_ok::<I16F0>("-1000000000000000.11", 2, 0x7FFF, true);
-        assert_ok::<I16F0>("-1000000000000000.10", 2, -0x8000, false);
-        assert_ok::<I16F0>("-0111111111111111.10", 2, -0x8000, false);
-        assert_ok::<I16F0>("+0111111111111111.01", 2, 0x7FFF, false);
-        assert_ok::<I16F0>("+0111111111111111.10", 2, -0x8000, true);
+        assert_ok!(I16F0, "-1000000000000000.11", 2, 0x7FFF, true);
+        assert_ok!(I16F0, "-1000000000000000.10", 2, -0x8000, false);
+        assert_ok!(I16F0, "-0111111111111111.10", 2, -0x8000, false);
+        assert_ok!(I16F0, "+0111111111111111.01", 2, 0x7FFF, false);
+        assert_ok!(I16F0, "+0111111111111111.10", 2, -0x8000, true);
 
-        assert_ok::<U0F16>("-0", 2, 0x0000, false);
-        assert_ok::<U0F16>("0.011111111111111101", 2, 0x7FFF, false);
-        assert_ok::<U0F16>("0.011111111111111110", 2, 0x8000, false);
-        assert_ok::<U0F16>("0.111111111111111101", 2, 0xFFFF, false);
-        assert_ok::<U0F16>("0.111111111111111110", 2, 0x0000, true);
-        assert_ok::<U0F16>("1", 2, 0x0000, true);
+        assert_ok!(U0F16, "-0", 2, 0x0000, false);
+        assert_ok!(U0F16, "0.011111111111111101", 2, 0x7FFF, false);
+        assert_ok!(U0F16, "0.011111111111111110", 2, 0x8000, false);
+        assert_ok!(U0F16, "0.111111111111111101", 2, 0xFFFF, false);
+        assert_ok!(U0F16, "0.111111111111111110", 2, 0x0000, true);
+        assert_ok!(U0F16, "1", 2, 0x0000, true);
 
-        assert_ok::<U8F8>("01111111.1111111101", 2, 0x7FFF, false);
-        assert_ok::<U8F8>("01111111.1111111110", 2, 0x8000, false);
-        assert_ok::<U8F8>("11111111.1111111101", 2, 0xFFFF, false);
-        assert_ok::<U8F8>("11111111.1111111110", 2, 0x0000, true);
+        assert_ok!(U8F8, "01111111.1111111101", 2, 0x7FFF, false);
+        assert_ok!(U8F8, "01111111.1111111110", 2, 0x8000, false);
+        assert_ok!(U8F8, "11111111.1111111101", 2, 0xFFFF, false);
+        assert_ok!(U8F8, "11111111.1111111110", 2, 0x0000, true);
 
-        assert_ok::<U16F0>("0111111111111111.01", 2, 0x7FFF, false);
-        assert_ok::<U16F0>("0111111111111111.10", 2, 0x8000, false);
-        assert_ok::<U16F0>("1111111111111111.01", 2, 0xFFFF, false);
-        assert_ok::<U16F0>("1111111111111111.10", 2, 0x0000, true);
+        assert_ok!(U16F0, "0111111111111111.01", 2, 0x7FFF, false);
+        assert_ok!(U16F0, "0111111111111111.10", 2, 0x8000, false);
+        assert_ok!(U16F0, "1111111111111111.01", 2, 0xFFFF, false);
+        assert_ok!(U16F0, "1111111111111111.10", 2, 0x0000, true);
     }
 
     #[test]
     fn check_i16_u16_from_str_octal() {
-        assert_ok::<I0F16>("-1", 8, 0x0000, true);
-        assert_ok::<I0F16>("-0.400003", 8, 0x7FFF, true);
-        assert_ok::<I0F16>("-0.400002", 8, -0x8000, false);
-        assert_ok::<I0F16>("-0.377776", 8, -0x8000, false);
-        assert_ok::<I0F16>("+0.377775", 8, 0x7FFF, false);
-        assert_ok::<I0F16>("+0.377776", 8, -0x8000, true);
-        assert_ok::<I0F16>("1", 8, 0x0000, true);
+        assert_ok!(I0F16, "-1", 8, 0x0000, true);
+        assert_ok!(I0F16, "-0.400003", 8, 0x7FFF, true);
+        assert_ok!(I0F16, "-0.400002", 8, -0x8000, false);
+        assert_ok!(I0F16, "-0.377776", 8, -0x8000, false);
+        assert_ok!(I0F16, "+0.377775", 8, 0x7FFF, false);
+        assert_ok!(I0F16, "+0.377776", 8, -0x8000, true);
+        assert_ok!(I0F16, "1", 8, 0x0000, true);
 
-        assert_ok::<I8F8>("-200.0011", 8, 0x7FFF, true);
-        assert_ok::<I8F8>("-200.0010", 8, -0x8000, false);
-        assert_ok::<I8F8>("-177.7770", 8, -0x8000, false);
-        assert_ok::<I8F8>("+177.7767", 8, 0x7FFF, false);
-        assert_ok::<I8F8>("+177.7770", 8, -0x8000, true);
+        assert_ok!(I8F8, "-200.0011", 8, 0x7FFF, true);
+        assert_ok!(I8F8, "-200.0010", 8, -0x8000, false);
+        assert_ok!(I8F8, "-177.7770", 8, -0x8000, false);
+        assert_ok!(I8F8, "+177.7767", 8, 0x7FFF, false);
+        assert_ok!(I8F8, "+177.7770", 8, -0x8000, true);
 
-        assert_ok::<I16F0>("-100000.5", 8, 0x7FFF, true);
-        assert_ok::<I16F0>("-100000.4", 8, -0x8000, false);
-        assert_ok::<I16F0>("-077777.4", 8, -0x8000, false);
-        assert_ok::<I16F0>("+077777.3", 8, 0x7FFF, false);
-        assert_ok::<I16F0>("+077777.4", 8, -0x8000, true);
+        assert_ok!(I16F0, "-100000.5", 8, 0x7FFF, true);
+        assert_ok!(I16F0, "-100000.4", 8, -0x8000, false);
+        assert_ok!(I16F0, "-077777.4", 8, -0x8000, false);
+        assert_ok!(I16F0, "+077777.3", 8, 0x7FFF, false);
+        assert_ok!(I16F0, "+077777.4", 8, -0x8000, true);
 
-        assert_ok::<U0F16>("-0", 8, 0x0000, false);
-        assert_ok::<U0F16>("0.377775", 8, 0x7FFF, false);
-        assert_ok::<U0F16>("0.377776", 8, 0x8000, false);
-        assert_ok::<U0F16>("0.777775", 8, 0xFFFF, false);
-        assert_ok::<U0F16>("0.777776", 8, 0x0000, true);
-        assert_ok::<U0F16>("1", 8, 0x0000, true);
+        assert_ok!(U0F16, "-0", 8, 0x0000, false);
+        assert_ok!(U0F16, "0.377775", 8, 0x7FFF, false);
+        assert_ok!(U0F16, "0.377776", 8, 0x8000, false);
+        assert_ok!(U0F16, "0.777775", 8, 0xFFFF, false);
+        assert_ok!(U0F16, "0.777776", 8, 0x0000, true);
+        assert_ok!(U0F16, "1", 8, 0x0000, true);
 
-        assert_ok::<U8F8>("177.7767", 8, 0x7FFF, false);
-        assert_ok::<U8F8>("177.7770", 8, 0x8000, false);
-        assert_ok::<U8F8>("377.7767", 8, 0xFFFF, false);
-        assert_ok::<U8F8>("377.7770", 8, 0x0000, true);
+        assert_ok!(U8F8, "177.7767", 8, 0x7FFF, false);
+        assert_ok!(U8F8, "177.7770", 8, 0x8000, false);
+        assert_ok!(U8F8, "377.7767", 8, 0xFFFF, false);
+        assert_ok!(U8F8, "377.7770", 8, 0x0000, true);
 
-        assert_ok::<U16F0>("077777.3", 8, 0x7FFF, false);
-        assert_ok::<U16F0>("077777.4", 8, 0x8000, false);
-        assert_ok::<U16F0>("177777.3", 8, 0xFFFF, false);
-        assert_ok::<U16F0>("177777.4", 8, 0x0000, true);
+        assert_ok!(U16F0, "077777.3", 8, 0x7FFF, false);
+        assert_ok!(U16F0, "077777.4", 8, 0x8000, false);
+        assert_ok!(U16F0, "177777.3", 8, 0xFFFF, false);
+        assert_ok!(U16F0, "177777.4", 8, 0x0000, true);
     }
 
     #[test]
     fn check_i16_u16_from_str_hex() {
-        assert_ok::<I0F16>("-1", 16, 0x0000, true);
-        assert_ok::<I0F16>("-0.80009", 16, 0x7FFF, true);
-        assert_ok::<I0F16>("-0.80008", 16, -0x8000, false);
-        assert_ok::<I0F16>("-0.7FFF8", 16, -0x8000, false);
-        assert_ok::<I0F16>("+0.7FFF7", 16, 0x7FFF, false);
-        assert_ok::<I0F16>("+0.7FFF8", 16, -0x8000, true);
-        assert_ok::<I0F16>("1", 16, 0x0000, true);
+        assert_ok!(I0F16, "-1", 16, 0x0000, true);
+        assert_ok!(I0F16, "-0.80009", 16, 0x7FFF, true);
+        assert_ok!(I0F16, "-0.80008", 16, -0x8000, false);
+        assert_ok!(I0F16, "-0.7FFF8", 16, -0x8000, false);
+        assert_ok!(I0F16, "+0.7FFF7", 16, 0x7FFF, false);
+        assert_ok!(I0F16, "+0.7FFF8", 16, -0x8000, true);
+        assert_ok!(I0F16, "1", 16, 0x0000, true);
 
-        assert_ok::<I8F8>("-80.009", 16, 0x7FFF, true);
-        assert_ok::<I8F8>("-80.008", 16, -0x8000, false);
-        assert_ok::<I8F8>("-7F.FF8", 16, -0x8000, false);
-        assert_ok::<I8F8>("+7F.FF7", 16, 0x7FFF, false);
-        assert_ok::<I8F8>("+7F.FF8", 16, -0x8000, true);
+        assert_ok!(I8F8, "-80.009", 16, 0x7FFF, true);
+        assert_ok!(I8F8, "-80.008", 16, -0x8000, false);
+        assert_ok!(I8F8, "-7F.FF8", 16, -0x8000, false);
+        assert_ok!(I8F8, "+7F.FF7", 16, 0x7FFF, false);
+        assert_ok!(I8F8, "+7F.FF8", 16, -0x8000, true);
 
-        assert_ok::<I16F0>("-8000.9", 16, 0x7FFF, true);
-        assert_ok::<I16F0>("-8000.8", 16, -0x8000, false);
-        assert_ok::<I16F0>("-7FFF.8", 16, -0x8000, false);
-        assert_ok::<I16F0>("+7FFF.7", 16, 0x7FFF, false);
-        assert_ok::<I16F0>("+7FFF.8", 16, -0x8000, true);
+        assert_ok!(I16F0, "-8000.9", 16, 0x7FFF, true);
+        assert_ok!(I16F0, "-8000.8", 16, -0x8000, false);
+        assert_ok!(I16F0, "-7FFF.8", 16, -0x8000, false);
+        assert_ok!(I16F0, "+7FFF.7", 16, 0x7FFF, false);
+        assert_ok!(I16F0, "+7FFF.8", 16, -0x8000, true);
 
-        assert_ok::<U0F16>("-0", 16, 0x0000, false);
-        assert_ok::<U0F16>("0.7FFF7", 16, 0x7FFF, false);
-        assert_ok::<U0F16>("0.7FFF8", 16, 0x8000, false);
-        assert_ok::<U0F16>("0.FFFF7", 16, 0xFFFF, false);
-        assert_ok::<U0F16>("0.FFFF8", 16, 0x0000, true);
-        assert_ok::<U0F16>("1", 16, 0x0000, true);
+        assert_ok!(U0F16, "-0", 16, 0x0000, false);
+        assert_ok!(U0F16, "0.7FFF7", 16, 0x7FFF, false);
+        assert_ok!(U0F16, "0.7FFF8", 16, 0x8000, false);
+        assert_ok!(U0F16, "0.FFFF7", 16, 0xFFFF, false);
+        assert_ok!(U0F16, "0.FFFF8", 16, 0x0000, true);
+        assert_ok!(U0F16, "1", 16, 0x0000, true);
 
-        assert_ok::<U8F8>("7F.FF7", 16, 0x7FFF, false);
-        assert_ok::<U8F8>("7F.FF8", 16, 0x8000, false);
-        assert_ok::<U8F8>("FF.FF7", 16, 0xFFFF, false);
-        assert_ok::<U8F8>("FF.FF8", 16, 0x0000, true);
+        assert_ok!(U8F8, "7F.FF7", 16, 0x7FFF, false);
+        assert_ok!(U8F8, "7F.FF8", 16, 0x8000, false);
+        assert_ok!(U8F8, "FF.FF7", 16, 0xFFFF, false);
+        assert_ok!(U8F8, "FF.FF8", 16, 0x0000, true);
 
-        assert_ok::<U16F0>("7FFF.7", 16, 0x7FFF, false);
-        assert_ok::<U16F0>("7FFF.8", 16, 0x8000, false);
-        assert_ok::<U16F0>("FFFF.7", 16, 0xFFFF, false);
-        assert_ok::<U16F0>("FFFF.8", 16, 0x0000, true);
+        assert_ok!(U16F0, "7FFF.7", 16, 0x7FFF, false);
+        assert_ok!(U16F0, "7FFF.8", 16, 0x8000, false);
+        assert_ok!(U16F0, "FFFF.7", 16, 0xFFFF, false);
+        assert_ok!(U16F0, "FFFF.8", 16, 0x0000, true);
     }
 
     #[test]
     fn check_i128_u128_from_str_hex() {
-        assert_ok::<I0F128>("-1", 16, 0x0000_0000_0000_0000_0000_0000_0000_0000, true);
-        assert_ok::<I0F128>(
+        assert_ok!(
+            I0F128,
+            "-1",
+            16,
+            0x0000_0000_0000_0000_0000_0000_0000_0000,
+            true
+        );
+        assert_ok!(
+            I0F128,
             "-0.800000000000000000000000000000009",
             16,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            true,
+            true
         );
-        assert_ok::<I0F128>(
+        assert_ok!(
+            I0F128,
             "-0.800000000000000000000000000000008",
             16,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<I0F128>(
+        assert_ok!(
+            I0F128,
             "-0.7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8",
             16,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<I0F128>(
+        assert_ok!(
+            I0F128,
             "+0.7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7",
             16,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<I0F128>(
+        assert_ok!(
+            I0F128,
             "+0.7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8",
             16,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            true,
+            true
         );
-        assert_ok::<I0F128>("1", 16, 0x0000_0000_0000_0000_0000_0000_0000_0000, true);
+        assert_ok!(
+            I0F128,
+            "1",
+            16,
+            0x0000_0000_0000_0000_0000_0000_0000_0000,
+            true
+        );
 
-        assert_ok::<I64F64>(
+        assert_ok!(
+            I64F64,
             "-8000000000000000.00000000000000009",
             16,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            true,
+            true
         );
-        assert_ok::<I64F64>(
+        assert_ok!(
+            I64F64,
             "-8000000000000000.00000000000000008",
             16,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<I64F64>(
+        assert_ok!(
+            I64F64,
             "-7FFFFFFFFFFFFFFF.FFFFFFFFFFFFFFFF8",
             16,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<I64F64>(
+        assert_ok!(
+            I64F64,
             "+7FFFFFFFFFFFFFFF.FFFFFFFFFFFFFFFF7",
             16,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<I64F64>(
+        assert_ok!(
+            I64F64,
             "+7FFFFFFFFFFFFFFF.FFFFFFFFFFFFFFFF8",
             16,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            true,
+            true
         );
 
-        assert_ok::<I128F0>(
+        assert_ok!(
+            I128F0,
             "-80000000000000000000000000000000.9",
             16,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            true,
+            true
         );
-        assert_ok::<I128F0>(
+        assert_ok!(
+            I128F0,
             "-80000000000000000000000000000000.8",
             16,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<I128F0>(
+        assert_ok!(
+            I128F0,
             "-7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.8",
             16,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<I128F0>(
+        assert_ok!(
+            I128F0,
             "+7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.7",
             16,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<I128F0>(
+        assert_ok!(
+            I128F0,
             "+7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.8",
             16,
             -0x8000_0000_0000_0000_0000_0000_0000_0000,
-            true,
+            true
         );
 
-        assert_ok::<U0F128>("-0", 16, 0x0000_0000_0000_0000_0000_0000_0000_0000, false);
-        assert_ok::<U0F128>(
+        assert_ok!(
+            U0F128,
+            "-0",
+            16,
+            0x0000_0000_0000_0000_0000_0000_0000_0000,
+            false
+        );
+        assert_ok!(
+            U0F128,
             "0.7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7",
             16,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<U0F128>(
+        assert_ok!(
+            U0F128,
             "0.7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8",
             16,
             0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<U0F128>(
+        assert_ok!(
+            U0F128,
             "0.FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7",
             16,
             0xFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<U0F128>(
+        assert_ok!(
+            U0F128,
             "0.FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8",
             16,
             0x0000_0000_0000_0000_0000_0000_0000_0000,
-            true,
+            true
         );
-        assert_ok::<U0F128>("1", 16, 0x0000_0000_0000_0000_0000_0000_0000_0000, true);
+        assert_ok!(
+            U0F128,
+            "1",
+            16,
+            0x0000_0000_0000_0000_0000_0000_0000_0000,
+            true
+        );
 
-        assert_ok::<U64F64>(
+        assert_ok!(
+            U64F64,
             "7FFFFFFFFFFFFFFF.FFFFFFFFFFFFFFFF7",
             16,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<U64F64>(
+        assert_ok!(
+            U64F64,
             "7FFFFFFFFFFFFFFF.FFFFFFFFFFFFFFFF8",
             16,
             0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<U64F64>(
+        assert_ok!(
+            U64F64,
             "FFFFFFFFFFFFFFFF.FFFFFFFFFFFFFFFF7",
             16,
             0xFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<U64F64>(
+        assert_ok!(
+            U64F64,
             "FFFFFFFFFFFFFFFF.FFFFFFFFFFFFFFFF8",
             16,
             0x0000_0000_0000_0000_0000_0000_0000_0000,
-            true,
+            true
         );
 
-        assert_ok::<U128F0>(
+        assert_ok!(
+            U128F0,
             "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.7",
             16,
             0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<U128F0>(
+        assert_ok!(
+            U128F0,
             "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.8",
             16,
             0x8000_0000_0000_0000_0000_0000_0000_0000,
-            false,
+            false
         );
-        assert_ok::<U128F0>(
+        assert_ok!(
+            U128F0,
             "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.7",
             16,
             0xFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-            false,
+            false
         );
-        assert_ok::<U128F0>(
+        assert_ok!(
+            U128F0,
             "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.8",
             16,
             0x0000_0000_0000_0000_0000_0000_0000_0000,
-            true,
+            true
         );
     }
 
@@ -2010,132 +2244,138 @@ mod tests {
                        71527807097273331945965109401885939632848021574318408966064453125";
 
         let frac_0_8 = make_fraction_strings(&max_int_0, eps_8);
-        assert_ok::<U0F8>(&frac_0_8.zero, 10, 0, false);
-        assert_ok::<U0F8>(&frac_0_8.gt_0, 10, 1, false);
-        assert_ok::<U0F8>(&frac_0_8.max, 10, !0, false);
-        assert_ok::<U0F8>(&frac_0_8.over, 10, 0, true);
+        assert_ok!(U0F8, &frac_0_8.zero, 10, 0, false);
+        assert_ok!(U0F8, &frac_0_8.gt_0, 10, 1, false);
+        assert_ok!(U0F8, &frac_0_8.max, 10, !0, false);
+        assert_ok!(U0F8, &frac_0_8.over, 10, 0, true);
 
         let frac_4_4 = make_fraction_strings(&max_int_4, eps_4);
-        assert_ok::<U4F4>(&frac_4_4.zero, 10, 0, false);
-        assert_ok::<U4F4>(&frac_4_4.gt_0, 10, 1, false);
-        assert_ok::<U4F4>(&frac_4_4.max, 10, !0, false);
-        assert_ok::<U4F4>(&frac_4_4.over, 10, 0, true);
+        assert_ok!(U4F4, &frac_4_4.zero, 10, 0, false);
+        assert_ok!(U4F4, &frac_4_4.gt_0, 10, 1, false);
+        assert_ok!(U4F4, &frac_4_4.max, 10, !0, false);
+        assert_ok!(U4F4, &frac_4_4.over, 10, 0, true);
 
         let frac_8_0 = make_fraction_strings(&max_int_8, eps_0);
-        assert_ok::<U8F0>(&frac_8_0.zero, 10, 0, false);
-        assert_ok::<U8F0>(&frac_8_0.gt_0, 10, 1, false);
-        assert_ok::<U8F0>(&frac_8_0.max, 10, !0, false);
-        assert_ok::<U8F0>(&frac_8_0.over, 10, 0, true);
+        assert_ok!(U8F0, &frac_8_0.zero, 10, 0, false);
+        assert_ok!(U8F0, &frac_8_0.gt_0, 10, 1, false);
+        assert_ok!(U8F0, &frac_8_0.max, 10, !0, false);
+        assert_ok!(U8F0, &frac_8_0.over, 10, 0, true);
 
         let frac_0_32 = make_fraction_strings(&max_int_0, eps_32);
-        assert_ok::<U0F32>(&frac_0_32.zero, 10, 0, false);
-        assert_ok::<U0F32>(&frac_0_32.gt_0, 10, 1, false);
-        assert_ok::<U0F32>(&frac_0_32.max, 10, !0, false);
-        assert_ok::<U0F32>(&frac_0_32.over, 10, 0, true);
+        assert_ok!(U0F32, &frac_0_32.zero, 10, 0, false);
+        assert_ok!(U0F32, &frac_0_32.gt_0, 10, 1, false);
+        assert_ok!(U0F32, &frac_0_32.max, 10, !0, false);
+        assert_ok!(U0F32, &frac_0_32.over, 10, 0, true);
 
         let frac_4_28 = make_fraction_strings(&max_int_4, eps_28);
-        assert_ok::<U4F28>(&frac_4_28.zero, 10, 0, false);
-        assert_ok::<U4F28>(&frac_4_28.gt_0, 10, 1, false);
-        assert_ok::<U4F28>(&frac_4_28.max, 10, !0, false);
-        assert_ok::<U4F28>(&frac_4_28.over, 10, 0, true);
+        assert_ok!(U4F28, &frac_4_28.zero, 10, 0, false);
+        assert_ok!(U4F28, &frac_4_28.gt_0, 10, 1, false);
+        assert_ok!(U4F28, &frac_4_28.max, 10, !0, false);
+        assert_ok!(U4F28, &frac_4_28.over, 10, 0, true);
 
         let frac_16_16 = make_fraction_strings(&max_int_16, eps_16);
-        assert_ok::<U16F16>(&frac_16_16.zero, 10, 0, false);
-        assert_ok::<U16F16>(&frac_16_16.gt_0, 10, 1, false);
-        assert_ok::<U16F16>(&frac_16_16.max, 10, !0, false);
-        assert_ok::<U16F16>(&frac_16_16.over, 10, 0, true);
+        assert_ok!(U16F16, &frac_16_16.zero, 10, 0, false);
+        assert_ok!(U16F16, &frac_16_16.gt_0, 10, 1, false);
+        assert_ok!(U16F16, &frac_16_16.max, 10, !0, false);
+        assert_ok!(U16F16, &frac_16_16.over, 10, 0, true);
 
         let frac_28_4 = make_fraction_strings(&max_int_28, eps_4);
-        assert_ok::<U28F4>(&frac_28_4.zero, 10, 0, false);
-        assert_ok::<U28F4>(&frac_28_4.gt_0, 10, 1, false);
-        assert_ok::<U28F4>(&frac_28_4.max, 10, !0, false);
-        assert_ok::<U28F4>(&frac_28_4.over, 10, 0, true);
+        assert_ok!(U28F4, &frac_28_4.zero, 10, 0, false);
+        assert_ok!(U28F4, &frac_28_4.gt_0, 10, 1, false);
+        assert_ok!(U28F4, &frac_28_4.max, 10, !0, false);
+        assert_ok!(U28F4, &frac_28_4.over, 10, 0, true);
 
         let frac_32_0 = make_fraction_strings(&max_int_32, eps_0);
-        assert_ok::<U32F0>(&frac_32_0.zero, 10, 0, false);
-        assert_ok::<U32F0>(&frac_32_0.gt_0, 10, 1, false);
-        assert_ok::<U32F0>(&frac_32_0.max, 10, !0, false);
-        assert_ok::<U32F0>(&frac_32_0.over, 10, 0, true);
+        assert_ok!(U32F0, &frac_32_0.zero, 10, 0, false);
+        assert_ok!(U32F0, &frac_32_0.gt_0, 10, 1, false);
+        assert_ok!(U32F0, &frac_32_0.max, 10, !0, false);
+        assert_ok!(U32F0, &frac_32_0.over, 10, 0, true);
 
         let frac_0_128 = make_fraction_strings(&max_int_0, eps_128);
-        assert_ok::<U0F128>(&frac_0_128.zero, 10, 0, false);
-        assert_ok::<U0F128>(&frac_0_128.gt_0, 10, 1, false);
-        assert_ok::<U0F128>(&frac_0_128.max, 10, !0, false);
-        assert_ok::<U0F128>(&frac_0_128.over, 10, 0, true);
+        assert_ok!(U0F128, &frac_0_128.zero, 10, 0, false);
+        assert_ok!(U0F128, &frac_0_128.gt_0, 10, 1, false);
+        assert_ok!(U0F128, &frac_0_128.max, 10, !0, false);
+        assert_ok!(U0F128, &frac_0_128.over, 10, 0, true);
 
         let frac_4_124 = make_fraction_strings(&max_int_4, eps_124);
-        assert_ok::<U4F124>(&frac_4_124.zero, 10, 0, false);
-        assert_ok::<U4F124>(&frac_4_124.gt_0, 10, 1, false);
-        assert_ok::<U4F124>(&frac_4_124.max, 10, !0, false);
-        assert_ok::<U4F124>(&frac_4_124.over, 10, 0, true);
+        assert_ok!(U4F124, &frac_4_124.zero, 10, 0, false);
+        assert_ok!(U4F124, &frac_4_124.gt_0, 10, 1, false);
+        assert_ok!(U4F124, &frac_4_124.max, 10, !0, false);
+        assert_ok!(U4F124, &frac_4_124.over, 10, 0, true);
 
         let frac_64_64 = make_fraction_strings(&max_int_64, eps_64);
-        assert_ok::<U64F64>(&frac_64_64.zero, 10, 0, false);
-        assert_ok::<U64F64>(&frac_64_64.gt_0, 10, 1, false);
-        assert_ok::<U64F64>(&frac_64_64.max, 10, !0, false);
-        assert_ok::<U64F64>(&frac_64_64.over, 10, 0, true);
+        assert_ok!(U64F64, &frac_64_64.zero, 10, 0, false);
+        assert_ok!(U64F64, &frac_64_64.gt_0, 10, 1, false);
+        assert_ok!(U64F64, &frac_64_64.max, 10, !0, false);
+        assert_ok!(U64F64, &frac_64_64.over, 10, 0, true);
 
         let frac_124_4 = make_fraction_strings(&max_int_124, eps_4);
-        assert_ok::<U124F4>(&frac_124_4.zero, 10, 0, false);
-        assert_ok::<U124F4>(&frac_124_4.gt_0, 10, 1, false);
-        assert_ok::<U124F4>(&frac_124_4.max, 10, !0, false);
-        assert_ok::<U124F4>(&frac_124_4.over, 10, 0, true);
+        assert_ok!(U124F4, &frac_124_4.zero, 10, 0, false);
+        assert_ok!(U124F4, &frac_124_4.gt_0, 10, 1, false);
+        assert_ok!(U124F4, &frac_124_4.max, 10, !0, false);
+        assert_ok!(U124F4, &frac_124_4.over, 10, 0, true);
 
         let frac_128_0 = make_fraction_strings(&max_int_128, eps_0);
-        assert_ok::<U128F0>(&frac_128_0.zero, 10, 0, false);
-        assert_ok::<U128F0>(&frac_128_0.gt_0, 10, 1, false);
-        assert_ok::<U128F0>(&frac_128_0.max, 10, !0, false);
-        assert_ok::<U128F0>(&frac_128_0.over, 10, 0, true);
+        assert_ok!(U128F0, &frac_128_0.zero, 10, 0, false);
+        assert_ok!(U128F0, &frac_128_0.gt_0, 10, 1, false);
+        assert_ok!(U128F0, &frac_128_0.max, 10, !0, false);
+        assert_ok!(U128F0, &frac_128_0.over, 10, 0, true);
 
         // some other cases
         // 13/32 = 6.5/16, to even 6/16
-        assert_ok::<U4F4>(
+        assert_ok!(
+            U4F4,
             "0.40624999999999999999999999999999999999999999999999",
             10,
             0x06,
-            false,
+            false
         );
-        assert_ok::<U4F4>("0.40625", 10, 0x06, false);
-        assert_ok::<U4F4>(
+        assert_ok!(U4F4, "0.40625", 10, 0x06, false);
+        assert_ok!(
+            U4F4,
             "0.40625000000000000000000000000000000000000000000001",
             10,
             0x07,
-            false,
+            false
         );
         // 14/32 = 7/16
-        assert_ok::<U4F4>("0.4375", 10, 0x07, false);
+        assert_ok!(U4F4, "0.4375", 10, 0x07, false);
         // 15/32 = 7.5/16, to even 8/16
-        assert_ok::<U4F4>(
+        assert_ok!(
+            U4F4,
             "0.46874999999999999999999999999999999999999999999999",
             10,
             0x07,
-            false,
+            false
         );
-        assert_ok::<U4F4>("0.46875", 10, 0x08, false);
-        assert_ok::<U4F4>(
+        assert_ok!(U4F4, "0.46875", 10, 0x08, false);
+        assert_ok!(
+            U4F4,
             "0.46875000000000000000000000000000000000000000000001",
             10,
             0x08,
-            false,
+            false
         );
         // 16/32 = 8/16
-        assert_ok::<U4F4>("0.5", 10, 0x08, false);
+        assert_ok!(U4F4, "0.5", 10, 0x08, false);
         // 17/32 = 8.5/16, to even 8/16
-        assert_ok::<U4F4>(
+        assert_ok!(
+            U4F4,
             "0.53124999999999999999999999999999999999999999999999",
             10,
             0x08,
-            false,
+            false
         );
-        assert_ok::<U4F4>("0.53125", 10, 0x08, false);
-        assert_ok::<U4F4>(
+        assert_ok!(U4F4, "0.53125", 10, 0x08, false);
+        assert_ok!(
+            U4F4,
             "0.53125000000000000000000000000000000000000000000001",
             10,
             0x09,
-            false,
+            false
         );
         // 18/32 = 9/16
-        assert_ok::<U4F4>("0.5625", 10, 0x09, false);
+        assert_ok!(U4F4, "0.5625", 10, 0x09, false);
     }
 
     #[test]

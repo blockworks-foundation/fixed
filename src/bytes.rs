@@ -13,7 +13,7 @@
 // <https://www.apache.org/licenses/LICENSE-2.0> and
 // <https://opensource.org/licenses/MIT>.
 
-use core::marker::PhantomData;
+use core::{marker::PhantomData, slice};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Bytes<'a> {
@@ -30,6 +30,13 @@ impl<'a> Bytes<'a> {
             len: bytes.len(),
             phantom: PhantomData,
         }
+    }
+
+    #[inline]
+    #[allow(dead_code)]
+    pub fn slice(self) -> &'a [u8] {
+        // SAFETY: points to a valid slice
+        unsafe { slice::from_raw_parts(self.ptr, self.len) }
     }
 
     #[inline]
