@@ -313,6 +313,7 @@ mod macros;
 mod arith;
 #[cfg(feature = "borsh")]
 mod borshize;
+mod bytes;
 mod cast;
 mod cmp;
 pub mod consts;

@@ -203,7 +203,7 @@ pub const fn shl_i256_max_128(a: I256, sh: u32) -> I256 {
 }
 
 #[inline]
-const fn div_half_u128_b(r: u128, d: u128, next_half: u128) -> (u128, u128) {
+const fn div_half_u128(r: u128, d: u128, next_half: u128) -> (u128, u128) {
     let (dl, dh) = u128_lo_hi(d);
     let (mut q, rr) = (r / dh, r % dh);
     let m = q * dl;
@@ -223,13 +223,6 @@ const fn div_half_u128_b(r: u128, d: u128, next_half: u128) -> (u128, u128) {
 }
 
 #[inline]
-pub fn div_half_u128(r: &mut u128, d: u128, next_half: u128) -> u128 {
-    let (new_r, q) = div_half_u128_b(*r, d, next_half);
-    *r = new_r;
-    q
-}
-
-#[inline]
 pub const fn div_rem_u256_u128(mut n: U256, mut d: u128) -> (U256, u128) {
     assert!(d != 0, "division by zero");
     let zeros = d.leading_zeros();
@@ -244,14 +237,14 @@ pub const fn div_rem_u256_u128(mut n: U256, mut d: u128) -> (U256, u128) {
     };
 
     let (nhl, nhh) = u128_lo_hi(n.hi);
-    let (new_r, qhh) = div_half_u128_b(r, d, nhh);
+    let (new_r, qhh) = div_half_u128(r, d, nhh);
     r = new_r;
-    let (new_r, qhl) = div_half_u128_b(r, d, nhl);
+    let (new_r, qhl) = div_half_u128(r, d, nhl);
     r = new_r;
     let (nll, nlh) = u128_lo_hi(n.lo);
-    let (new_r, qlh) = div_half_u128_b(r, d, nlh);
+    let (new_r, qlh) = div_half_u128(r, d, nlh);
     r = new_r;
-    let (new_r, qll) = div_half_u128_b(r, d, nll);
+    let (new_r, qll) = div_half_u128(r, d, nll);
     r = new_r;
     let q = U256 {
         lo: qll + (qlh << 64),

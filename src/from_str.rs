@@ -14,6 +14,7 @@
 // <https://opensource.org/licenses/MIT>.
 
 use crate::{
+    bytes::Bytes,
     types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8},
     FixedI128, FixedI16, FixedI32, FixedI64, FixedI8, FixedU128, FixedU16, FixedU32, FixedU64,
     FixedU8,
@@ -35,6 +36,7 @@ macro_rules! signed_helpers {
                 radix: u32,
                 frac_nbits: u32,
             ) -> Result<($Single, bool), ParseFixedError> {
+                let bytes = Bytes::new(bytes);
                 let (neg, abs, mut overflow) = match crate::from_str::$Uns::get_int_frac(
                     bytes,
                     radix,
@@ -115,8 +117,6 @@ macro_rules! unsigned_helpers {
             unsigned_helpers_common! { u128, u64, true }
 
             use crate::int256::{self, U256};
-
-            pub type Double = (u128, u128);
 
             #[inline]
             const fn mul10_overflow(x: u128) -> (u128, u8) {
@@ -225,18 +225,20 @@ macro_rules! unsigned_helpers {
                 Some(div)
             }
 
-            pub const fn parse_is_short(bytes: &[u8]) -> ((u128, u128), bool) {
+            pub const fn parse_is_short(bytes: Bytes) -> ((u128, u128), bool) {
                 if let Some(rem) = 27usize.checked_sub(bytes.len()) {
                     let hi = dec_str_int_to_bin(bytes).0 * 10u128.pow(rem as u32);
                     ((hi, 0), true)
                 } else {
-                    let hi = dec_str_int_to_bin(&bytes[..27]).0;
+                    let (begin, end) = bytes.split(27);
+                    let hi = dec_str_int_to_bin(begin).0;
 
                     let (is_short, slice, pad) = if let Some(rem) = 54usize.checked_sub(bytes.len())
                     {
-                        (true, &bytes[27..], 10u128.pow(rem as u32))
+                        (true, end, 10u128.pow(rem as u32))
                     } else {
-                        (false, &bytes[27..54], 1)
+                        let (mid, _) = end.split(27);
+                        (false, mid, 1)
                     };
                     let lo = dec_str_int_to_bin(slice).0 * pad;
                     ((hi, lo), is_short)
@@ -286,12 +288,13 @@ macro_rules! unsigned_helpers {
                 Some(div as $Single)
             }
 
-            pub const fn parse_is_short(bytes: &[u8]) -> ($Double, bool) {
+            pub const fn parse_is_short(bytes: Bytes) -> ($Double, bool) {
                 let (is_short, slice, pad) =
                     if let Some(rem) = usize::checked_sub($dec, bytes.len()) {
                         (true, bytes, $Double::pow(10, rem as u32))
                     } else {
-                        (false, &bytes[..$dec], 1)
+                        let (short, _) = bytes.split($dec);
+                        (false, short, 1)
                     };
                 let val = crate::from_str::$Double::dec_str_int_to_bin(slice).0 * pad;
                 (val, is_short)
@@ -309,6 +312,7 @@ macro_rules! unsigned_helpers_common {
             radix: u32,
             frac_nbits: u32,
         ) -> Result<($Uns, bool), ParseFixedError> {
+            let bytes = Bytes::new(bytes);
             let (neg, abs, mut overflow) =
                 match get_int_frac(bytes, radix, $Uns::BITS - frac_nbits, frac_nbits) {
                     Ok((neg, abs, overflow)) => (neg, abs, overflow),
@@ -331,17 +335,18 @@ macro_rules! unsigned_helpers_common {
             val & 1 != 0
         }
 
-        pub const fn bin_str_int_to_bin(bytes: &[u8]) -> ($Uns, bool) {
+        pub const fn bin_str_int_to_bin(bytes: Bytes) -> ($Uns, bool) {
             let max_len = $Uns::BITS as usize;
             let (bytes, overflow) = if bytes.len() > max_len {
-                (&bytes[(bytes.len() - max_len)..], true)
+                let (_, last_max_len) = bytes.split(bytes.len() - max_len);
+                (last_max_len, true)
             } else {
                 (bytes, false)
             };
             let mut acc = 0;
             let mut i = 0;
             while i < bytes.len() {
-                let byte = bytes[i];
+                let byte = bytes.get(i);
                 i += 1;
                 let i = i - 1;
                 let _ = i;
@@ -350,14 +355,14 @@ macro_rules! unsigned_helpers_common {
             (acc, overflow)
         }
 
-        pub const fn bin_str_frac_to_bin(bytes: &[u8], nbits: u32) -> Option<$Uns> {
+        pub const fn bin_str_frac_to_bin(bytes: Bytes, nbits: u32) -> Option<$Uns> {
             debug_assert!(!bytes.is_empty());
             let dump_bits = $Uns::BITS - nbits;
             let mut rem_bits = nbits;
             let mut acc = 0;
             let mut i = 0;
             while i < bytes.len() {
-                let byte = bytes[i];
+                let byte = bytes.get(i);
                 i += 1;
                 let i = i - 1;
                 let val = byte - b'0';
@@ -383,14 +388,15 @@ macro_rules! unsigned_helpers_common {
             Some(acc << rem_bits)
         }
 
-        pub const fn oct_str_int_to_bin(bytes: &[u8]) -> ($Uns, bool) {
+        pub const fn oct_str_int_to_bin(bytes: Bytes) -> ($Uns, bool) {
             let max_len = ($Uns::BITS as usize + 2) / 3;
             let (bytes, mut overflow) = if bytes.len() > max_len {
-                (&bytes[(bytes.len() - max_len)..], true)
+                let (_, last_max_len) = bytes.split(bytes.len() - max_len);
+                (last_max_len, true)
             } else {
                 (bytes, false)
             };
-            let mut acc = from_byte(bytes[0] - b'0');
+            let mut acc = from_byte(bytes.get(0) - b'0');
             if bytes.len() == max_len {
                 let first_max_bits = $Uns::BITS - (max_len as u32 - 1) * 3;
                 let first_max = (from_byte(1) << first_max_bits) - 1;
@@ -400,7 +406,7 @@ macro_rules! unsigned_helpers_common {
             }
             let mut i = 1;
             while i < bytes.len() {
-                let byte = bytes[i];
+                let byte = bytes.get(i);
                 i += 1;
                 let i = i - 1;
                 let _ = i;
@@ -409,14 +415,14 @@ macro_rules! unsigned_helpers_common {
             (acc, overflow)
         }
 
-        pub const fn oct_str_frac_to_bin(bytes: &[u8], nbits: u32) -> Option<$Uns> {
+        pub const fn oct_str_frac_to_bin(bytes: Bytes, nbits: u32) -> Option<$Uns> {
             debug_assert!(!bytes.is_empty());
             let dump_bits = $Uns::BITS - nbits;
             let mut rem_bits = nbits;
             let mut acc = 0;
             let mut i = 0;
             while i < bytes.len() {
-                let byte = bytes[i];
+                let byte = bytes.get(i);
                 i += 1;
                 let i = i - 1;
                 let val = byte - b'0';
@@ -444,14 +450,15 @@ macro_rules! unsigned_helpers_common {
             Some(acc << rem_bits)
         }
 
-        pub const fn hex_str_int_to_bin(bytes: &[u8]) -> ($Uns, bool) {
+        pub const fn hex_str_int_to_bin(bytes: Bytes) -> ($Uns, bool) {
             let max_len = ($Uns::BITS as usize + 3) / 4;
             let (bytes, mut overflow) = if bytes.len() > max_len {
-                (&bytes[(bytes.len() - max_len)..], true)
+                let (_, last_max_len) = bytes.split(bytes.len() - max_len);
+                (last_max_len, true)
             } else {
                 (bytes, false)
             };
-            let mut acc = from_byte(unchecked_hex_digit(bytes[0]));
+            let mut acc = from_byte(unchecked_hex_digit(bytes.get(0)));
             if bytes.len() == max_len {
                 let first_max_bits = $Uns::BITS - (max_len as u32 - 1) * 4;
                 let first_max = (from_byte(1) << first_max_bits) - 1;
@@ -461,7 +468,7 @@ macro_rules! unsigned_helpers_common {
             }
             let mut i = 1;
             while i < bytes.len() {
-                let byte = bytes[i];
+                let byte = bytes.get(i);
                 i += 1;
                 let i = i - 1;
                 let _ = i;
@@ -470,14 +477,14 @@ macro_rules! unsigned_helpers_common {
             (acc, overflow)
         }
 
-        pub const fn hex_str_frac_to_bin(bytes: &[u8], nbits: u32) -> Option<$Uns> {
+        pub const fn hex_str_frac_to_bin(bytes: Bytes, nbits: u32) -> Option<$Uns> {
             debug_assert!(!bytes.is_empty());
             let dump_bits = $Uns::BITS - nbits;
             let mut rem_bits = nbits;
             let mut acc = 0;
             let mut i = 0;
             while i < bytes.len() {
-                let byte = bytes[i];
+                let byte = bytes.get(i);
                 i += 1;
                 let i = i - 1;
                 let val = unchecked_hex_digit(byte);
@@ -505,17 +512,18 @@ macro_rules! unsigned_helpers_common {
             Some(acc << rem_bits)
         }
 
-        pub const fn dec_str_int_to_bin(bytes: &[u8]) -> ($Uns, bool) {
+        pub const fn dec_str_int_to_bin(bytes: Bytes) -> ($Uns, bool) {
             let max_effective_len = $Uns::BITS as usize;
             let (bytes, mut overflow) = if bytes.len() > max_effective_len {
-                (&bytes[(bytes.len() - max_effective_len)..], true)
+                let (_, last_max_effective_len) = bytes.split(bytes.len() - max_effective_len);
+                (last_max_effective_len, true)
             } else {
                 (bytes, false)
             };
             let mut acc = 0;
             let mut i = 0;
             while i < bytes.len() {
-                let byte = bytes[i];
+                let byte = bytes.get(i);
                 i += 1;
                 let i = i - 1;
                 let _ = i;
@@ -527,7 +535,7 @@ macro_rules! unsigned_helpers_common {
             (acc, overflow)
         }
 
-        pub const fn dec_str_frac_to_bin(bytes: &[u8], nbits: u32) -> Option<$Uns> {
+        pub const fn dec_str_frac_to_bin(bytes: Bytes, nbits: u32) -> Option<$Uns> {
             let (val, is_short) = parse_is_short(bytes);
             let one: $Uns = 1;
             let dump_bits = $Uns::BITS - nbits;
@@ -558,7 +566,7 @@ macro_rules! unsigned_helpers_common {
             let mut tie = true;
             let mut i = 0;
             while i < bytes.len() {
-                let byte = bytes[i];
+                let byte = bytes.get(i);
                 i += 1;
                 let i = i - 1;
                 let _ = i;
@@ -600,7 +608,7 @@ macro_rules! unsigned_helpers_common {
         }
 
         pub const fn get_int_frac(
-            bytes: &[u8],
+            bytes: Bytes,
             radix: u32,
             int_nbits: u32,
             frac_nbits: u32,
@@ -635,7 +643,7 @@ macro_rules! unsigned_helpers_common {
             Ok((neg, val, overflow))
         }
 
-        pub const fn get_int(int: &[u8], radix: u32, nbits: u32) -> ($Uns, bool) {
+        pub const fn get_int(int: Bytes, radix: u32, nbits: u32) -> ($Uns, bool) {
             const HALF: u32 = $Uns::BITS / 2;
             if $attempt_half && nbits <= HALF {
                 let (half, overflow) = crate::from_str::$Half::get_int(int, radix, nbits);
@@ -665,7 +673,7 @@ macro_rules! unsigned_helpers_common {
             (parsed_int, overflow)
         }
 
-        pub const fn get_frac(frac: &[u8], radix: u32, nbits: u32) -> Option<$Uns> {
+        pub const fn get_frac(frac: Bytes, radix: u32, nbits: u32) -> Option<$Uns> {
             if $attempt_half && nbits <= $Uns::BITS / 2 {
                 return match crate::from_str::$Half::get_frac(frac, radix, nbits) {
                     Some(half) => Some(half as $Uns),
@@ -688,7 +696,10 @@ macro_rules! unsigned_helpers_common {
 
 macro_rules! helpers_common {
     ($Single:ident) => {
-        use crate::from_str::{ParseErrorKind, ParseFixedError};
+        use crate::{
+            bytes::Bytes,
+            from_str::{ParseErrorKind, ParseFixedError},
+        };
 
         #[inline]
         pub const fn from_str_radix(
@@ -760,7 +771,7 @@ const fn unchecked_hex_digit(byte: u8) -> u8 {
     (byte & 0x0f) + if byte >= 0x40 { 9 } else { 0 }
 }
 
-enum Round {
+pub enum Round {
     Nearest,
     Floor,
 }
@@ -768,8 +779,8 @@ enum Round {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Parse<'a> {
     neg: bool,
-    int: &'a [u8],
-    frac: &'a [u8],
+    int: Bytes<'a>,
+    frac: Bytes<'a>,
 }
 
 /**
@@ -834,7 +845,7 @@ impl Error for ParseFixedError {
 }
 
 // also trims zeros at start of int and at end of frac
-const fn parse_bounds(bytes: &[u8], radix: u32) -> Result<Parse<'_>, ParseFixedError> {
+const fn parse_bounds(bytes: Bytes, radix: u32) -> Result<Parse<'_>, ParseFixedError> {
     let mut sign: Option<bool> = None;
     let mut trimmed_int_start: Option<usize> = None;
     let mut point: Option<usize> = None;
@@ -843,7 +854,7 @@ const fn parse_bounds(bytes: &[u8], radix: u32) -> Result<Parse<'_>, ParseFixedE
 
     let mut index = 0;
     while index < bytes.len() {
-        let byte = bytes[index];
+        let byte = bytes.get(index);
         index += 1;
         let index = index - 1;
         match (byte, radix) {
@@ -906,20 +917,31 @@ const fn parse_bounds(bytes: &[u8], radix: u32) -> Result<Parse<'_>, ParseFixedE
         None => false,
     };
     let int = match (trimmed_int_start, point) {
-        (Some(start), Some(point)) => &bytes[start..point],
-        (Some(start), None) => &bytes[start..],
-        (None, _) => &bytes[..0],
+        (Some(start), Some(point)) => {
+            let (up_to_point, _) = bytes.split(point);
+            let (_, from_start) = up_to_point.split(start);
+            from_start
+        }
+        (Some(start), None) => {
+            let (_, from_start) = bytes.split(start);
+            from_start
+        }
+        (None, _) => Bytes::new(&[]),
     };
     let frac = match (point, trimmed_frac_end) {
-        (Some(point), Some(end)) => &bytes[(point + 1)..end],
-        _ => &bytes[..0],
+        (Some(point), Some(end)) => {
+            let (up_to_end, _) = bytes.split(end);
+            let (_, from_after_point) = up_to_end.split(point + 1);
+            from_after_point
+        }
+        _ => Bytes::new(&[]),
     };
     Ok(Parse { neg, int, frac })
 }
 
-const fn frac_is_half(bytes: &[u8], radix: u32) -> bool {
+const fn frac_is_half(bytes: Bytes, radix: u32) -> bool {
     // since zeros are trimmed, there must be exatly one byte
-    bytes.len() == 1 && bytes[0] - b'0' == (radix as u8) / 2
+    bytes.len() == 1 && bytes.get(0) - b'0' == (radix as u8) / 2
 }
 
 macro_rules! impl_from_str {
