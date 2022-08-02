@@ -102,6 +102,43 @@ The conversions supported cover the following cases.
 
 ## What’s new
 
+### Version 1.17.0 news (unreleased)
+
+  * The inherent [`from_str`][f-fs-1-17] method was added as a `const` function
+    to all fixed-point numbers so that it can be use in constant context.
+  * The following methods are now `const` functions:
+      * [`saturating_from_str`][f-sfs-1-17], [`wrapping_from_str`][f-wfs-1-17],
+        [`overflowing_from_str`][f-ofs-1-17]
+      * [`from_str_binary`][f-fsb-1-17],
+        [`saturating_from_str_binary`][f-sfsb-1-17],
+        [`wrapping_from_str_binary`][f-wfsb-1-17],
+        [`overflowing_from_str_binary`][f-ofsb-1-17]
+      * [`from_str_octal`][f-fso-1-17],
+        [`saturating_from_str_octal`][f-sfso-1-17],
+        [`wrapping_from_str_octal`][f-wfso-1-17],
+        [`overflowing_from_str_octal`][f-ofso-1-17]
+      * [`from_str_hex`][f-fsh-1-17],
+        [`saturating_from_str_hex`][f-sfsh-1-17],
+        [`wrapping_from_str_hex`][f-wfsh-1-17],
+        [`overflowing_from_str_hex`][f-ofsh-1-17]
+
+[f-fs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str
+[f-fsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_binary
+[f-fsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_hex
+[f-fso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_octal
+[f-ofs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str
+[f-ofsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str_binary
+[f-ofsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str_hex
+[f-ofso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str_octal
+[f-sfs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str
+[f-sfsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_binary
+[f-sfsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_hex
+[f-sfso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_octal
+[f-wfs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str
+[f-wfsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str_binary
+[f-wfsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str_hex
+[f-wfso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str_octal
+
 ### Version 1.16.1 news (2022-07-22)
 
   * *Cargo.toml* now includes the [`rust-version`] field ([merge request 11]).
