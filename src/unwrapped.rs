@@ -543,9 +543,13 @@ impl<F: Fixed> Unwrapped<F> {
     /// Rounding is to the nearest, with ties rounded to even.
     ///
     /// See also
-    /// <code>FixedI32::[from\_str\_binary][FixedI32::from_str_binary]</code>
+    /// <code>FixedI32::[unwrapped\_from\_str\_binary][FixedI32::unwrapped_from_str_binary]</code>
     /// and
-    /// <code>FixedU32::[from\_str\_binary][FixedU32::from_str_binary]</code>.
+    /// <code>FixedU32::[unwrapped\_from\_str\_binary][FixedU32::unwrapped_from_str_binary]</code>.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value does not fit or if there is a parsing error.
     ///
     /// # Examples
     ///
@@ -554,9 +558,22 @@ impl<F: Fixed> Unwrapped<F> {
     /// let check = Unwrapped(I8F8::from_bits(0b1110001 << (8 - 1)));
     /// assert_eq!(Unwrapped::<I8F8>::from_str_binary("111000.1"), Ok(check));
     /// ```
+    ///
+    /// The following panics because of a parsing error.
+    ///
+    /// ```rust,should_panic
+    /// use fixed::{types::I8F8, Unwrapped};
+    /// let _error = Unwrapped::<I8F8>::from_str_binary("1.2");
+    /// ```
+    ///
+    /// # Compatibility note
+    ///
+    /// This method either returns [`Ok`] or panics, and never returns [`Err`].
+    /// In version 2, this method will not return a [`Result`], but will return
+    /// the fixed-point number directly.
     #[inline]
     pub fn from_str_binary(src: &str) -> Result<Unwrapped<F>, ParseFixedError> {
-        F::from_str_binary(src).map(Unwrapped)
+        Ok(Unwrapped(F::unwrapped_from_str_binary(src)))
     }
 
     /// Parses a string slice containing octal digits to return a fixed-point number.
@@ -564,8 +581,13 @@ impl<F: Fixed> Unwrapped<F> {
     /// Rounding is to the nearest, with ties rounded to even.
     ///
     /// See also
-    /// <code>FixedI32::[from\_str\_octal][FixedI32::from_str_octal]</code> and
-    /// <code>FixedU32::[from\_str\_octal][FixedU32::from_str_octal]</code>.
+    /// <code>FixedI32::[unwrapped\_from\_str\_octal][FixedI32::unwrapped_from_str_octal]</code>
+    /// and
+    /// <code>FixedU32::[unwrapped\_from\_str\_octal][FixedU32::unwrapped_from_str_octal]</code>.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value does not fit or if there is a parsing error.
     ///
     /// # Examples
     ///
@@ -574,17 +596,36 @@ impl<F: Fixed> Unwrapped<F> {
     /// let check = Unwrapped(I8F8::from_bits(0o1654 << (8 - 3)));
     /// assert_eq!(Unwrapped::<I8F8>::from_str_octal("165.4"), Ok(check));
     /// ```
+    ///
+    /// The following panics because of a parsing error.
+    ///
+    /// ```rust,should_panic
+    /// use fixed::{types::I8F8, Unwrapped};
+    /// let _error = Unwrapped::<I8F8>::from_str_octal("1.8");
+    /// ```
+    ///
+    /// # Compatibility note
+    ///
+    /// This method either returns [`Ok`] or panics, and never returns [`Err`].
+    /// In version 2, this method will not return a [`Result`], but will return
+    /// the fixed-point number directly.
     #[inline]
     pub fn from_str_octal(src: &str) -> Result<Unwrapped<F>, ParseFixedError> {
-        F::from_str_octal(src).map(Unwrapped)
+        Ok(Unwrapped(F::unwrapped_from_str_octal(src)))
     }
 
     /// Parses a string slice containing hexadecimal digits to return a fixed-point number.
     ///
     /// Rounding is to the nearest, with ties rounded to even.
     ///
-    /// See also <code>FixedI32::[from\_str\_hex][FixedI32::from_str_hex]</code>
-    /// and <code>FixedU32::[from\_str\_hex][FixedU32::from_str_hex]</code>.
+    /// See also
+    /// <code>FixedI32::[unwrapped\_from\_str\_hex][FixedI32::unwrapped_from_str_hex]</code>
+    /// and
+    /// <code>FixedU32::[unwrapped\_from\_str\_hex][FixedU32::unwrapped_from_str_hex]</code>.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value does not fit or if there is a parsing error.
     ///
     /// # Examples
     ///
@@ -593,9 +634,22 @@ impl<F: Fixed> Unwrapped<F> {
     /// let check = Unwrapped(I8F8::from_bits(0xFFE));
     /// assert_eq!(Unwrapped::<I8F8>::from_str_hex("F.FE"), Ok(check));
     /// ```
+    ///
+    /// The following panics because of a parsing error.
+    ///
+    /// ```rust,should_panic
+    /// use fixed::{types::I8F8, Unwrapped};
+    /// let _error = Unwrapped::<I8F8>::from_str_hex("1.G");
+    /// ```
+    ///
+    /// # Compatibility note
+    ///
+    /// This method either returns [`Ok`] or panics, and never returns [`Err`].
+    /// In version 2, this method will not return a [`Result`], but will return
+    /// the fixed-point number directly.
     #[inline]
     pub fn from_str_hex(src: &str) -> Result<Unwrapped<F>, ParseFixedError> {
-        F::from_str_hex(src).map(Unwrapped)
+        Ok(Unwrapped(F::unwrapped_from_str_hex(src)))
     }
 
     /// Returns the integer part.
@@ -1846,9 +1900,25 @@ impl<F: Fixed> FromStr for Unwrapped<F> {
     /// Parses a string slice containing decimal digits to return a fixed-point number.
     ///
     /// Rounding is to the nearest, with ties rounded to even.
+    ///
+    /// See also
+    /// <code>FixedI32::[unwrapped\_from\_str][FixedI32::unwrapped_from_str]</code>
+    /// and
+    /// <code>FixedU32::[unwrapped\_from\_str][FixedU32::unwrapped_from_str]</code>.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value does not fit or if there is a parsing error.
+    ///
+    /// # Compatibility note
+    ///
+    /// This method either returns [`Ok`] or panics, and never returns [`Err`].
+    /// In version 2, this trait implementation will be removed, and an inherent
+    /// `from_str` method will be added that does not return a [`Result`], but
+    /// will return the fixed-point number directly.
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        F::from_str(s).map(Unwrapped)
+        Ok(Unwrapped(F::unwrapped_from_str(s)))
     }
 }
 

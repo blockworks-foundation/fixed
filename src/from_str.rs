@@ -829,6 +829,18 @@ impl ParseFixedError {
             Overflow => "overflow",
         }
     }
+
+    #[inline]
+    #[track_caller]
+    pub(crate) const fn panic(&self) -> ! {
+        use self::ParseErrorKind::*;
+        match self.kind {
+            InvalidDigit => panic!("invalid digit found in string"),
+            NoDigits => panic!("string has no digits"),
+            TooManyPoints => panic!("more than one decimal point found in string"),
+            Overflow => panic!("overflow"),
+        }
+    }
 }
 
 impl Display for ParseFixedError {

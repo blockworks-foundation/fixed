@@ -1205,6 +1205,66 @@ where
     fn wrapping_from_str_hex(src: &str) -> Result<Self, ParseFixedError>;
 
     /// Parses a string slice containing decimal digits to return a
+    /// fixed-point number, panicking on overflow.
+    ///
+    /// Rounding is to the nearest, with ties rounded to even.
+    ///
+    /// See also
+    /// <code>FixedI32::[unwrapped\_from\_str][FixedI32::unwrapped_from_str]</code>
+    /// and
+    /// <code>FixedU32::[unwrapped\_from\_str][FixedU32::unwrapped_from_str]</code>.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value does not fit or if there is a parsing error.
+    fn unwrapped_from_str(src: &str) -> Self;
+
+    /// Parses a string slice containing binary digits to return a
+    /// fixed-point number, panicking on overflow.
+    ///
+    /// Rounding is to the nearest, with ties rounded to even.
+    ///
+    /// See also
+    /// <code>FixedI32::[unwrapped\_from\_str\_binary][FixedI32::unwrapped_from_str_binary]</code>
+    /// and
+    /// <code>FixedU32::[unwrapped\_from\_str\_binary][FixedU32::unwrapped_from_str_binary]</code>.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value does not fit or if there is a parsing error.
+    fn unwrapped_from_str_binary(src: &str) -> Self;
+
+    /// Parses a string slice containing octal digits to return a
+    /// fixed-point number, panicking on overflow.
+    ///
+    /// Rounding is to the nearest, with ties rounded to even.
+    ///
+    /// See also
+    /// <code>FixedI32::[unwrapped\_from\_str\_octal][FixedI32::unwrapped_from_str_octal]</code>
+    /// and
+    /// <code>FixedU32::[unwrapped\_from\_str\_octal][FixedU32::unwrapped_from_str_octal]</code>.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value does not fit or if there is a parsing error.
+    fn unwrapped_from_str_octal(src: &str) -> Self;
+
+    /// Parses a string slice containing hexadecimal digits to return a
+    /// fixed-point number, panicking on overflow.
+    ///
+    /// Rounding is to the nearest, with ties rounded to even.
+    ///
+    /// See also
+    /// <code>FixedI32::[unwrapped\_from\_str\_hex][FixedI32::unwrapped_from_str_hex]</code>
+    /// and
+    /// <code>FixedU32::[unwrapped\_from\_str\_hex][FixedU32::unwrapped_from_str_hex]</code>.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value does not fit or if there is a parsing error.
+    fn unwrapped_from_str_hex(src: &str) -> Self;
+
+    /// Parses a string slice containing decimal digits to return a
     /// fixed-point number.
     ///
     /// Returns a [tuple] of the fixed-point number and a [`bool`],
@@ -3898,6 +3958,10 @@ macro_rules! impl_fixed {
             trait_delegate! {
                 fn wrapping_from_str_hex(src: &str) -> Result<Self, ParseFixedError>
             }
+            trait_delegate! { fn unwrapped_from_str(src: &str) -> Self }
+            trait_delegate! { fn unwrapped_from_str_binary(src: &str) -> Self }
+            trait_delegate! { fn unwrapped_from_str_octal(src: &str) -> Self }
+            trait_delegate! { fn unwrapped_from_str_hex(src: &str) -> Self }
             trait_delegate! {
                 fn overflowing_from_str(src: &str) -> Result<(Self, bool), ParseFixedError>
             }

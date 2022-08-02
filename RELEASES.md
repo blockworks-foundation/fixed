@@ -25,6 +25,18 @@ Version 1.17.0 (unreleased)
         [`saturating_from_str_hex`][f-sfsh-1-17],
         [`wrapping_from_str_hex`][f-wfsh-1-17],
         [`overflowing_from_str_hex`][f-ofsh-1-17]
+  * The following methods were added to all fixed-point numbers and to the
+    [`Fixed`][tf-1-17] trait:
+      * [`unwrapped_from_str`][f-ufs-1-17],
+        [`unwrapped_from_str_binary`][f-ufsb-1-17],
+        [`unwrapped_from_str_octal`][f-ufso-1-17],
+        [`unwrapped_from_str_hex`][f-ufsh-1-17]
+  * Bug fix: The following methods were not panicking on all errors as required for
+    the [`Unwrapped`][u-1-17] wrapper:
+      * <code>&lt;[Unwrapped][u-1-17]&lt;F> as [FromStr][`FromStr`]>::[from\_str][`FromStr::from_str`]</code>
+      * <code>[Unwrapped][u-1-17]&lt;F>::[from\_str\_binary][u-fsb-1-17]</code>
+      * <code>[Unwrapped][u-1-17]&lt;F>::[from\_str\_octal][u-fso-1-17]</code>
+      * <code>[Unwrapped][u-1-17]&lt;F>::[from\_str\_hex][u-fsh-1-17]</code>
 
 [f-fs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str
 [f-fsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_binary
@@ -38,10 +50,19 @@ Version 1.17.0 (unreleased)
 [f-sfsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_binary
 [f-sfsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_hex
 [f-sfso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_octal
+[f-ufs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str
+[f-ufsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str_binary
+[f-ufsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str_hex
+[f-ufso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str_octal
 [f-wfs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str
 [f-wfsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str_binary
 [f-wfsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str_hex
 [f-wfso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str_octal
+[tf-1-17]: https://docs.rs/fixed/~1.16/fixed/traits/trait.Fixed.html
+[u-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.Unwrapped.html
+[u-fsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.Unwrapped.html#method.from_str_binary
+[u-fsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.Unwrapped.html#method.from_str_hex
+[u-fso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.Unwrapped.html#method.from_str_octal
 
 Version 1.16.1 (2022-07-22)
 ===========================
@@ -1121,6 +1142,8 @@ Version 0.1.0 (2018-08-10)
 [`Debug`]: https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html
 [`DivAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.DivAssign.html
 [`Div`]: https://doc.rust-lang.org/nightly/core/ops/trait.Div.html
+[`FromStr::from_str`]: https://doc.rust-lang.org/nightly/core/str/trait.FromStr.html#tymethod.from_str
+[`FromStr`]: https://doc.rust-lang.org/nightly/core/str/trait.FromStr.html
 [`MulAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.MulAssign.html
 [`NonZeroI32`]: https://doc.rust-lang.org/nightly/core/num/struct.NonZeroI32.html
 [`NonZeroU32`]: https://doc.rust-lang.org/nightly/core/num/struct.NonZeroU32.html
