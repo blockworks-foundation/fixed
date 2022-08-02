@@ -343,8 +343,8 @@ mod wrapping;
 
 #[cfg(feature = "num-traits")]
 pub use crate::impl_num_traits::RadixParseFixedError;
+pub use crate::{from_str::ParseFixedError, unwrapped::Unwrapped, wrapping::Wrapping};
 use crate::{
-    from_str::FromStrRadix,
     traits::{FromFixed, ToFixed},
     types::extra::{
         Diff, IsLessOrEqual, LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8, Sum, True, Unsigned, U12,
@@ -352,7 +352,6 @@ use crate::{
         U61, U62, U63, U64, U7, U8,
     },
 };
-pub use crate::{from_str::ParseFixedError, unwrapped::Unwrapped, wrapping::Wrapping};
 use core::{
     hash::{Hash, Hasher},
     marker::PhantomData,
