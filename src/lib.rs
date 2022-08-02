@@ -164,17 +164,36 @@ have less fractional bits, so we use [`from_num`] instead.
 
 ## Writing fixed-point constants and values literally
 
-The [*fixed-macro* crate] provides a convenient macro to write down fixed-point
-constants literally in the code.
+The parsing methods are available as `const` functions.
+
+```rust
+use fixed::types::I16F16;
+
+const TWELVE_POINT_75: I16F16 = I16F16::unwrapped_from_str("12.75");
+// 1.1 binary is 1.5 decimal
+const ONE_POINT_5: I16F16 = I16F16::unwrapped_from_str_binary("1.1");
+// 12.75 + 1.5 = 14.25
+let sum = TWELVE_POINT_75 + ONE_POINT_5;
+assert_eq!(sum, 14.25);
+```
+
+The [*fixed-macro* crate] is an alternative which provides a convenient macro to
+write down fixed-point constants literally in the code. It supports underscores
+as separators, scientific notation, and binary/octal/hexadecimal integers, but
+it does not support binary/octal/hexadecimal fractions as they cannot be parsed
+by the Rust compiler.
 
 ```rust
 # #[cfg(feature = "skip-this-test")] {
 use fixed::types::I16F16;
 use fixed_macro::fixed;
 
-const NUM1: I16F16 = fixed!(12.75: I16F16);
-let num2 = NUM1 + fixed!(13.125: I16F16);
-assert_eq!(num2, 25.875);
+// 0.1275e2 is 12.75
+const NUM1: I16F16 = fixed!(0.127_5e2: I16F16);
+// 11 binary is 3 decimal
+let num2 = NUM1 + fixed!(0b11: I16F16);
+// 12.75 + 3 = 15.75
+assert_eq!(num2, 15.75);
 # }
 ```
 
