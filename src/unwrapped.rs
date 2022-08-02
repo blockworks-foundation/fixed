@@ -1913,9 +1913,9 @@ impl<F: Fixed> FromStr for Unwrapped<F> {
     /// # Compatibility note
     ///
     /// This method either returns [`Ok`] or panics, and never returns [`Err`].
-    /// In version 2, this trait implementation will be removed, and an inherent
-    /// `from_str` method will be added that does not return a [`Result`], but
-    /// will return the fixed-point number directly.
+    /// In version 2, an inherent `Unwrapped<F>::from_str` method will be added
+    /// that does not return a [`Result`], but will return the fixed-point
+    /// number directly.
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Unwrapped(F::unwrapped_from_str(s)))
