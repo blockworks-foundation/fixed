@@ -776,7 +776,7 @@ pub enum Round {
     Floor,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug)]
 struct Parse<'a> {
     neg: bool,
     int: Bytes<'a>,

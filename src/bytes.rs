@@ -15,7 +15,7 @@
 
 use core::{marker::PhantomData, slice};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug)]
 pub struct Bytes<'a> {
     ptr: *const u8,
     len: usize,
