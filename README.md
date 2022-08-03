@@ -138,6 +138,11 @@ The conversions supported cover the following cases.
         [`wrapping_div_euclid_int`][f-wdei-1-17],
         [`unwrapped_div_euclid_int`][f-udei-1-17],
         [`overflowing_div_euclid_int`][f-odei-1-17]
+      * [`rem_euclid_int`][f-rei-1-17], [`checked_rem_euclid_int`][f-crei-1-17],
+        [`saturating_rem_euclid_int`][f-srei-1-17],
+        [`wrapping_rem_euclid_int`][f-wrei-1-17],
+        [`unwrapped_rem_euclid_int`][f-urei-1-17],
+        [`overflowing_rem_euclid_int`][f-orei-1-17]
       * [`lerp`][f-l-1-17], [`checked_lerp`][f-cl-1-17],
         [`saturating_lerp`][f-sl-1-17], [`wrapping_lerp`][f-wl-1-17],
         [`unwrapped_lerp`][f-ul-1-17], [`overflowing_lerp`][f-ol-1-17]
@@ -165,6 +170,7 @@ The conversions supported cover the following cases.
 [f-cil-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_inv_lerp
 [f-cl-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_lerp
 [f-cr-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_recip
+[f-crei-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_rem_euclid_int
 [f-cri-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_rem_int
 [f-de-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.div_euclid
 [f-dei-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.div_euclid_int
@@ -184,7 +190,9 @@ The conversions supported cover the following cases.
 [f-oil-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_inv_lerp
 [f-ol-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_lerp
 [f-or-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_recip
+[f-orei-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_rem_euclid_int
 [f-r-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.recip
+[f-rei-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.rem_euclid_int
 [f-sd-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_div
 [f-sde-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_div_euclid
 [f-sdei-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_div_euclid_int
@@ -195,6 +203,7 @@ The conversions supported cover the following cases.
 [f-sil-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_inv_lerp
 [f-sl-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_lerp
 [f-sr-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_recip
+[f-srei-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_rem_euclid_int
 [f-ud-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_div
 [f-ude-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_div_euclid
 [f-udei-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_div_euclid_int
@@ -205,6 +214,7 @@ The conversions supported cover the following cases.
 [f-uil-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_inv_lerp
 [f-ul-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_lerp
 [f-ur-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_recip
+[f-urei-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_rem_euclid_int
 [f-uri-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_rem_int
 [f-wd-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_div
 [f-wde-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_div_euclid
@@ -216,6 +226,7 @@ The conversions supported cover the following cases.
 [f-wil-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_inv_lerp
 [f-wl-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_lerp
 [f-wr-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_recip
+[f-wrei-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_rem_euclid_int
 [tf-1-17]: https://docs.rs/fixed/~1.16/fixed/traits/trait.Fixed.html
 [u-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.Unwrapped.html
 [u-fsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.Unwrapped.html#method.from_str_binary
