@@ -250,7 +250,7 @@ assert_eq!(Fix::from_num(2).recip(), Fix::from_num(0.5));
 ";
                 #[inline]
                 #[must_use]
-                pub fn recip(self) -> $Fixed<Frac> {
+                pub const fn recip(self) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_recip();
                     debug_assert!(!overflow, "overflow");
                     ans
@@ -664,7 +664,7 @@ assert_eq!(Fix::ZERO.checked_recip(), None);
 ```
 ";
                 #[inline]
-                pub fn checked_recip(self) -> Option<$Fixed<Frac>> {
+                pub const fn checked_recip(self) -> Option<$Fixed<Frac>> {
                     if self.to_bits() == 0 {
                         None
                     } else {
@@ -1159,15 +1159,19 @@ assert_eq!(Fix::from_num(0.25).saturating_recip(), Fix::MAX);
 ";
                 #[inline]
                 #[must_use]
-                pub fn saturating_recip(self) -> $Fixed<Frac> {
+                pub const fn saturating_recip(self) -> $Fixed<Frac> {
                     match self.overflowing_recip() {
                         (ans, false) => ans,
                         (_, true) => {
-                            if self < 0 {
-                                Self::MIN
-                            } else {
-                                Self::MAX
-                            }
+                            if_signed_unsigned!(
+                                $Signedness,
+                                if self.is_negative() {
+                                    Self::MIN
+                                } else {
+                                    Self::MAX
+                                },
+                                Self::MAX,
+                            )
                         }
                     }
                 }
@@ -1572,7 +1576,7 @@ assert_eq!(Fix::from_num(0.25).wrapping_recip(), Fix::ZERO);
 ";
                 #[inline]
                 #[must_use]
-                pub fn wrapping_recip(self) -> $Fixed<Frac> {
+                pub const fn wrapping_recip(self) -> $Fixed<Frac> {
                     let (ans, _) = self.overflowing_recip();
                     ans
                 }
@@ -1920,7 +1924,7 @@ assert_eq!(Fix::from_num(0.25).unwrapped_recip(), Fix::from_num(4));
                 #[inline]
                 #[track_caller]
                 #[must_use]
-                pub fn unwrapped_recip(self) -> $Fixed<Frac> {
+                pub const fn unwrapped_recip(self) -> $Fixed<Frac> {
                     match self.overflowing_recip() {
                         (_, true) => panic!("overflow"),
                         (ans, false) => ans,
@@ -2406,8 +2410,8 @@ assert_eq!(Small::from_num(0.25).overflowing_recip(), (Small::ZERO, true));
 ```
 ";
                 #[inline]
-                pub fn overflowing_recip(self) -> ($Fixed<Frac>, bool) {
-                    if let Some(one) = Self::checked_from_num(1) {
+                pub const fn overflowing_recip(self) -> ($Fixed<Frac>, bool) {
+                    if let Some(one) = Self::TRY_ONE {
                         return one.overflowing_div(self);
                     }
                     if_signed! {
@@ -2415,9 +2419,9 @@ assert_eq!(Small::from_num(0.25).overflowing_recip(), (Small::ZERO, true));
                         let (neg, abs) = int_helper::$Inner::neg_abs(self.to_bits());
                         let uns_abs = $UFixed::<Frac>::from_bits(abs);
                         let (uns_wrapped, overflow1) = uns_abs.overflowing_recip();
-                        let (wrapped, overflow2) =
-                            $Fixed::<Frac>::overflowing_from_num(uns_wrapped);
-                        if wrapped == $Fixed::<Frac>::MIN && neg {
+                        let wrapped = $Fixed::<Frac>::from_bits(uns_wrapped.to_bits() as $Inner);
+                        let overflow2 = wrapped.is_negative();
+                        if wrapped.to_bits() == $Inner::MIN && neg {
                             return (wrapped, overflow1);
                         }
                         if neg {
@@ -2769,6 +2773,13 @@ assert_eq!(
                     }
                 }
             }
+
+            const TRY_ONE: Option<Self> =
+                if Self::FRAC_NBITS < $Inner::BITS - if_signed_unsigned!($Signedness, 1, 0) {
+                    Some(Self::DELTA.unwrapped_shl(Self::FRAC_NBITS))
+                } else {
+                    None
+                };
         }
     };
 }
