@@ -1257,10 +1257,9 @@ let _error = Fix::unwrapped_from_str("1.75.");
             #[track_caller]
             #[must_use]
             pub const fn unwrapped_from_str(src: &str) -> $Fixed<Frac> {
-                match from_str::$Inner::overflowing_from_str_radix(src, 10, Self::FRAC_NBITS) {
-                    Ok((bits, false)) => $Fixed::from_bits(bits),
-                    Ok((_, true)) => panic!("overflow"),
-                    Err(e) => e.panic(),
+                match $Fixed::from_str(src) {
+                    Ok(o) => o,
+                    Err(e) => panic!("{}", e.message()),
                 }
             }
         }
@@ -1297,10 +1296,9 @@ let _error = Fix::unwrapped_from_str_binary("1.2");
             #[track_caller]
             #[must_use]
             pub const fn unwrapped_from_str_binary(src: &str) -> $Fixed<Frac> {
-                match from_str::$Inner::overflowing_from_str_radix(src, 2, Self::FRAC_NBITS) {
-                    Ok((bits, false)) => $Fixed::from_bits(bits),
-                    Ok((_, true)) => panic!("overflow"),
-                    Err(e) => e.panic(),
+                match $Fixed::from_str_binary(src) {
+                    Ok(o) => o,
+                    Err(e) => panic!("{}", e.message()),
                 }
             }
         }
@@ -1337,10 +1335,9 @@ let _error = Fix::unwrapped_from_str_octal("1.8");
             #[track_caller]
             #[must_use]
             pub const fn unwrapped_from_str_octal(src: &str) -> $Fixed<Frac> {
-                match from_str::$Inner::overflowing_from_str_radix(src, 8, Self::FRAC_NBITS) {
-                    Ok((bits, false)) => $Fixed::from_bits(bits),
-                    Ok((_, true)) => panic!("overflow"),
-                    Err(e) => e.panic(),
+                match $Fixed::from_str_octal(src) {
+                    Ok(o) => o,
+                    Err(e) => panic!("{}", e.message()),
                 }
             }
         }
@@ -1377,10 +1374,9 @@ let _error = Fix::unwrapped_from_str_hex("1.G");
             #[track_caller]
             #[must_use]
             pub const fn unwrapped_from_str_hex(src: &str) -> $Fixed<Frac> {
-                match from_str::$Inner::overflowing_from_str_radix(src, 16, Self::FRAC_NBITS) {
-                    Ok((bits, false)) => $Fixed::from_bits(bits),
-                    Ok((_, true)) => panic!("overflow"),
-                    Err(e) => e.panic(),
+                match $Fixed::from_str_hex(src) {
+                    Ok(o) => o,
+                    Err(e) => panic!("{}", e.message()),
                 }
             }
         }

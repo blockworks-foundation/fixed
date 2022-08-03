@@ -820,25 +820,14 @@ impl From<ParseErrorKind> for ParseFixedError {
 }
 
 impl ParseFixedError {
-    pub(crate) fn message(&self) -> &str {
+    #[inline]
+    pub(crate) const fn message(&self) -> &str {
         use self::ParseErrorKind::*;
         match self.kind {
             InvalidDigit => "invalid digit found in string",
             NoDigits => "string has no digits",
             TooManyPoints => "more than one decimal point found in string",
             Overflow => "overflow",
-        }
-    }
-
-    #[inline]
-    #[track_caller]
-    pub(crate) const fn panic(&self) -> ! {
-        use self::ParseErrorKind::*;
-        match self.kind {
-            InvalidDigit => panic!("invalid digit found in string"),
-            NoDigits => panic!("string has no digits"),
-            TooManyPoints => panic!("more than one decimal point found in string"),
-            Overflow => panic!("overflow"),
         }
     }
 }
