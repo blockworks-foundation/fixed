@@ -331,19 +331,10 @@ assert_eq!(Fix::from_num(7.5).div_euclid_int(2), Fix::from_num(3));
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn div_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
-                    let q = (self / rhs).round_to_zero();
-                    if_signed! {
-                        $Signedness;
-                        if (self % rhs).is_negative() {
-                            return if rhs.is_positive() {
-                                q - Self::from_num(1)
-                            } else {
-                                q + Self::from_num(1)
-                            };
-                        }
-                    }
-                    q
+                pub const fn div_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
+                    let (ans, overflow) = self.overflowing_div_euclid_int(rhs);
+                    debug_assert!(!overflow, "overflow");
+                    ans
                 }
             }
 
@@ -923,15 +914,22 @@ assert_eq!(Fix::from_num(7.5).checked_div_euclid_int(0), None);
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn checked_div_euclid_int(self, rhs: $Inner) -> Option<$Fixed<Frac>> {
-                    let q = self.checked_div_int(rhs)?.round_to_zero();
+                pub const fn checked_div_euclid_int(self, rhs: $Inner) -> Option<$Fixed<Frac>> {
+                    let q = match self.checked_div_int(rhs) {
+                        Some(s) => s.round_to_zero(),
+                        None => return None,
+                    };
                     if_signed! {
                         $Signedness;
-                        if (self % rhs).is_negative() {
+                        if self.unwrapped_rem_int(rhs).is_negative() {
+                            let neg_one = match Self::TRY_NEG_ONE {
+                                Some(s) => s,
+                                None => return None,
+                            };
                             return if rhs.is_positive() {
-                                q.checked_add(Self::checked_from_num(-1)?)
+                                q.checked_add(neg_one)
                             } else {
-                                q.checked_add(Self::checked_from_num(1)?)
+                                q.checked_sub(neg_one)
                             };
                         }
                     }
@@ -1267,7 +1265,8 @@ assert_eq!(Fix::MIN.saturating_div_euclid_int(-1), Fix::MAX);
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn saturating_div_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
+                pub const fn saturating_div_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
+                    // dividing by integer can never result in something < MIN
                     match self.overflowing_div_euclid_int(rhs) {
                         (val, false) => val,
                         (_, true) => $Fixed::MAX,
@@ -1659,7 +1658,7 @@ assert_eq!(Fix::MIN.wrapping_div_euclid_int(-1), wrapped);
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn wrapping_div_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
+                pub const fn wrapping_div_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
                     self.overflowing_div_euclid_int(rhs).0
                 }
             }
@@ -2194,7 +2193,7 @@ let _overflow = Fix::MIN.unwrapped_div_euclid_int(-1);
                 #[inline]
                 #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn unwrapped_div_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
+                pub const fn unwrapped_div_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
                     match self.overflowing_div_euclid_int(rhs) {
                         (_, true) => panic!("overflow"),
                         (ans, false) => ans,
@@ -2547,24 +2546,20 @@ assert_eq!(Fix::MIN.overflowing_div_euclid_int(-1), (wrapped, true));
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
-                pub fn overflowing_div_euclid_int(self, rhs: $Inner) -> ($Fixed<Frac>, bool) {
+                pub const fn overflowing_div_euclid_int(self, rhs: $Inner) -> ($Fixed<Frac>, bool) {
                     let (mut q, overflow) = self.overflowing_div_int(rhs);
                     q = q.round_to_zero();
                     if_signed! {
                         $Signedness;
-                        if (self % rhs).is_negative() {
+                        if self.unwrapped_rem_int(rhs).is_negative() {
+                            let neg_one = match Self::TRY_NEG_ONE {
+                                Some(s) => s,
+                                None => return (q, true),
+                            };
                             let (q, overflow2) = if rhs.is_positive() {
-                                let minus_one = match Self::checked_from_num(-1) {
-                                    None => return (q, true),
-                                    Some(s) => s,
-                                };
-                                q.overflowing_add(minus_one)
+                                q.overflowing_add(neg_one)
                             } else {
-                                let one = match Self::checked_from_num(1) {
-                                    None => return (q, true),
-                                    Some(s) => s,
-                                };
-                                q.overflowing_add(one)
+                                q.overflowing_sub(neg_one)
                             };
                             return (q, overflow | overflow2);
                         }
