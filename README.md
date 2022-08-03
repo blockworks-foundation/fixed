@@ -128,6 +128,11 @@ The conversions supported cover the following cases.
         [`saturating_recip`][f-sr-1-17], [`wrapping_recip`][f-wr-1-17],
         [`unwrapped_recip`][f-ur-1-17], [`overflowing_recip`][f-or-1-17]
       * [`checked_rem_int`][f-cri-1-17], [`unwrapped_rem_int`][f-uri-1-17]
+      * [`div_euclid`][f-de-1-17], [`checked_div_euclid`][f-cde-1-17],
+        [`saturating_div_euclid`][f-sde-1-17],
+        [`wrapping_div_euclid`][f-wde-1-17],
+        [`unwrapped_div_euclid`][f-ude-1-17],
+        [`overflowing_div_euclid`][f-ode-1-17]
       * [`lerp`][f-l-1-17], [`checked_lerp`][f-cl-1-17],
         [`saturating_lerp`][f-sl-1-17], [`wrapping_lerp`][f-wl-1-17],
         [`unwrapped_lerp`][f-ul-1-17], [`overflowing_lerp`][f-ol-1-17]
@@ -150,10 +155,12 @@ The conversions supported cover the following cases.
 [`FromStr::from_str`]: https://doc.rust-lang.org/nightly/core/str/trait.FromStr.html#tymethod.from_str
 [`FromStr`]: https://doc.rust-lang.org/nightly/core/str/trait.FromStr.html
 [f-cd-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_div
+[f-cde-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_div_euclid
 [f-cil-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_inv_lerp
 [f-cl-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_lerp
 [f-cr-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_recip
 [f-cri-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_rem_int
+[f-de-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.div_euclid
 [f-fs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str
 [f-fsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_binary
 [f-fsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_hex
@@ -161,6 +168,7 @@ The conversions supported cover the following cases.
 [f-il-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.inv_lerp
 [f-l-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.lerp
 [f-od-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_div
+[f-ode-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_div_euclid
 [f-ofs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str
 [f-ofsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str_binary
 [f-ofsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str_hex
@@ -170,6 +178,7 @@ The conversions supported cover the following cases.
 [f-or-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_recip
 [f-r-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.recip
 [f-sd-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_div
+[f-sde-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_div_euclid
 [f-sfs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str
 [f-sfsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_binary
 [f-sfsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_hex
@@ -178,6 +187,7 @@ The conversions supported cover the following cases.
 [f-sl-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_lerp
 [f-sr-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_recip
 [f-ud-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_div
+[f-ude-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_div_euclid
 [f-ufs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str
 [f-ufsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str_binary
 [f-ufsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str_hex
@@ -187,6 +197,7 @@ The conversions supported cover the following cases.
 [f-ur-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_recip
 [f-uri-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_rem_int
 [f-wd-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_div
+[f-wde-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_div_euclid
 [f-wfs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str
 [f-wfsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str_binary
 [f-wfsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str_hex
