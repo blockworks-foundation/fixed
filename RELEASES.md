@@ -11,6 +11,9 @@ Version 1.17.0 (unreleased)
   * The inherent [`from_str`][f-fs-1-17] method was added as a `const` function
     to all fixed-point numbers so that it can be use in constant context.
   * The following methods are now `const` functions:
+      * [`checked_div`][f-cd-1-17], [`saturating_div`][f-sd-1-17],
+        [`wrapping_div`][f-wd-1-17], [`unwrapped_div`][f-ud-1-17],
+        [`overflowing_div`][f-od-1-17]
       * [`saturating_from_str`][f-sfs-1-17], [`wrapping_from_str`][f-wfs-1-17],
         [`overflowing_from_str`][f-ofs-1-17]
       * [`from_str_binary`][f-fsb-1-17],
@@ -38,22 +41,27 @@ Version 1.17.0 (unreleased)
       * <code>[Unwrapped][u-1-17]&lt;F>::[from\_str\_octal][u-fso-1-17]</code>
       * <code>[Unwrapped][u-1-17]&lt;F>::[from\_str\_hex][u-fsh-1-17]</code>
 
+[f-cd-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_div
 [f-fs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str
 [f-fsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_binary
 [f-fsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_hex
 [f-fso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_octal
+[f-od-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_div
 [f-ofs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str
 [f-ofsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str_binary
 [f-ofsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str_hex
 [f-ofso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str_octal
+[f-sd-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_div
 [f-sfs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str
 [f-sfsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_binary
 [f-sfsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_hex
 [f-sfso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_octal
+[f-ud-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_div
 [f-ufs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str
 [f-ufsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str_binary
 [f-ufsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str_hex
 [f-ufso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str_octal
+[f-wd-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_div
 [f-wfs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str
 [f-wfsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str_binary
 [f-wfsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str_hex

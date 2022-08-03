@@ -653,10 +653,14 @@ macro_rules! mul_div_widen {
 
             // 0 <= frac_nbits <= NBITS
             #[inline]
-            pub fn overflowing_div(lhs: $Single, rhs: $Single, frac_nbits: u32) -> ($Single, bool) {
+            pub const fn overflowing_div(
+                lhs: $Single,
+                rhs: $Single,
+                frac_nbits: u32,
+            ) -> ($Single, bool) {
                 const NBITS: u32 = <$Single>::BITS;
-                let lhs2 = <$Double>::from(lhs) << frac_nbits;
-                let rhs2 = <$Double>::from(rhs);
+                let lhs2 = (lhs as $Double) << frac_nbits;
+                let rhs2 = (rhs as $Double);
                 let quot2 = lhs2 / rhs2;
                 let quot = quot2 as $Single;
                 let overflow = if_signed_unsigned!(
@@ -725,7 +729,7 @@ pub mod u128 {
 
     // 0 <= frac_nbits <= NBITS
     #[inline]
-    pub fn overflowing_div(lhs: u128, rhs: u128, frac_nbits: u32) -> (u128, bool) {
+    pub const fn overflowing_div(lhs: u128, rhs: u128, frac_nbits: u32) -> (u128, bool) {
         if frac_nbits == 0 {
             lhs.overflowing_div(rhs)
         } else {
@@ -795,7 +799,7 @@ pub mod i128 {
 
     // 0 <= frac_nbits <= NBITS
     #[inline]
-    pub fn overflowing_div(lhs: i128, rhs: i128, frac_nbits: u32) -> (i128, bool) {
+    pub const fn overflowing_div(lhs: i128, rhs: i128, frac_nbits: u32) -> (i128, bool) {
         if frac_nbits == 0 {
             lhs.overflowing_div(rhs)
         } else {
