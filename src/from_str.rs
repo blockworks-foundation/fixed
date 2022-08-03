@@ -945,6 +945,17 @@ const fn frac_is_half(bytes: Bytes, radix: u32) -> bool {
     bytes.len() == 1 && bytes.get(0) - b'0' == (radix as u8) / 2
 }
 
+signed_helpers! { i8, u8 }
+signed_helpers! { i16, u16 }
+signed_helpers! { i32, u32 }
+signed_helpers! { i64, u64 }
+signed_helpers! { i128, u128 }
+unsigned_helpers! { u8, u8, false; u16, 3, 8 }
+unsigned_helpers! { u16, u8, true; u32, 6, 16 }
+unsigned_helpers! { u32, u16, true; u64, 13, 32 }
+unsigned_helpers! { u64, u32, true; u128, 27, 64 }
+unsigned_helpers! { u128 }
+
 macro_rules! impl_from_str {
     ($Fixed:ident, $LeEqU:ident) => {
         impl<Frac: $LeEqU> FromStr for $Fixed<Frac> {
@@ -969,69 +980,6 @@ impl_from_str! { FixedU16, LeEqU16 }
 impl_from_str! { FixedU32, LeEqU32 }
 impl_from_str! { FixedU64, LeEqU64 }
 impl_from_str! { FixedU128, LeEqU128 }
-
-macro_rules! impl_from_str {
-    (
-        $FixedI:ident($BitsI:ident), $FixedU:ident($BitsU:ident), $LeEqU:ident;
-        fn $from_i:ident;
-        fn $from_u:ident;
-        fn $get_int_frac:ident;
-        fn $get_int:ident, ($get_int_half:ident, $attempt_int_half:expr);
-        fn $get_frac:ident, ($get_frac_half:ident, $attempt_frac_half:expr);
-    ) => {};
-}
-
-signed_helpers! { i8, u8 }
-signed_helpers! { i16, u16 }
-signed_helpers! { i32, u32 }
-signed_helpers! { i64, u64 }
-signed_helpers! { i128, u128 }
-unsigned_helpers! { u8, u8, false; u16, 3, 8 }
-unsigned_helpers! { u16, u8, true; u32, 6, 16 }
-unsigned_helpers! { u32, u16, true; u64, 13, 32 }
-unsigned_helpers! { u64, u32, true; u128, 27, 64 }
-unsigned_helpers! { u128 }
-
-impl_from_str! {
-    FixedI8(i8), FixedU8(u8), LeEqU8;
-    fn from_str_i8;
-    fn from_str_u8;
-    fn get_int_frac8;
-    fn get_int8, (get_int8, false);
-    fn get_frac8, (get_frac8, false);
-}
-impl_from_str! {
-    FixedI16(i16), FixedU16(u16), LeEqU16;
-    fn from_str_i16;
-    fn from_str_u16;
-    fn get_int_frac16;
-    fn get_int16, (get_int8, true);
-    fn get_frac16, (get_frac8, true);
-}
-impl_from_str! {
-    FixedI32(i32), FixedU32(u32), LeEqU32;
-    fn from_str_i32;
-    fn from_str_u32;
-    fn get_int_frac32;
-    fn get_int32, (get_int16, true);
-    fn get_frac32, (get_frac16, true);
-}
-impl_from_str! {
-    FixedI64(i64), FixedU64(u64), LeEqU64;
-    fn from_str_i64;
-    fn from_str_u64;
-    fn get_int_frac64;
-    fn get_int64, (get_int32, true);
-    fn get_frac64, (get_frac32, false);
-}
-impl_from_str! {
-    FixedI128(i128), FixedU128(u128), LeEqU128;
-    fn from_str_i128;
-    fn from_str_u128;
-    fn get_int_frac128;
-    fn get_int128, (get_int64, true);
-    fn get_frac128, (get_frac64, true);
-}
 
 #[cfg(test)]
 mod tests {
