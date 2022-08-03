@@ -38,7 +38,7 @@ f16 = []
 [dependencies]
 az_crate = { version = "1.2", package = "az" }
 bytemuck = "1.2"
-half = "1.6"
+half = { version = "2", default_features = false }
 typenum = "1.14"
 
 [dependencies.arbitrary]

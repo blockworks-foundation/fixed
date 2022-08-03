@@ -576,10 +576,10 @@ shall be dual licensed as above, without any additional terms or conditions.
 [`U20F12`]: https://docs.rs/fixed/~1.16/fixed/types/type.U20F12.html
 [`UpperHex`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html
 [`az`]: https://docs.rs/az/^1/az/index.html
-[`bf16`]: https://docs.rs/half/^1/half/struct.bf16.html
+[`bf16`]: https://docs.rs/half/^2/half/struct.bf16.html
 [`bytemuck`]: https://docs.rs/bytemuck/^1/bytemuck/index.html
 [`checked_from_num`]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_from_num
-[`f16`]: https://docs.rs/half/^1/half/struct.f16.html
+[`f16`]: https://docs.rs/half/^2/half/struct.f16.html
 [`from_num`]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_num
 [`from_str_binary`]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_binary
 [`from_str_hex`]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_hex
