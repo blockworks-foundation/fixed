@@ -50,7 +50,7 @@ compiler’s [`generic_const_exprs` feature] is ready and stabilized. An [alpha
 version] is already available.
 
 [`generic_const_exprs` feature]: https://github.com/rust-lang/rust/issues/76560
-[alpha version]: https://crates.io/crates/fixed/2.0.0-alpha.2
+[alpha version]: https://docs.rs/fixed/2.0.0-alpha/fixed/
 
 The main features are
 
@@ -529,7 +529,7 @@ assert_eq!(two_point_75.to_string(), \"2.8\");
 [U", $s_nbits, "]: crate::types::extra::U", $s_nbits, "
 [U0]: crate::types::extra::U0
 [`generic_const_exprs` feature]: https://github.com/rust-lang/rust/issues/76560
-[alpha version]: https://crates.io/crates/fixed/2.0.0-alpha.2
+[alpha version]: https://docs.rs/fixed/2.0.0-alpha/fixed/
 ";
             #[repr(transparent)]
             pub struct $Fixed<Frac> {

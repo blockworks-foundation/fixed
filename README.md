@@ -41,7 +41,7 @@ compiler’s [`generic_const_exprs` feature] is ready and stabilized. An [alpha
 version] is already available.
 
 [`generic_const_exprs` feature]: https://github.com/rust-lang/rust/issues/76560
-[alpha version]: https://crates.io/crates/fixed/2.0.0-alpha.2
+[alpha version]: https://docs.rs/fixed/2.0.0-alpha/fixed/
 
 The main features are
 
