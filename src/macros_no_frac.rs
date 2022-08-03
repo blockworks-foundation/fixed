@@ -1498,7 +1498,7 @@ assert_eq!(Fix::from_num(5).inv_lerp::<U4>(start, end), 2);
 [`wrapping_inv_lerp`]: Self::wrapping_inv_lerp
 ";
                 #[inline]
-                pub fn inv_lerp<RetFrac: $LeEqU>(
+                pub const fn inv_lerp<RetFrac: $LeEqU>(
                     self,
                     start: $Fixed<Frac>,
                     end: $Fixed<Frac>,
@@ -2266,7 +2266,7 @@ assert_eq!(Fix::MAX.checked_inv_lerp::<U4>(Fix::ZERO, Fix::from_num(0.5)), None)
 ```
 ";
                 #[inline]
-                pub fn checked_inv_lerp<RetFrac: $LeEqU>(
+                pub const fn checked_inv_lerp<RetFrac: $LeEqU>(
                     self,
                     start: $Fixed<Frac>,
                     end: $Fixed<Frac>,
@@ -2774,7 +2774,7 @@ assert_eq!(Fix::MAX.saturating_inv_lerp::<U4>(Fix::from_num(0.5), Fix::ZERO), Fi
 ```
 ";
                 #[inline]
-                pub fn saturating_inv_lerp<RetFrac: $LeEqU>(
+                pub const fn saturating_inv_lerp<RetFrac: $LeEqU>(
                     self,
                     start: $Fixed<Frac>,
                     end: $Fixed<Frac>,
@@ -3266,7 +3266,7 @@ assert_eq!(
 ```
 ";
                 #[inline]
-                pub fn wrapping_inv_lerp<RetFrac: $LeEqU>(
+                pub const fn wrapping_inv_lerp<RetFrac: $LeEqU>(
                     self,
                     start: $Fixed<Frac>,
                     end: $Fixed<Frac>,
@@ -4005,7 +4005,7 @@ let _overflow = Fix::MAX.unwrapped_inv_lerp::<U4>(Fix::ZERO, Fix::from_num(0.5))
 ```
 ";
                 #[inline]
-                pub fn unwrapped_inv_lerp<RetFrac: $LeEqU>(
+                pub const fn unwrapped_inv_lerp<RetFrac: $LeEqU>(
                     self,
                     start: $Fixed<Frac>,
                     end: $Fixed<Frac>,
@@ -4674,7 +4674,7 @@ assert_eq!(
 ```
 ";
                 #[inline]
-                pub fn overflowing_inv_lerp<RetFrac: $LeEqU>(
+                pub const fn overflowing_inv_lerp<RetFrac: $LeEqU>(
                     self,
                     start: $Fixed<Frac>,
                     end: $Fixed<Frac>,
