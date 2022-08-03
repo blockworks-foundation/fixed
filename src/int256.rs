@@ -13,8 +13,6 @@
 // <https://www.apache.org/licenses/LICENSE-2.0> and
 // <https://opensource.org/licenses/MIT>.
 
-use az_crate::WrappingAs;
-
 #[derive(Clone, Copy, Debug)]
 pub struct U256 {
     pub lo: u128,
@@ -28,48 +26,48 @@ pub struct I256 {
 }
 
 #[inline]
-pub fn u256_wrapping_as_i256(a: U256) -> I256 {
+pub const fn u256_wrapping_as_i256(a: U256) -> I256 {
     I256 {
         lo: a.lo,
-        hi: a.hi.wrapping_as::<i128>(),
+        hi: a.hi as i128,
     }
 }
 
 #[inline]
-pub fn wrapping_add_u256_u128(a: U256, b: u128) -> U256 {
+pub const fn wrapping_add_u256_u128(a: U256, b: u128) -> U256 {
     let (lo, carry) = a.lo.overflowing_add(b);
-    let hi = a.hi.wrapping_add(u128::from(carry));
+    let hi = a.hi.wrapping_add(carry as u128);
     U256 { lo, hi }
 }
 
 #[inline]
-pub fn overflowing_add_u128_u256(a: u128, b: U256) -> (u128, bool) {
+pub const fn overflowing_add_u128_u256(a: u128, b: U256) -> (u128, bool) {
     let (lo, carry) = a.overflowing_add(b.lo);
     (lo, carry | (b.hi != 0))
 }
 
 #[inline]
-pub fn overflowing_sub_u128_u256(a: u128, b: U256) -> (u128, bool) {
+pub const fn overflowing_sub_u128_u256(a: u128, b: U256) -> (u128, bool) {
     let (lo, borrow) = a.overflowing_sub(b.lo);
     (lo, borrow | (b.hi != 0))
 }
 
 #[inline]
-pub fn wrapping_neg_u256(a: U256) -> U256 {
+pub const fn wrapping_neg_u256(a: U256) -> U256 {
     let (lo, carry) = (!a.lo).overflowing_add(1);
-    let hi = (!a.hi).wrapping_add(u128::from(carry));
+    let hi = (!a.hi).wrapping_add(carry as u128);
     U256 { lo, hi }
 }
 
 #[inline]
-pub fn overflowing_add_i256_i128(a: I256, b: i128) -> (I256, bool) {
+pub const fn overflowing_add_i256_i128(a: I256, b: i128) -> (I256, bool) {
     let b = I256 {
-        lo: b.wrapping_as::<u128>(),
+        lo: b as u128,
         hi: b >> 127,
     };
     let (lo, carry) = a.lo.overflowing_add(b.lo);
     // b.hi is in {-1, 0}, and carry is in {0, 1}, so we can add them wrappingly
-    let b_hi_plus_carry = b.hi.wrapping_add(i128::from(carry));
+    let b_hi_plus_carry = b.hi.wrapping_add(carry as i128);
     let (hi, overflow) = a.hi.overflowing_add(b_hi_plus_carry);
     (I256 { lo, hi }, overflow)
 }
@@ -172,7 +170,7 @@ pub const fn wide_mul_i128(lhs: i128, rhs: i128) -> I256 {
 }
 
 #[inline]
-pub fn shl_u256_max_128(a: U256, sh: u32) -> U256 {
+pub const fn shl_u256_max_128(a: U256, sh: u32) -> U256 {
     if sh == 0 {
         a
     } else if sh == 128 {

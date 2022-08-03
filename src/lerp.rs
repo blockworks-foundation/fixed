@@ -14,25 +14,24 @@
 // <https://opensource.org/licenses/MIT>.
 
 use crate::int256;
-use az_crate::{OverflowingAs, WrappingAs};
 
 macro_rules! make_lerp {
     ($i:ident, $u:ident, $ii:ident, $uu:ident, $uu1:expr) => {
-        pub fn $i(r: $i, start: $i, end: $i, frac_bits: u32) -> ($i, bool) {
+        pub const fn $i(r: $i, start: $i, end: $i, frac_bits: u32) -> ($i, bool) {
             // 0x00 ≤ r_abs ≤ 0x80
             let (r_abs, r_neg) = if r >= 0 {
-                (r.wrapping_as::<$u>(), false)
+                (r as $u, false)
             } else {
-                (r.wrapping_neg().wrapping_as::<$u>(), true)
+                (r.wrapping_neg() as $u, true)
             };
             // 0x00 ≤ range_abs ≤ 0xff
             let (range_abs, range_neg) = if end >= start {
-                (end.wrapping_sub(start).wrapping_as::<$u>(), false)
+                (end.wrapping_sub(start) as $u, false)
             } else {
-                (start.wrapping_sub(end).wrapping_as::<$u>(), true)
+                (start.wrapping_sub(end) as $u, true)
             };
             // 0x0000 ≤ wide_abs ≤ 0x7f80
-            let wide_abs = $uu::from(r_abs) * $uu::from(range_abs);
+            let wide_abs = (r_abs as $uu) * (range_abs as $uu);
             let wide_neg = r_neg != range_neg;
             let wide_uns = if wide_neg {
                 // 0x0000 ≤ add ≤ 0x00ff
@@ -44,13 +43,14 @@ macro_rules! make_lerp {
             } else {
                 wide_abs >> frac_bits
             };
-            let wide = wide_uns.wrapping_as::<$ii>();
-            let (wide_ret, overflow1) = wide.overflowing_add($ii::from(start));
-            let (ret, overflow2) = wide_ret.overflowing_as::<$i>();
+            let wide = wide_uns as $ii;
+            let (wide_ret, overflow1) = wide.overflowing_add(start as $ii);
+            let ret = wide_ret as $i;
+            let overflow2 = wide_ret != ret as $ii;
             (ret, overflow1 | overflow2)
         }
 
-        pub fn $u(r: $u, start: $u, end: $u, frac_bits: u32) -> ($u, bool) {
+        pub const fn $u(r: $u, start: $u, end: $u, frac_bits: u32) -> ($u, bool) {
             // 0x00 ≤ range_abs ≤ 0xff
             let (range_abs, range_neg) = if end >= start {
                 (end - start, false)
@@ -58,19 +58,20 @@ macro_rules! make_lerp {
                 (start - end, true)
             };
             // 0x0000 ≤ wide_abs ≤  0xfe01
-            let wide_abs = $uu::from(r) * $uu::from(range_abs);
+            let wide_abs = (r as $uu) * (range_abs as $uu);
             let (wide_ret, overflow1) = if range_neg {
                 // 0x0000 ≤ add ≤ 0x00ff
                 let add = ($uu1 << frac_bits) - 1;
                 // If frac_bits is 0: add = 0x0000; 0x0000 ≤ shifted ≤ 0xfe01
                 // If frac_bits is max: add = 0x00ff; 0x0000 ≤ shifted ≤ 0x00ff
                 let shifted = (wide_abs + add) >> frac_bits;
-                $uu::from(start).overflowing_sub(shifted)
+                (start as $uu).overflowing_sub(shifted)
             } else {
                 let shifted = wide_abs >> frac_bits;
-                $uu::from(start).overflowing_add(shifted)
+                (start as $uu).overflowing_add(shifted)
             };
-            let (ret, overflow2) = wide_ret.overflowing_as::<$u>();
+            let ret = wide_ret as $u;
+            let overflow2 = wide_ret != ret as $uu;
             (ret, overflow1 | overflow2)
         }
     };
@@ -81,18 +82,18 @@ make_lerp! { i16, u16, i32, u32, 1u32 }
 make_lerp! { i32, u32, i64, u64, 1u64 }
 make_lerp! { i64, u64, i128, u128, 1u128 }
 
-pub fn i128(r: i128, start: i128, end: i128, frac_bits: u32) -> (i128, bool) {
+pub const fn i128(r: i128, start: i128, end: i128, frac_bits: u32) -> (i128, bool) {
     // 0x00 ≤ r_abs ≤ 0x80
     let (r_abs, r_neg) = if r >= 0 {
-        (r.wrapping_as::<u128>(), false)
+        (r as u128, false)
     } else {
-        (r.wrapping_neg().wrapping_as::<u128>(), true)
+        (r.wrapping_neg() as u128, true)
     };
     // 0x00 ≤ range_abs ≤ 0xff
     let (range_abs, range_neg) = if end >= start {
-        (end.wrapping_sub(start).wrapping_as::<u128>(), false)
+        (end.wrapping_sub(start) as u128, false)
     } else {
-        (start.wrapping_sub(end).wrapping_as::<u128>(), true)
+        (start.wrapping_sub(end) as u128, true)
     };
     // 0x0000 ≤ wide_abs ≤ 0x7f80
     let wide_abs = int256::wide_mul_u128(r_abs, range_abs);
@@ -114,7 +115,7 @@ pub fn i128(r: i128, start: i128, end: i128, frac_bits: u32) -> (i128, bool) {
     };
     let wide = int256::u256_wrapping_as_i256(wide_uns);
     let (wide_ret, overflow1) = int256::overflowing_add_i256_i128(wide, start);
-    let ret = wide_ret.lo.wrapping_as::<i128>();
+    let ret = wide_ret.lo as i128;
     let overflow2 = if ret < 0 {
         wide_ret.hi != -1
     } else {
@@ -123,7 +124,7 @@ pub fn i128(r: i128, start: i128, end: i128, frac_bits: u32) -> (i128, bool) {
     (ret, overflow1 | overflow2)
 }
 
-pub fn u128(r: u128, start: u128, end: u128, frac_bits: u32) -> (u128, bool) {
+pub const fn u128(r: u128, start: u128, end: u128, frac_bits: u32) -> (u128, bool) {
     // 0x00 ≤ range_abs ≤ 0xff
     let (range_abs, range_neg) = if end >= start {
         (end - start, false)

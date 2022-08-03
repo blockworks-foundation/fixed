@@ -545,7 +545,7 @@ assert_eq!(Fix::from_num(2.0).lerp(start, end), 5);
 [`wrapping_lerp`]: Self::wrapping_lerp
 ";
                 #[inline]
-                pub fn lerp<RangeFrac>(
+                pub const fn lerp<RangeFrac>(
                     self,
                     start: $Fixed<RangeFrac>,
                     end: $Fixed<RangeFrac>,
@@ -1005,7 +1005,7 @@ assert_eq!(Fix::from_num(1.5).checked_lerp(Fix::ZERO, Fix::MAX), None);
 ```
 ";
                 #[inline]
-                pub fn checked_lerp<RangeFrac>(
+                pub const fn checked_lerp<RangeFrac>(
                     self,
                     start: $Fixed<RangeFrac>,
                     end: $Fixed<RangeFrac>,
@@ -1440,7 +1440,7 @@ assert_eq!(Fix::from_num(3.0).saturating_lerp(Fix::MAX, Fix::ZERO), Fix::MIN);
                 "```
 ";
                 #[inline]
-                pub fn saturating_lerp<RangeFrac>(
+                pub const fn saturating_lerp<RangeFrac>(
                     self,
                     start: $Fixed<RangeFrac>,
                     end: $Fixed<RangeFrac>,
@@ -1449,7 +1449,7 @@ assert_eq!(Fix::from_num(3.0).saturating_lerp(Fix::MAX, Fix::ZERO), Fix::MIN);
                         (bits, false) => $Fixed::from_bits(bits),
                         (_, true) => if_signed_unsigned!(
                             $Signedness,
-                            if (self < 0) == (end.to_bits() < start.to_bits()) {
+                            if self.is_negative() == (end.to_bits() < start.to_bits()) {
                                 $Fixed::MAX
                             } else {
                                 $Fixed::MIN
@@ -1775,7 +1775,7 @@ assert_eq!(
 ```
 ";
                 #[inline]
-                pub fn wrapping_lerp<RangeFrac>(
+                pub const fn wrapping_lerp<RangeFrac>(
                     self,
                     start: $Fixed<RangeFrac>,
                     end: $Fixed<RangeFrac>,
@@ -2265,7 +2265,7 @@ let _overflow = Fix::from_num(1.5).unwrapped_lerp(Fix::ZERO, Fix::MAX);
 ```
 ";
                 #[inline]
-                pub fn unwrapped_lerp<RangeFrac>(
+                pub const fn unwrapped_lerp<RangeFrac>(
                     self,
                     start: $Fixed<RangeFrac>,
                     end: $Fixed<RangeFrac>,
@@ -2759,7 +2759,7 @@ assert_eq!(
 ```
 ";
                 #[inline]
-                pub fn overflowing_lerp<RangeFrac>(
+                pub const fn overflowing_lerp<RangeFrac>(
                     self,
                     start: $Fixed<RangeFrac>,
                     end: $Fixed<RangeFrac>,

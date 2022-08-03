@@ -107,9 +107,6 @@ The conversions supported cover the following cases.
   * The inherent [`from_str`][f-fs-1-17] method was added as a `const` function
     to all fixed-point numbers so that it can be use in constant context.
   * The following methods are now `const` functions:
-      * [`checked_div`][f-cd-1-17], [`saturating_div`][f-sd-1-17],
-        [`wrapping_div`][f-wd-1-17], [`unwrapped_div`][f-ud-1-17],
-        [`overflowing_div`][f-od-1-17]
       * [`saturating_from_str`][f-sfs-1-17], [`wrapping_from_str`][f-wfs-1-17],
         [`overflowing_from_str`][f-ofs-1-17]
       * [`from_str_binary`][f-fsb-1-17],
@@ -124,6 +121,12 @@ The conversions supported cover the following cases.
         [`saturating_from_str_hex`][f-sfsh-1-17],
         [`wrapping_from_str_hex`][f-wfsh-1-17],
         [`overflowing_from_str_hex`][f-ofsh-1-17]
+      * [`checked_div`][f-cd-1-17], [`saturating_div`][f-sd-1-17],
+        [`wrapping_div`][f-wd-1-17], [`unwrapped_div`][f-ud-1-17],
+        [`overflowing_div`][f-od-1-17]
+      * [`lerp`][f-l-1-17], [`checked_lerp`][f-cl-1-17],
+        [`saturating_lerp`][f-sl-1-17], [`wrapping_lerp`][f-wl-1-17],
+        [`unwrapped_lerp`][f-ul-1-17], [`overflowing_lerp`][f-ol-1-17]
   * The following methods were added to all fixed-point numbers and to the
     [`Fixed`][tf-1-17] trait:
       * [`unwrapped_from_str`][f-ufs-1-17],
@@ -140,30 +143,36 @@ The conversions supported cover the following cases.
 [`FromStr::from_str`]: https://doc.rust-lang.org/nightly/core/str/trait.FromStr.html#tymethod.from_str
 [`FromStr`]: https://doc.rust-lang.org/nightly/core/str/trait.FromStr.html
 [f-cd-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_div
+[f-cl-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.checked_lerp
 [f-fs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str
 [f-fsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_binary
 [f-fsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_hex
 [f-fso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.from_str_octal
+[f-l-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.lerp
 [f-od-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_div
 [f-ofs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str
 [f-ofsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str_binary
 [f-ofsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str_hex
 [f-ofso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_from_str_octal
+[f-ol-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.overflowing_lerp
 [f-sd-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_div
 [f-sfs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str
 [f-sfsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_binary
 [f-sfsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_hex
 [f-sfso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_from_str_octal
+[f-sl-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.saturating_lerp
 [f-ud-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_div
 [f-ufs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str
 [f-ufsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str_binary
 [f-ufsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str_hex
 [f-ufso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_from_str_octal
+[f-ul-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.unwrapped_lerp
 [f-wd-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_div
 [f-wfs-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str
 [f-wfsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str_binary
 [f-wfsh-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str_hex
 [f-wfso-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_from_str_octal
+[f-wl-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.FixedI32.html#method.wrapping_lerp
 [tf-1-17]: https://docs.rs/fixed/~1.16/fixed/traits/trait.Fixed.html
 [u-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.Unwrapped.html
 [u-fsb-1-17]: https://docs.rs/fixed/~1.16/fixed/struct.Unwrapped.html#method.from_str_binary
