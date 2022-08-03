@@ -104,6 +104,7 @@ The conversions supported cover the following cases.
 
 ### Version 1.17.0 news (2022-08-03)
 
+  * The [*half* crate] dependency was updated to [version 2][half-2].
   * The inherent [`from_str`][f-fs-1-17] method was added as a `const` function
     to all fixed-point numbers so that it can be use in constant context.
   * The following methods are now `const` functions:
@@ -227,6 +228,7 @@ The conversions supported cover the following cases.
 [f-wl-1-17]: https://docs.rs/fixed/~1.17/fixed/struct.FixedI32.html#method.wrapping_lerp
 [f-wr-1-17]: https://docs.rs/fixed/~1.17/fixed/struct.FixedI32.html#method.wrapping_recip
 [f-wrei-1-17]: https://docs.rs/fixed/~1.17/fixed/struct.FixedI32.html#method.wrapping_rem_euclid_int
+[half-2]: https://docs.rs/half/^2/half/index.html
 [tf-1-17]: https://docs.rs/fixed/~1.17/fixed/traits/trait.Fixed.html
 [u-1-17]: https://docs.rs/fixed/~1.17/fixed/struct.Unwrapped.html
 [u-fsb-1-17]: https://docs.rs/fixed/~1.17/fixed/struct.Unwrapped.html#method.from_str_binary
