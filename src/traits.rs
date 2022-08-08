@@ -31,7 +31,7 @@ use crate::{
 use arbitrary::Arbitrary;
 #[cfg(feature = "borsh")]
 use borsh::{BorshDeserialize, BorshSerialize};
-use bytemuck::{self, Pod, TransparentWrapper};
+use bytemuck::{self, Contiguous, Pod, TransparentWrapper};
 use core::{
     fmt::{Binary, Debug, Display, LowerHex, Octal, UpperHex},
     hash::Hash,
@@ -546,7 +546,7 @@ depending on the crate’s [optional features], and should not be used directly.
 pub trait Fixed
 where
     Self: Default + Hash + Ord,
-    Self: Pod + TransparentWrapper<<Self as Fixed>::Bits>,
+    Self: Contiguous + Pod + TransparentWrapper<<Self as Fixed>::Bits>,
     Self: Debug + Display + Binary + Octal + LowerHex + UpperHex,
     Self: FromStr<Err = ParseFixedError>,
     Self: FromFixed + ToFixed,

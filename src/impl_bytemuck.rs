@@ -18,20 +18,35 @@ use crate::{
     FixedI128, FixedI16, FixedI32, FixedI64, FixedI8, FixedU128, FixedU16, FixedU32, FixedU64,
     FixedU8, Unwrapped, Wrapping,
 };
-use bytemuck::{Pod, TransparentWrapper, Zeroable};
+use bytemuck::{Contiguous, Pod, TransparentWrapper, Zeroable};
 
 macro_rules! unsafe_impl_traits {
     ($Fixed:ident, $LeEqU:ident, $Inner:ident) => {
         unsafe impl<Frac> Zeroable for $Fixed<Frac> {}
         unsafe impl<Frac: 'static> Pod for $Fixed<Frac> {}
+        unsafe impl<Frac: 'static> Contiguous for $Fixed<Frac> {
+            type Int = $Inner;
+            const MAX_VALUE: $Inner = $Inner::MAX;
+            const MIN_VALUE: $Inner = $Inner::MIN;
+        }
         unsafe impl<Frac> TransparentWrapper<$Inner> for $Fixed<Frac> {}
 
         unsafe impl<Frac: $LeEqU> Zeroable for Wrapping<$Fixed<Frac>> {}
         unsafe impl<Frac: $LeEqU> Pod for Wrapping<$Fixed<Frac>> {}
+        unsafe impl<Frac: $LeEqU> Contiguous for Wrapping<$Fixed<Frac>> {
+            type Int = $Inner;
+            const MAX_VALUE: $Inner = $Inner::MAX;
+            const MIN_VALUE: $Inner = $Inner::MIN;
+        }
         unsafe impl<Frac: $LeEqU> TransparentWrapper<$Fixed<Frac>> for Wrapping<$Fixed<Frac>> {}
 
         unsafe impl<Frac: $LeEqU> Zeroable for Unwrapped<$Fixed<Frac>> {}
         unsafe impl<Frac: $LeEqU> Pod for Unwrapped<$Fixed<Frac>> {}
+        unsafe impl<Frac: $LeEqU> Contiguous for Unwrapped<$Fixed<Frac>> {
+            type Int = $Inner;
+            const MAX_VALUE: $Inner = $Inner::MAX;
+            const MIN_VALUE: $Inner = $Inner::MIN;
+        }
         unsafe impl<Frac: $LeEqU> TransparentWrapper<$Fixed<Frac>> for Unwrapped<$Fixed<Frac>> {}
     };
 }

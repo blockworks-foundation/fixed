@@ -5,6 +5,19 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.18.0 (unreleased)
+===========================
+
+  * The [`Contiguous`][bm-c-1] trait from the [*bytemuck* crate] was implemented
+    for all fixed-point numbers, added as a supertrait to the [`Fixed`][tf-1-18]
+    trait, and implemented for the [`Wrapping`][w-1-18] and
+    [`Unwrapped`][u-1-18] wrappers.
+
+[bm-c-1]: https://docs.rs/bytemuck/^1/bytemuck/trait.Contiguous.html
+[tf-1-18]: https://docs.rs/fixed/~1.17/fixed/traits/trait.Fixed.html
+[u-1-18]: https://docs.rs/fixed/~1.17/fixed/struct.Unwrapped.html
+[w-1-18]: https://docs.rs/fixed/~1.17/fixed/struct.Wrapping.html
+
 Version 1.17.0 (2022-08-03)
 ===========================
 

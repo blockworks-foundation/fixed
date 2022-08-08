@@ -27,7 +27,7 @@ use az_crate::{
     SaturatingCast, SaturatingCastFrom, UnwrappedCast, UnwrappedCastFrom, WrappingCast,
     WrappingCastFrom,
 };
-use bytemuck::Pod;
+use bytemuck::{Contiguous, Pod};
 use core::{
     fmt::{Binary, Debug, Display, LowerHex, Octal, UpperHex},
     hash::Hash,
@@ -96,7 +96,7 @@ macro_rules! impl_bits {
 pub trait FixedBits
 where
     Self: Default + Hash + Ord,
-    Self: Pod,
+    Self: Contiguous + Pod,
     Self: Debug + Display + Binary + Octal + LowerHex + UpperHex,
     Self: FromStr<Err = ParseIntError>,
     Self: Add<Output = Self> + AddAssign,
