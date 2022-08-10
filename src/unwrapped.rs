@@ -1901,21 +1901,14 @@ impl<F: Fixed> FromStr for Unwrapped<F> {
     ///
     /// Rounding is to the nearest, with ties rounded to even.
     ///
-    /// See also
-    /// <code>FixedI32::[unwrapped\_from\_str][FixedI32::unwrapped_from_str]</code>
-    /// and
-    /// <code>FixedU32::[unwrapped\_from\_str][FixedU32::unwrapped_from_str]</code>.
+    /// This method either returns [`Ok`] or panics, and never returns [`Err`].
+    /// The inherent method
+    /// <code>[Unwrapped]&lt;F>::[from\_str\_dec][Unwrapped::from_str_dec]</code>
+    /// returns the value directly instead of a [`Result`].
     ///
     /// # Panics
     ///
     /// Panics if the value does not fit or if there is a parsing error.
-    ///
-    /// # Compatibility note
-    ///
-    /// This method either returns [`Ok`] or panics, and never returns [`Err`].
-    /// In version 2, an inherent `Unwrapped<F>::from_str` method will be added
-    /// that does not return a [`Result`], but will return the fixed-point
-    /// number directly.
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Unwrapped(F::unwrapped_from_str(s)))
