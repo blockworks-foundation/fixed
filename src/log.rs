@@ -24,7 +24,8 @@ macro_rules! impl_int_part {
                 return 0;
             }
 
-            let mut table: [$u; $max_table_size] = [0; $max_table_size];
+            // base^1, base^2, base^4, etc.
+            let mut base_powers: [$u; $max_table_size] = [0; $max_table_size];
 
             let mut i = 0;
             let mut partial_log = 1;
@@ -35,18 +36,16 @@ macro_rules! impl_int_part {
                     Some(s) if val >= s => s,
                     _ => break,
                 };
-                table[i] = partial_val;
+                base_powers[i] = partial_val;
                 i += 1;
                 partial_log *= 2;
                 partial_val = square;
             }
             let mut dlog = partial_log;
-            // for not allowed in const fn, so use while
-            let mut j = 0;
-            while j < i {
-                j += 1;
+            while i > 0 {
+                i -= 1;
                 dlog /= 2;
-                if let Some(mid) = partial_val.checked_mul(table[i - j]) {
+                if let Some(mid) = partial_val.checked_mul(base_powers[i]) {
                     if val >= mid {
                         partial_val = mid;
                         partial_log += dlog;
@@ -77,7 +76,8 @@ macro_rules! impl_frac_part {
                 return -1;
             }
 
-            let mut table: [$u; $max_table_size] = [0; $max_table_size];
+            // base^1, base^2, base^4, etc.
+            let mut base_powers: [$u; $max_table_size] = [0; $max_table_size];
 
             let mut i = 0;
             let mut partial_log = 1;
@@ -88,18 +88,16 @@ macro_rules! impl_frac_part {
                     Some(s) if val.checked_mul(s).is_some() => s,
                     _ => break,
                 };
-                table[i] = partial_val;
+                base_powers[i] = partial_val;
                 i += 1;
                 partial_log *= 2;
                 partial_val = square;
             }
             let mut dlog = partial_log;
-            // for not allowed in const fn, so use while
-            let mut j = 0;
-            while j < i {
-                j += 1;
+            while i > 0 {
+                i -= 1;
                 dlog /= 2;
-                if let Some(mid) = partial_val.checked_mul(table[i - j]) {
+                if let Some(mid) = partial_val.checked_mul(base_powers[i]) {
                     if val.checked_mul(mid).is_some() {
                         partial_val = mid;
                         partial_log += dlog;
