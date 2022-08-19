@@ -8,6 +8,9 @@ as-is, without any warranty. -->
 Version 1.18.0 (unreleased)
 ===========================
 
+  * Bug fix: checked division methods were panicking when dividing `MIN` by
+    `-DELTA` for fixed-point numbers with zero integer bits, that is when all
+    bits are fractional bits ([issue 51]).
   * [`F128Bits`][f128b-1-18] has been deprecated to be replaced by the new
     [`F128`][f128-1-18] which has standard floating-point ordering and various
     classification methods and associated constants.
@@ -21,6 +24,7 @@ Version 1.18.0 (unreleased)
 [bm-c-1]: https://docs.rs/bytemuck/^1/bytemuck/trait.Contiguous.html
 [f128-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.F128.html
 [f128b-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.F128Bits.html
+[issue 51]: https://gitlab.com/tspiteri/fixed/-/issues/51
 [tf-1-18]: https://docs.rs/fixed/~1.18/fixed/traits/trait.Fixed.html
 [u-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.Unwrapped.html
 [u-fsd-1-128]: https://docs.rs/fixed/~1.18/fixed/struct.Unwrapped.html#method.from_str_dec

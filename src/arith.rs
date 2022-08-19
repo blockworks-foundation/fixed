@@ -661,7 +661,13 @@ macro_rules! mul_div_widen {
                 const NBITS: u32 = <$Single>::BITS;
                 let lhs2 = (lhs as $Double) << frac_nbits;
                 let rhs2 = (rhs as $Double);
-                let quot2 = lhs2 / rhs2;
+                // Overflow at this stage can only occur for signed when
+                // frac_nbits == NBITS, lhs == MIN, and rhs == -1.
+                // In that case, wrapped answer is $Double::MIN as $Single == 0
+                let quot2 = match lhs2.overflowing_div(rhs2) {
+                    (q, false) => q,
+                    (_, true) => return (0, true),
+                };
                 let quot = quot2 as $Single;
                 let overflow = if_signed_unsigned!(
                     $Signedness,
@@ -803,11 +809,23 @@ pub mod i128 {
         if frac_nbits == 0 {
             lhs.overflowing_div(rhs)
         } else {
-            let lhs2 = I256 {
-                lo: (lhs << frac_nbits) as u128,
-                hi: lhs >> (128 - frac_nbits),
+            let lhs2 = if frac_nbits == 128 {
+                // In this case, overflow is possible in the wide division.
+                // Then, the wrapped answer is I256::MIN as i128 == 0
+                if lhs == i128::MIN && rhs == -1 {
+                    return (0, true);
+                }
+                I256 {
+                    lo: 0,
+                    hi: lhs,
+                }
+            } else {
+                I256 {
+                    lo: (lhs << frac_nbits) as u128,
+                    hi: lhs >> (128 - frac_nbits),
+                }
             };
-            let (quot2, _) = int256::div_rem_i256_i128(lhs2, rhs);
+            let (quot2, _) = int256::div_rem_i256_i128_no_overflow(lhs2, rhs);
             let quot = quot2.lo as i128;
             let overflow = quot2.hi != quot >> 127;
             (quot, overflow)
@@ -1544,5 +1562,27 @@ mod tests {
 
         let x: Result<FixedI128<U125>, _> = "9.079999999999999999999".parse();
         assert!(x.is_err());
+    }
+
+    #[test]
+    fn issue_51() {
+        use crate::types::*;
+        // these are for the bug:
+        assert_eq!(I0F8::MIN.overflowing_div(-I0F8::DELTA), (I0F8::ZERO, true));
+        assert_eq!(I0F16::MIN.overflowing_div(-I0F16::DELTA), (I0F16::ZERO, true));
+        assert_eq!(I0F32::MIN.overflowing_div(-I0F32::DELTA), (I0F32::ZERO, true));
+        assert_eq!(I0F64::MIN.overflowing_div(-I0F64::DELTA), (I0F64::ZERO, true));
+        assert_eq!(I0F128::MIN.overflowing_div(-I0F128::DELTA), (I0F128::ZERO, true));
+        // some extra tests:
+        assert_eq!(I0F32::MIN.overflowing_div(I0F32::DELTA), (I0F32::ZERO, true));
+        assert_eq!(I0F32::MIN.overflowing_div(I0F32::MIN), (I0F32::ZERO, true));
+        assert_eq!((-I0F32::MAX).overflowing_div(-I0F32::DELTA), (I0F32::ZERO, true));
+        assert_eq!((-I0F32::MAX).overflowing_div(I0F32::DELTA), (I0F32::ZERO, true));
+        assert_eq!((-I0F32::MAX).overflowing_div(I0F32::MIN), (I0F32::from_bits(-2), true));
+        assert_eq!(I0F128::MIN.overflowing_div(I0F128::DELTA), (I0F128::ZERO, true));
+        assert_eq!(I0F128::MIN.overflowing_div(I0F128::MIN), (I0F128::ZERO, true));
+        assert_eq!((-I0F128::MAX).overflowing_div(-I0F128::DELTA), (I0F128::ZERO, true));
+        assert_eq!((-I0F128::MAX).overflowing_div(I0F128::DELTA), (I0F128::ZERO, true));
+        assert_eq!((-I0F128::MAX).overflowing_div(I0F128::MIN), (I0F128::from_bits(-2), true));
     }
 }

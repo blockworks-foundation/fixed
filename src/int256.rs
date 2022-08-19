@@ -252,8 +252,9 @@ pub const fn div_rem_u256_u128(mut n: U256, mut d: u128) -> (U256, u128) {
     (q, r)
 }
 
+// must not result in overflow
 #[inline]
-pub const fn div_rem_i256_i128(n: I256, d: i128) -> (I256, i128) {
+pub const fn div_rem_i256_i128_no_overflow(n: I256, d: i128) -> (I256, i128) {
     let (n_neg, n_abs) = if n.hi < 0 {
         let (nl, overflow) = n.lo.overflowing_neg();
         let nh = n.hi.wrapping_neg().wrapping_sub(overflow as i128) as u128;
@@ -335,7 +336,7 @@ mod tests {
     }
 
     fn check_idiv_rem_signs(num: I256, den: i128) {
-        let (quot, rem) = div_rem_i256_i128(num, den);
+        let (quot, rem) = div_rem_i256_i128_no_overflow(num, den);
         assert!(rem.unsigned_abs() <= den.unsigned_abs());
 
         if num.hi < 0 {
