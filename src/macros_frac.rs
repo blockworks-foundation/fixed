@@ -200,8 +200,8 @@ type Fix = ", $s_fixed, "<U4>;
 assert_eq!(Fix::ZERO.checked_int_log(5), None);
 assert_eq!(Fix::from_num(4).checked_int_log(2), Some(2));
 assert_eq!(Fix::from_num(5.75).checked_int_log(5), Some(1));
-// assert_eq!(Fix::from_num(0.25).checked_int_log(5), Some(-1));
-// assert_eq!(Fix::from_num(0.1875).checked_int_log(5), Some(-2));
+assert_eq!(Fix::from_num(0.25).checked_int_log(5), Some(-1));
+assert_eq!(Fix::from_num(0.1875).checked_int_log(5), Some(-2));
 ```
 ";
                 #[inline]
@@ -215,7 +215,8 @@ assert_eq!(Fix::from_num(5.75).checked_int_log(5), Some(1));
                     if int != 0 {
                         Some(log::int_part::$UInner(int, base))
                     } else {
-                        unimplemented!()
+                        let frac = bits << Self::INT_NBITS;
+                        Some(log::frac_part::$UInner(frac, base))
                     }
                 }
             }
