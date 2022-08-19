@@ -107,6 +107,8 @@ The conversions supported cover the following cases.
   * [`F128Bits`][f128b-1-18] has been deprecated to be replaced by the new
     [`F128`][f128-1-18] which has standard floating-point ordering and various
     classification methods and associated constants.
+  * The [`from_str_dec`][u-fsd-1-18] method was added to the
+    [`Unwrapped`][u-1-18] wrapper.
   * The [`Contiguous`][bm-c-1] trait from the [*bytemuck* crate] was implemented
     for all fixed-point numbers, added as a supertrait to the [`Fixed`][tf-1-18]
     trait, and implemented for the [`Wrapping`][w-1-18] and
@@ -118,6 +120,7 @@ The conversions supported cover the following cases.
 [f128b-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.F128Bits.html
 [tf-1-18]: https://docs.rs/fixed/~1.18/fixed/traits/trait.Fixed.html
 [u-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.Unwrapped.html
+[u-fsd-1-128]: https://docs.rs/fixed/~1.18/fixed/struct.Unwrapped.html#method.from_str_dec
 [w-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.Wrapping.html
 
 ### Version 1.17.0 news (2022-08-03)

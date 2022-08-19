@@ -538,6 +538,39 @@ impl<F: Fixed> Unwrapped<F> {
         Dst::unwrapped_from_fixed(self.0)
     }
 
+    /// Parses a string slice containing decimal digits to return a fixed-point number.
+    ///
+    /// Rounding is to the nearest, with ties rounded to even.
+    ///
+    /// See also
+    /// <code>FixedI32::[unwrapped\_from\_str][FixedI32::unwrapped_from_str]</code>
+    /// and
+    /// <code>FixedU32::[unwrapped\_from\_str][FixedU32::unwrapped_from_str]</code>.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value does not fit or if there is a parsing error.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use fixed::{types::I8F8, Unwrapped};
+    /// // 16 + 3/4 = 16.75
+    /// let check = Unwrapped(I8F8::from_bits((16 << 8) + (3 << 8) / 4));
+    /// assert_eq!(Unwrapped::<I8F8>::from_str_dec("16.75"), check);
+    /// ```
+    ///
+    /// The following panics because of a parsing error.
+    ///
+    /// ```rust,should_panic
+    /// use fixed::{types::I8F8, Unwrapped};
+    /// let _error = Unwrapped::<I8F8>::from_str_dec("1.2.");
+    /// ```
+    #[inline]
+    pub fn from_str_dec(src: &str) -> Unwrapped<F> {
+        Unwrapped(F::unwrapped_from_str(src))
+    }
+
     /// Parses a string slice containing binary digits to return a fixed-point number.
     ///
     /// Rounding is to the nearest, with ties rounded to even.
@@ -570,7 +603,9 @@ impl<F: Fixed> Unwrapped<F> {
     ///
     /// This method either returns [`Ok`] or panics, and never returns [`Err`].
     /// In version 2, this method will not return a [`Result`], but will return
-    /// the fixed-point number directly.
+    /// the fixed-point number directly similarly to [`from_str_dec`].
+    ///
+    /// [`from_str_dec`]: Self::from_str_dec
     #[inline]
     pub fn from_str_binary(src: &str) -> Result<Unwrapped<F>, ParseFixedError> {
         Ok(Unwrapped(F::unwrapped_from_str_binary(src)))
@@ -608,7 +643,9 @@ impl<F: Fixed> Unwrapped<F> {
     ///
     /// This method either returns [`Ok`] or panics, and never returns [`Err`].
     /// In version 2, this method will not return a [`Result`], but will return
-    /// the fixed-point number directly.
+    /// the fixed-point number directly similarly to [`from_str_dec`].
+    ///
+    /// [`from_str_dec`]: Self::from_str_dec
     #[inline]
     pub fn from_str_octal(src: &str) -> Result<Unwrapped<F>, ParseFixedError> {
         Ok(Unwrapped(F::unwrapped_from_str_octal(src)))
@@ -646,7 +683,9 @@ impl<F: Fixed> Unwrapped<F> {
     ///
     /// This method either returns [`Ok`] or panics, and never returns [`Err`].
     /// In version 2, this method will not return a [`Result`], but will return
-    /// the fixed-point number directly.
+    /// the fixed-point number directly similarly to [`from_str_dec`].
+    ///
+    /// [`from_str_dec`]: Self::from_str_dec
     #[inline]
     pub fn from_str_hex(src: &str) -> Result<Unwrapped<F>, ParseFixedError> {
         Ok(Unwrapped(F::unwrapped_from_str_hex(src)))
