@@ -279,36 +279,35 @@ pub mod frac_part {
     }
 }
 
-// check crate::log(x, 10) while we're at it
+// check log10() and log(10) in tandem
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::log;
+    use crate::{log, log10};
 
     macro_rules! check_loop {
         ($T:ident) => {
-            for i in 0..=int_part::$T(<$T>::MAX) {
+            for i in 0..=log10::int_part::$T(<$T>::MAX) {
                 let p = (10 as $T).pow(i as u32);
                 if i > 0 {
-                    assert_eq!(int_part::$T(p - 1), i - 1);
+                    assert_eq!(log10::int_part::$T(p - 1), i - 1);
                     assert_eq!(log::int_part::$T(p - 1, 10), i - 1);
                 }
-                assert_eq!(int_part::$T(p), i);
+                assert_eq!(log10::int_part::$T(p), i);
                 assert_eq!(log::int_part::$T(p, 10), i);
-                assert_eq!(int_part::$T(p + 1), i);
+                assert_eq!(log10::int_part::$T(p + 1), i);
                 assert_eq!(log::int_part::$T(p + 1, 10), i);
             }
 
-            for i in 0..-frac_part::$T(1) {
+            for i in 0..-log10::frac_part::$T(1) {
                 let p = <$T>::MAX / (10 as $T).pow(i as u32);
                 if p > 1 {
-                    assert_eq!(frac_part::$T(p - 1), -1 - i);
+                    assert_eq!(log10::frac_part::$T(p - 1), -1 - i);
                     assert_eq!(log::frac_part::$T(p - 1, 10), -1 - i);
                 }
-                assert_eq!(frac_part::$T(p), -1 - i);
+                assert_eq!(log10::frac_part::$T(p), -1 - i);
                 assert_eq!(log::frac_part::$T(p, 10), -1 - i);
                 if i > 0 {
-                    assert_eq!(frac_part::$T(p + 1), -i);
+                    assert_eq!(log10::frac_part::$T(p + 1), -i);
                     assert_eq!(log::frac_part::$T(p + 1, 10), -i);
                 }
             }
@@ -317,13 +316,13 @@ mod tests {
 
     #[test]
     fn log10_u8() {
-        assert_eq!(int_part::u8(1), 0);
+        assert_eq!(log10::int_part::u8(1), 0);
         assert_eq!(log::int_part::u8(1, 10), 0);
-        assert_eq!(int_part::u8(u8::MAX), 2);
+        assert_eq!(log10::int_part::u8(u8::MAX), 2);
         assert_eq!(log::int_part::u8(u8::MAX, 10), 2);
-        assert_eq!(frac_part::u8(1), -3);
+        assert_eq!(log10::frac_part::u8(1), -3);
         assert_eq!(log::frac_part::u8(1, 10), -3);
-        assert_eq!(frac_part::u8(u8::MAX), -1);
+        assert_eq!(log10::frac_part::u8(u8::MAX), -1);
         assert_eq!(log::frac_part::u8(u8::MAX, 10), -1);
 
         check_loop! { u8 }
@@ -331,13 +330,13 @@ mod tests {
 
     #[test]
     fn log10_u16() {
-        assert_eq!(int_part::u16(1), 0);
+        assert_eq!(log10::int_part::u16(1), 0);
         assert_eq!(log::int_part::u16(1, 10), 0);
-        assert_eq!(int_part::u16(u16::MAX), 4);
+        assert_eq!(log10::int_part::u16(u16::MAX), 4);
         assert_eq!(log::int_part::u16(u16::MAX, 10), 4);
-        assert_eq!(frac_part::u16(1), -5);
+        assert_eq!(log10::frac_part::u16(1), -5);
         assert_eq!(log::frac_part::u16(1, 10), -5);
-        assert_eq!(frac_part::u16(u16::MAX), -1);
+        assert_eq!(log10::frac_part::u16(u16::MAX), -1);
         assert_eq!(log::frac_part::u16(u16::MAX, 10), -1);
 
         check_loop! { u16 }
@@ -345,13 +344,13 @@ mod tests {
 
     #[test]
     fn log10_u32() {
-        assert_eq!(int_part::u32(1), 0);
+        assert_eq!(log10::int_part::u32(1), 0);
         assert_eq!(log::int_part::u32(1, 10), 0);
-        assert_eq!(int_part::u32(u32::MAX), 9);
+        assert_eq!(log10::int_part::u32(u32::MAX), 9);
         assert_eq!(log::int_part::u32(u32::MAX, 10), 9);
-        assert_eq!(frac_part::u32(1), -10);
+        assert_eq!(log10::frac_part::u32(1), -10);
         assert_eq!(log::frac_part::u32(1, 10), -10);
-        assert_eq!(frac_part::u32(u32::MAX), -1);
+        assert_eq!(log10::frac_part::u32(u32::MAX), -1);
         assert_eq!(log::frac_part::u32(u32::MAX, 10), -1);
 
         check_loop! { u32 }
@@ -359,13 +358,13 @@ mod tests {
 
     #[test]
     fn log10_u64() {
-        assert_eq!(int_part::u64(1), 0);
+        assert_eq!(log10::int_part::u64(1), 0);
         assert_eq!(log::int_part::u64(1, 10), 0);
-        assert_eq!(int_part::u64(u64::MAX), 19);
+        assert_eq!(log10::int_part::u64(u64::MAX), 19);
         assert_eq!(log::int_part::u64(u64::MAX, 10), 19);
-        assert_eq!(frac_part::u64(1), -20);
+        assert_eq!(log10::frac_part::u64(1), -20);
         assert_eq!(log::frac_part::u64(1, 10), -20);
-        assert_eq!(frac_part::u64(u64::MAX), -1);
+        assert_eq!(log10::frac_part::u64(u64::MAX), -1);
         assert_eq!(log::frac_part::u64(u64::MAX, 10), -1);
 
         check_loop! { u64 }
@@ -373,13 +372,13 @@ mod tests {
 
     #[test]
     fn log10_u128() {
-        assert_eq!(int_part::u128(1), 0);
+        assert_eq!(log10::int_part::u128(1), 0);
         assert_eq!(log::int_part::u128(1, 10), 0);
-        assert_eq!(int_part::u128(u128::MAX), 38);
+        assert_eq!(log10::int_part::u128(u128::MAX), 38);
         assert_eq!(log::int_part::u128(u128::MAX, 10), 38);
-        assert_eq!(frac_part::u128(1), -39);
+        assert_eq!(log10::frac_part::u128(1), -39);
         assert_eq!(log::frac_part::u128(1, 10), -39);
-        assert_eq!(frac_part::u128(u128::MAX), -1);
+        assert_eq!(log10::frac_part::u128(u128::MAX), -1);
         assert_eq!(log::frac_part::u128(u128::MAX, 10), -1);
 
         check_loop! { u128 }
