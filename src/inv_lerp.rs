@@ -14,6 +14,7 @@
 // <https://opensource.org/licenses/MIT>.
 
 use crate::int256::{self, U256};
+use core::num::NonZeroU128;
 
 macro_rules! make_inv_lerp {
     ($i:ident, $u:ident, $ii:ident, $uu:ident, $uuf:expr) => {
@@ -108,7 +109,6 @@ make_inv_lerp! { i32, u32, i64, u64, 0xffff_ffff_u64 }
 make_inv_lerp! { i64, u64, i128, u128, 0xffff_ffff_ffff_ffff_u128 }
 
 pub const fn i128(v: i128, start: i128, end: i128, frac_bits: u32) -> (i128, bool) {
-    assert!(start != end, "empty range");
     // 0x00 ≤ diff_abs ≤ 0xff
     let (diff_abs, diff_neg) = if v >= start {
         (v.wrapping_sub(start) as u128, false)
@@ -124,6 +124,10 @@ pub const fn i128(v: i128, start: i128, end: i128, frac_bits: u32) -> (i128, boo
         (end.wrapping_sub(start) as u128, false)
     } else {
         (start.wrapping_sub(end) as u128, true)
+    };
+    let range_abs = match NonZeroU128::new(range_abs) {
+        Some(s) => s,
+        None => panic!("empty range"),
     };
     let neg = diff_neg != range_neg;
     if neg {
@@ -169,7 +173,6 @@ pub const fn i128(v: i128, start: i128, end: i128, frac_bits: u32) -> (i128, boo
 }
 
 pub const fn u128(v: u128, start: u128, end: u128, frac_bits: u32) -> (u128, bool) {
-    assert!(start != end, "empty range");
     // 0x00 ≤ diff ≤ 0xff
     let (diff_abs, diff_neg) = if v >= start {
         (v - start, false)
@@ -185,6 +188,10 @@ pub const fn u128(v: u128, start: u128, end: u128, frac_bits: u32) -> (u128, boo
         (end - start, false)
     } else {
         (start - end, true)
+    };
+    let range_abs = match NonZeroU128::new(range_abs) {
+        Some(s) => s,
+        None => panic!("empty range"),
     };
     let neg = diff_neg != range_neg;
     if neg {

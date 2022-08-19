@@ -13,6 +13,11 @@
 // <https://www.apache.org/licenses/LICENSE-2.0> and
 // <https://opensource.org/licenses/MIT>.
 
+#[cfg(not(debug_assertions))]
+use core::hint;
+
+use core::num::{NonZeroI128, NonZeroU128};
+
 #[derive(Clone, Copy, Debug)]
 pub struct U256 {
     pub lo: u128,
@@ -200,9 +205,23 @@ pub const fn shl_i256_max_128(a: I256, sh: u32) -> I256 {
     }
 }
 
+/// # Safety
+///
+/// d must have msb set.
 #[inline]
-const fn div_half_u128(r: u128, d: u128, next_half: u128) -> (u128, u128) {
+const unsafe fn div_half_u128(r: u128, d: u128, next_half: u128) -> (u128, u128) {
     let (dl, dh) = u128_lo_hi(d);
+    // SAFETY: we know d has the most significant bit set because we normalized
+    if dh == 0 {
+        #[cfg(debug_assertions)]
+        {
+            unreachable!();
+        }
+        #[cfg(not(debug_assertions))]
+        unsafe {
+            hint::unreachable_unchecked();
+        }
+    }
     let (mut q, rr) = (r / dh, r % dh);
     let m = q * dl;
     let mut r = next_half + (rr << 64);
@@ -221,28 +240,28 @@ const fn div_half_u128(r: u128, d: u128, next_half: u128) -> (u128, u128) {
 }
 
 #[inline]
-pub const fn div_rem_u256_u128(mut n: U256, mut d: u128) -> (U256, u128) {
-    assert!(d != 0, "division by zero");
+pub const fn div_rem_u256_u128(mut n: U256, d: NonZeroU128) -> (U256, u128) {
     let zeros = d.leading_zeros();
-    let mut r = if zeros == 0 {
-        0
+    let (mut r, d) = if zeros == 0 {
+        (0, d.get())
     } else {
-        d <<= zeros;
         let n2 = n.hi >> (128 - zeros);
         n.hi = n.hi << zeros | n.lo >> (128 - zeros);
         n.lo <<= zeros;
-        n2
+        (n2, d.get() << zeros)
     };
 
+    // SAFETY: we know that d has msb set because it is not zero and it was
+    // shifted to the right by the number of leading zeros.
     let (nhl, nhh) = u128_lo_hi(n.hi);
-    let (new_r, qhh) = div_half_u128(r, d, nhh);
+    let (new_r, qhh) = unsafe { div_half_u128(r, d, nhh) };
     r = new_r;
-    let (new_r, qhl) = div_half_u128(r, d, nhl);
+    let (new_r, qhl) = unsafe { div_half_u128(r, d, nhl) };
     r = new_r;
     let (nll, nlh) = u128_lo_hi(n.lo);
-    let (new_r, qlh) = div_half_u128(r, d, nlh);
+    let (new_r, qlh) = unsafe { div_half_u128(r, d, nlh) };
     r = new_r;
-    let (new_r, qll) = div_half_u128(r, d, nll);
+    let (new_r, qll) = unsafe { div_half_u128(r, d, nll) };
     r = new_r;
     let q = U256 {
         lo: qll + (qlh << 64),
@@ -254,7 +273,7 @@ pub const fn div_rem_u256_u128(mut n: U256, mut d: u128) -> (U256, u128) {
 
 // must not result in overflow
 #[inline]
-pub const fn div_rem_i256_i128_no_overflow(n: I256, d: i128) -> (I256, i128) {
+pub const fn div_rem_i256_i128_no_overflow(n: I256, d: NonZeroI128) -> (I256, i128) {
     let (n_neg, n_abs) = if n.hi < 0 {
         let (nl, overflow) = n.lo.overflowing_neg();
         let nh = n.hi.wrapping_neg().wrapping_sub(overflow as i128) as u128;
@@ -264,10 +283,14 @@ pub const fn div_rem_i256_i128_no_overflow(n: I256, d: i128) -> (I256, i128) {
         let nh = n.hi as u128;
         (false, U256 { lo: nl, hi: nh })
     };
-    let (d_neg, d_abs) = if d < 0 {
-        (true, d.wrapping_neg() as u128)
+    let (d_neg, d_abs) = if d.get() < 0 {
+        // SAFETY: d and -d are not zero
+        let ud = unsafe { NonZeroU128::new_unchecked(d.get().wrapping_neg() as u128) };
+        (true, ud)
     } else {
-        (false, d as u128)
+        // SAFETY: d is not zero
+        let ud = unsafe { NonZeroU128::new_unchecked(d.get() as u128) };
+        (false, ud)
     };
 
     let (q_abs, r_abs) = div_rem_u256_u128(n_abs, d_abs);
@@ -320,9 +343,10 @@ pub const fn overflowing_shl_i256_into_i128(a: I256, sh: u32) -> (i128, bool) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use core::num::{NonZeroI128, NonZeroU128};
 
     fn check_udiv_rem(num: U256, den: u128) {
-        let (quot, rem) = div_rem_u256_u128(num, den);
+        let (quot, rem) = div_rem_u256_u128(num, NonZeroU128::new(den).unwrap());
         assert!(rem <= den);
 
         let ql_d = wide_mul_u128(quot.lo, den);
@@ -336,7 +360,7 @@ mod tests {
     }
 
     fn check_idiv_rem_signs(num: I256, den: i128) {
-        let (quot, rem) = div_rem_i256_i128_no_overflow(num, den);
+        let (quot, rem) = div_rem_i256_i128_no_overflow(num, NonZeroI128::new(den).unwrap());
         assert!(rem.unsigned_abs() <= den.unsigned_abs());
 
         if num.hi < 0 {

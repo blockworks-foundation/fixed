@@ -117,6 +117,7 @@ macro_rules! unsigned_helpers {
             unsigned_helpers_common! { u128, u64, true }
 
             use crate::int256::{self, U256};
+            use core::num::NonZeroU128;
 
             #[inline]
             const fn mul10_overflow(x: u128) -> (u128, u8) {
@@ -154,7 +155,11 @@ macro_rules! unsigned_helpers {
                 (ans23, ans01)
             }
 
-            const fn div_tie(dividend_hi: u128, dividend_lo: u128, divisor: u128) -> (u128, bool) {
+            const fn div_tie(
+                dividend_hi: u128,
+                dividend_lo: u128,
+                divisor: NonZeroU128,
+            ) -> (u128, bool) {
                 let dividend = U256 {
                     lo: dividend_lo,
                     hi: dividend_hi,
@@ -173,6 +178,10 @@ macro_rules! unsigned_helpers {
                 debug_assert!(nbits <= 128);
                 let fives = 5u128.pow(54);
                 let denom = fives * 2;
+                let denom = match NonZeroU128::new(denom) {
+                    None => unreachable!(),
+                    Some(nz) => nz,
+                };
                 // we need to combine (10^27*hi + lo) << (128 - 54 + 1)
                 let (hi_hi, hi_lo) = mul_hi_lo(hi, 10u128.pow(27));
                 let (val_lo, overflow) = hi_lo.overflowing_add(lo);
@@ -205,7 +214,7 @@ macro_rules! unsigned_helpers {
                         // If unrounded division == 1 exactly, we actually have a tie at upper
                         // bound, which is rounded up to 1.0. This is even in all cases except
                         // when nbits == 0, in which case we must round it back down to 0.
-                        if check_overflow >= denom {
+                        if check_overflow >= denom.get() {
                             // 0.5 exactly is 10^$dec / 2 = 5^dec * 2^dec / 2 = fives << ($dec - 1)
                             let half_hi = fives >> (128 - (54 - 1));
                             let half_lo = fives << (54 - 1);

@@ -691,6 +691,7 @@ mul_div_widen! { i64, i128, Signed, u64 }
 
 pub mod u128 {
     use crate::int256::{self, U256};
+    use core::num::NonZeroU128;
 
     // 0 <= frac_nbits <= NBITS
     #[inline]
@@ -737,22 +738,30 @@ pub mod u128 {
     #[inline]
     pub const fn overflowing_div(lhs: u128, rhs: u128, frac_nbits: u32) -> (u128, bool) {
         if frac_nbits == 0 {
-            lhs.overflowing_div(rhs)
+            return lhs.overflowing_div(rhs);
+        }
+        let rhs = match NonZeroU128::new(rhs) {
+            Some(nz) => nz,
+            None => panic!("division by zero"),
+        };
+        let lhs2 = if frac_nbits == 128 {
+            U256 { lo: 0, hi: lhs }
         } else {
-            let lhs2 = U256 {
+            U256 {
                 lo: lhs << frac_nbits,
                 hi: lhs >> (128 - frac_nbits),
-            };
-            let (quot2, _) = int256::div_rem_u256_u128(lhs2, rhs);
-            let quot = quot2.lo;
-            let overflow = quot2.hi != 0;
-            (quot, overflow)
-        }
+            }
+        };
+        let (quot2, _) = int256::div_rem_u256_u128(lhs2, rhs);
+        let quot = quot2.lo;
+        let overflow = quot2.hi != 0;
+        (quot, overflow)
     }
 }
 
 pub mod i128 {
     use crate::int256::{self, I256};
+    use core::num::NonZeroI128;
 
     // 0 <= frac_nbits <= NBITS
     #[inline]
@@ -807,26 +816,29 @@ pub mod i128 {
     #[inline]
     pub const fn overflowing_div(lhs: i128, rhs: i128, frac_nbits: u32) -> (i128, bool) {
         if frac_nbits == 0 {
-            lhs.overflowing_div(rhs)
-        } else {
-            let lhs2 = if frac_nbits == 128 {
-                // In this case, overflow is possible in the wide division.
-                // Then, the wrapped answer is I256::MIN as i128 == 0
-                if lhs == i128::MIN && rhs == -1 {
-                    return (0, true);
-                }
-                I256 { lo: 0, hi: lhs }
-            } else {
-                I256 {
-                    lo: (lhs << frac_nbits) as u128,
-                    hi: lhs >> (128 - frac_nbits),
-                }
-            };
-            let (quot2, _) = int256::div_rem_i256_i128_no_overflow(lhs2, rhs);
-            let quot = quot2.lo as i128;
-            let overflow = quot2.hi != quot >> 127;
-            (quot, overflow)
+            return lhs.overflowing_div(rhs);
         }
+        let rhs = match NonZeroI128::new(rhs) {
+            Some(nz) => nz,
+            None => panic!("division by zero"),
+        };
+        let lhs2 = if frac_nbits == 128 {
+            // In this case, overflow is possible in the wide division.
+            // Then, the wrapped answer is I256::MIN as i128 == 0
+            if lhs == i128::MIN && rhs.get() == -1 {
+                return (0, true);
+            }
+            I256 { lo: 0, hi: lhs }
+        } else {
+            I256 {
+                lo: (lhs << frac_nbits) as u128,
+                hi: lhs >> (128 - frac_nbits),
+            }
+        };
+        let (quot2, _) = int256::div_rem_i256_i128_no_overflow(lhs2, rhs);
+        let quot = quot2.lo as i128;
+        let overflow = quot2.hi != quot >> 127;
+        (quot, overflow)
     }
 }
 
