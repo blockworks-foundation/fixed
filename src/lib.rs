@@ -352,6 +352,7 @@ mod int256;
 mod int_helper;
 mod inv_lerp;
 mod lerp;
+mod log;
 mod log10;
 mod prim_traits;
 #[cfg(feature = "serde")]

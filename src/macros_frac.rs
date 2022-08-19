@@ -187,6 +187,39 @@ assert_eq!(", $s_fixed, "::<U6>::from_num(0.09375).checked_int_log10(), Some(-2)
                 }
             }
 
+            comment! {
+                "Checked integer logarithm, rounded down.
+Returns the logarithm or [`None`] if the fixed-point number is
+", if_signed_unsigned!($Signedness, "≤&nbsp;0", "zero"), ".
+
+# Examples
+
+```rust
+use fixed::{types::extra::U4, ", $s_fixed, "};
+type Fix = ", $s_fixed, "<U4>;
+assert_eq!(Fix::ZERO.checked_int_log(5), None);
+assert_eq!(Fix::from_num(4).checked_int_log(2), Some(2));
+assert_eq!(Fix::from_num(5.75).checked_int_log(5), Some(1));
+// assert_eq!(Fix::from_num(0.25).checked_int_log(5), Some(-1));
+// assert_eq!(Fix::from_num(0.1875).checked_int_log(5), Some(-2));
+```
+";
+                #[inline]
+                pub const fn checked_int_log(self, base: u32) -> Option<i32> {
+                    if self.to_bits() <= 0 || base < 2 {
+                        return None;
+                    }
+                    // Use unsigned representation.
+                    let bits = self.to_bits() as $UInner;
+                    let int = bits >> Self::FRAC_NBITS;
+                    if int != 0 {
+                        Some(log::int_part::$UInner(int, base))
+                    } else {
+                        unimplemented!()
+                    }
+                }
+            }
+
             if_signed! {
                 $Signedness;
                 comment! {
