@@ -125,24 +125,19 @@ pub mod frac_part {
 mod tests {
     use crate::log;
 
+    // these tests require the maximum table sizes
     #[test]
-    fn log_limits() {
+    fn check_table_size_is_sufficient() {
         assert_eq!(log::int_part::u8(u8::MAX, 2), 7);
         assert_eq!(log::int_part::u16(u16::MAX, 2), 15);
         assert_eq!(log::int_part::u32(u32::MAX, 2), 31);
         assert_eq!(log::int_part::u64(u64::MAX, 2), 63);
         assert_eq!(log::int_part::u128(u128::MAX, 2), 127);
 
-        assert_eq!(log::int_part::u8(i8::MAX as u8 + 1, 2), 7);
-        assert_eq!(log::int_part::u16(i16::MAX as u16 + 1, 2), 15);
-        assert_eq!(log::int_part::u32(i32::MAX as u32 + 1, 2), 31);
-        assert_eq!(log::int_part::u64(i64::MAX as u64 + 1, 2), 63);
-        assert_eq!(log::int_part::u128(i128::MAX as u128 + 1, 2), 127);
-
-        assert_eq!(log::int_part::u8(i8::MAX as u8, 2), 6);
-        assert_eq!(log::int_part::u16(i16::MAX as u16, 2), 14);
-        assert_eq!(log::int_part::u32(i32::MAX as u32, 2), 30);
-        assert_eq!(log::int_part::u64(i64::MAX as u64, 2), 62);
-        assert_eq!(log::int_part::u128(i128::MAX as u128, 2), 126);
+        assert_eq!(log::frac_part::u8(1, 2), -8);
+        assert_eq!(log::frac_part::u16(1, 2), -16);
+        assert_eq!(log::frac_part::u32(1, 2), -32);
+        assert_eq!(log::frac_part::u64(1, 2), -64);
+        assert_eq!(log::frac_part::u128(1, 2), -128);
     }
 }
