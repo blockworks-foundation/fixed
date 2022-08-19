@@ -815,10 +815,7 @@ pub mod i128 {
                 if lhs == i128::MIN && rhs == -1 {
                     return (0, true);
                 }
-                I256 {
-                    lo: 0,
-                    hi: lhs,
-                }
+                I256 { lo: 0, hi: lhs }
             } else {
                 I256 {
                     lo: (lhs << frac_nbits) as u128,
@@ -1569,20 +1566,59 @@ mod tests {
         use crate::types::*;
         // these are for the bug:
         assert_eq!(I0F8::MIN.overflowing_div(-I0F8::DELTA), (I0F8::ZERO, true));
-        assert_eq!(I0F16::MIN.overflowing_div(-I0F16::DELTA), (I0F16::ZERO, true));
-        assert_eq!(I0F32::MIN.overflowing_div(-I0F32::DELTA), (I0F32::ZERO, true));
-        assert_eq!(I0F64::MIN.overflowing_div(-I0F64::DELTA), (I0F64::ZERO, true));
-        assert_eq!(I0F128::MIN.overflowing_div(-I0F128::DELTA), (I0F128::ZERO, true));
+        assert_eq!(
+            I0F16::MIN.overflowing_div(-I0F16::DELTA),
+            (I0F16::ZERO, true)
+        );
+        assert_eq!(
+            I0F32::MIN.overflowing_div(-I0F32::DELTA),
+            (I0F32::ZERO, true)
+        );
+        assert_eq!(
+            I0F64::MIN.overflowing_div(-I0F64::DELTA),
+            (I0F64::ZERO, true)
+        );
+        assert_eq!(
+            I0F128::MIN.overflowing_div(-I0F128::DELTA),
+            (I0F128::ZERO, true)
+        );
         // some extra tests:
-        assert_eq!(I0F32::MIN.overflowing_div(I0F32::DELTA), (I0F32::ZERO, true));
+        assert_eq!(
+            I0F32::MIN.overflowing_div(I0F32::DELTA),
+            (I0F32::ZERO, true)
+        );
         assert_eq!(I0F32::MIN.overflowing_div(I0F32::MIN), (I0F32::ZERO, true));
-        assert_eq!((-I0F32::MAX).overflowing_div(-I0F32::DELTA), (I0F32::ZERO, true));
-        assert_eq!((-I0F32::MAX).overflowing_div(I0F32::DELTA), (I0F32::ZERO, true));
-        assert_eq!((-I0F32::MAX).overflowing_div(I0F32::MIN), (I0F32::from_bits(-2), true));
-        assert_eq!(I0F128::MIN.overflowing_div(I0F128::DELTA), (I0F128::ZERO, true));
-        assert_eq!(I0F128::MIN.overflowing_div(I0F128::MIN), (I0F128::ZERO, true));
-        assert_eq!((-I0F128::MAX).overflowing_div(-I0F128::DELTA), (I0F128::ZERO, true));
-        assert_eq!((-I0F128::MAX).overflowing_div(I0F128::DELTA), (I0F128::ZERO, true));
-        assert_eq!((-I0F128::MAX).overflowing_div(I0F128::MIN), (I0F128::from_bits(-2), true));
+        assert_eq!(
+            (-I0F32::MAX).overflowing_div(-I0F32::DELTA),
+            (I0F32::ZERO, true)
+        );
+        assert_eq!(
+            (-I0F32::MAX).overflowing_div(I0F32::DELTA),
+            (I0F32::ZERO, true)
+        );
+        assert_eq!(
+            (-I0F32::MAX).overflowing_div(I0F32::MIN),
+            (I0F32::from_bits(-2), true)
+        );
+        assert_eq!(
+            I0F128::MIN.overflowing_div(I0F128::DELTA),
+            (I0F128::ZERO, true)
+        );
+        assert_eq!(
+            I0F128::MIN.overflowing_div(I0F128::MIN),
+            (I0F128::ZERO, true)
+        );
+        assert_eq!(
+            (-I0F128::MAX).overflowing_div(-I0F128::DELTA),
+            (I0F128::ZERO, true)
+        );
+        assert_eq!(
+            (-I0F128::MAX).overflowing_div(I0F128::DELTA),
+            (I0F128::ZERO, true)
+        );
+        assert_eq!(
+            (-I0F128::MAX).overflowing_div(I0F128::MIN),
+            (I0F128::from_bits(-2), true)
+        );
     }
 }
