@@ -124,7 +124,7 @@ The conversions supported cover the following cases.
 [issue 51]: https://gitlab.com/tspiteri/fixed/-/issues/51
 [tf-1-18]: https://docs.rs/fixed/~1.18/fixed/traits/trait.Fixed.html
 [u-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.Unwrapped.html
-[u-fsd-1-128]: https://docs.rs/fixed/~1.18/fixed/struct.Unwrapped.html#method.from_str_dec
+[u-fsd-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.Unwrapped.html#method.from_str_dec
 [w-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.Wrapping.html
 
 ### Version 1.17.0 news (2022-08-03)
