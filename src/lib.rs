@@ -204,7 +204,7 @@ crate, add it as a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-fixed = "1.17"
+fixed = "1.18"
 ```
 
 The *fixed* crate requires rustc version 1.61.0 or later.
@@ -231,7 +231,7 @@ To enable features, you can add the dependency like this to [*Cargo.toml*]:
 
 ```toml
 [dependencies.fixed]
-version = "1.17"
+version = "1.18"
 features = ["serde"]
 ```
 
@@ -319,7 +319,7 @@ shall be dual licensed as above, without any additional terms or conditions.
 #![cfg_attr(not(feature = "std"), no_std)]
 #![warn(missing_docs)]
 #![warn(unsafe_op_in_unsafe_fn)]
-#![doc(html_root_url = "https://docs.rs/fixed/~1.17")]
+#![doc(html_root_url = "https://docs.rs/fixed/~1.18")]
 #![doc(test(attr(deny(warnings))))]
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 
