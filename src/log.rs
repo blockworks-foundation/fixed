@@ -14,8 +14,10 @@
 // <https://opensource.org/licenses/MIT>.
 
 macro_rules! impl_int_part {
-    ($u:ident, $max_table_size:expr) => {
+    ($u:ident) => {
         pub const fn $u(val: $u, base: u32) -> i32 {
+            const MAX_TABLE_SIZE: usize = (u32::BITS - $u::BITS.leading_zeros() - 2) as usize;
+
             debug_assert!(val > 0);
             debug_assert!(base >= 2);
 
@@ -25,7 +27,7 @@ macro_rules! impl_int_part {
             }
 
             // base^1, base^2, base^4, etc.
-            let mut base_powers: [$u; $max_table_size] = [0; $max_table_size];
+            let mut base_powers: [$u; MAX_TABLE_SIZE] = [0; MAX_TABLE_SIZE];
 
             let mut i = 0;
             let mut partial_log = 1;
@@ -58,16 +60,18 @@ macro_rules! impl_int_part {
 }
 
 pub mod int_part {
-    impl_int_part! { u8, 2 }
-    impl_int_part! { u16, 3 }
-    impl_int_part! { u32, 4 }
-    impl_int_part! { u64, 5 }
-    impl_int_part! { u128, 6 }
+    impl_int_part! { u8 }
+    impl_int_part! { u16 }
+    impl_int_part! { u32 }
+    impl_int_part! { u64 }
+    impl_int_part! { u128 }
 }
 
 macro_rules! impl_frac_part {
-    ($u:ident, $max_table_size:expr) => {
+    ($u:ident) => {
         pub const fn $u(val: $u, base: u32) -> i32 {
+            const MAX_TABLE_SIZE: usize = (u32::BITS - $u::BITS.leading_zeros() - 2) as usize;
+
             debug_assert!(val > 0);
             debug_assert!(base >= 2);
 
@@ -77,7 +81,7 @@ macro_rules! impl_frac_part {
             }
 
             // base^1, base^2, base^4, etc.
-            let mut base_powers: [$u; $max_table_size] = [0; $max_table_size];
+            let mut base_powers: [$u; MAX_TABLE_SIZE] = [0; MAX_TABLE_SIZE];
 
             let mut i = 0;
             let mut partial_log = 1;
@@ -110,11 +114,11 @@ macro_rules! impl_frac_part {
 }
 
 pub mod frac_part {
-    impl_frac_part! { u8, 2 }
-    impl_frac_part! { u16, 3 }
-    impl_frac_part! { u32, 4 }
-    impl_frac_part! { u64, 5 }
-    impl_frac_part! { u128, 6 }
+    impl_frac_part! { u8 }
+    impl_frac_part! { u16 }
+    impl_frac_part! { u32 }
+    impl_frac_part! { u64 }
+    impl_frac_part! { u128 }
 }
 
 #[cfg(test)]
