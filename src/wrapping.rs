@@ -898,7 +898,7 @@ impl<F: Fixed> Wrapping<F> {
     ///
     /// # Panics
     ///
-    /// Panics if the fixed-point number is ≤&nbsp;0, or if the base is <&nbsp;2.
+    /// Panics if the fixed-point number is ≤&nbsp;0 or if the base is <&nbsp;2.
     #[inline]
     pub fn int_log(self, base: u32) -> i32 {
         self.0.int_log(base)

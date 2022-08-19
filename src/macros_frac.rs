@@ -129,7 +129,7 @@ assert_eq!(", $s_fixed, "::<U6>::from_num(0.09375).int_log10(), -2);
 
 # Panics
 
-Panics if the fixed-point number is ", if_signed_unsigned!($Signedness, "≤&nbsp;0", "zero"), ",
+Panics if the fixed-point number is ", if_signed_unsigned!($Signedness, "≤&nbsp;0", "zero"), "
 or if the base is <&nbsp;2.
 
 # Examples
@@ -223,8 +223,8 @@ assert_eq!(", $s_fixed, "::<U6>::from_num(0.09375).checked_int_log10(), Some(-2)
 
             comment! {
                 "Checked integer logarithm to the specified base, rounded down.
-Returns the logarithm or [`None`] if the fixed-point number is
-", if_signed_unsigned!($Signedness, "≤&nbsp;0", "zero"), ",
+Returns the logarithm, or [`None`] if the fixed-point number is
+", if_signed_unsigned!($Signedness, "≤&nbsp;0", "zero"), "
 or if the base is <&nbsp;2.
 
 # Examples

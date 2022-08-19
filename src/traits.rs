@@ -1660,7 +1660,7 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the fixed-point number is ≤&nbsp;0,  if the base is <&nbsp;2.
+    /// Panics if the fixed-point number is ≤&nbsp;0 or if the base is <&nbsp;2.
     fn int_log(self, base: u32) -> i32;
 
     /// Checked integer base-2 logarithm, rounded down. Returns the
@@ -1682,7 +1682,7 @@ where
     fn checked_int_log10(self) -> Option<i32>;
 
     /// Checked integer logarithm to the specified base, rounded down. Returns
-    /// the logarithm or [`None`] if the fixed-point number is ≤&nbsp;0 or if
+    /// the logarithm, or [`None`] if the fixed-point number is ≤&nbsp;0 or if
     /// the base is <&nbsp;2.
     ///
     /// See also
