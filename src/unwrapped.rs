@@ -1035,6 +1035,20 @@ impl<F: Fixed> Unwrapped<F> {
         self.0.int_log10()
     }
 
+    /// Integer logarithm to the specified base, rounded down.
+    ///
+    /// See also <code>FixedI32::[int\_log][FixedI32::int_log]</code> and
+    /// <code>FixedU32::[int\_log][FixedU32::int_log]</code>.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the fixed-point number is ≤&nbsp;0, or if the base is <&nbsp;2.
+    #[inline]
+    #[track_caller]
+    pub fn int_log(self, base: u32) -> i32 {
+        self.0.int_log(base)
+    }
+
     /// Reverses the order of the bits of the fixed-point number.
     ///
     /// See also <code>FixedI32::[reverse\_bits][FixedI32::reverse_bits]</code>

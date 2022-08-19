@@ -1653,6 +1653,16 @@ where
     /// Panics if the fixed-point number is ≤&nbsp;0.
     fn int_log10(self) -> i32;
 
+    /// Integer logarithm to the specified base, rounded down.
+    ///
+    /// See also <code>FixedI32::[int\_log][FixedI32::int_log]</code> and
+    /// <code>FixedU32::[int\_log][FixedU32::int_log]</code>.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the fixed-point number is ≤&nbsp;0,  if the base is <&nbsp;2.
+    fn int_log(self, base: u32) -> i32;
+
     /// Checked integer base-2 logarithm, rounded down. Returns the
     /// logarithm or [`None`] if the fixed-point number is ≤&nbsp;0.
     ///
@@ -1670,6 +1680,16 @@ where
     /// and
     /// <code>FixedU32::[checked\_int\_log10][FixedU32::checked_int_log10]</code>.
     fn checked_int_log10(self) -> Option<i32>;
+
+    /// Checked integer logarithm to the specified base, rounded down. Returns
+    /// the logarithm or [`None`] if the fixed-point number is ≤&nbsp;0 or if
+    /// the base is <&nbsp;2.
+    ///
+    /// See also
+    /// <code>FixedI32::[checked\_int\_log][FixedI32::checked_int_log]</code>
+    /// and
+    /// <code>FixedU32::[checked\_int\_log][FixedU32::checked_int_log]</code>.
+    fn checked_int_log(self, base: u32) -> Option<i32>;
 
     /// Reverses the order of the bits of the fixed-point number.
     ///
@@ -4011,8 +4031,10 @@ macro_rules! impl_fixed {
             trait_delegate! { fn trailing_zeros(self) -> u32 }
             trait_delegate! { fn int_log2(self) -> i32 }
             trait_delegate! { fn int_log10(self) -> i32 }
+            trait_delegate! { fn int_log(self, base: u32) -> i32 }
             trait_delegate! { fn checked_int_log2(self) -> Option<i32> }
             trait_delegate! { fn checked_int_log10(self) -> Option<i32> }
+            trait_delegate! { fn checked_int_log(self, base: u32) -> Option<i32> }
             trait_delegate! { fn reverse_bits(self) -> Self }
             trait_delegate! { fn rotate_left(self, n: u32) -> Self }
             trait_delegate! { fn rotate_right(self, n: u32) -> Self }
