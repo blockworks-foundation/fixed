@@ -744,6 +744,11 @@ pub mod u128 {
             Some(nz) => nz,
             None => panic!("division by zero"),
         };
+        overflowing_div_nz(lhs, rhs, frac_nbits)
+    }
+
+    // Neither rhs nor frac_nbits is zero.
+    const fn overflowing_div_nz(lhs: u128, rhs: NonZeroU128, frac_nbits: u32) -> (u128, bool) {
         let lhs2 = if frac_nbits == 128 {
             U256 { lo: 0, hi: lhs }
         } else {
@@ -822,6 +827,11 @@ pub mod i128 {
             Some(nz) => nz,
             None => panic!("division by zero"),
         };
+        overflowing_div_nz(lhs, rhs, frac_nbits)
+    }
+
+    // Neither rhs nor frac_nbits is zero.
+    const fn overflowing_div_nz(lhs: i128, rhs: NonZeroI128, frac_nbits: u32) -> (i128, bool) {
         let lhs2 = if frac_nbits == 128 {
             // In this case, overflow is possible in the wide division.
             // Then, the wrapped answer is I256::MIN as i128 == 0
