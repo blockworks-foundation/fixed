@@ -125,6 +125,40 @@ assert_eq!(", $s_fixed, "::<U6>::from_num(0.09375).int_log10(), -2);
             }
 
             comment! {
+                "Integer logarithm to the specified base, rounded down.
+
+# Panics
+
+Panics if the fixed-point number is ", if_signed_unsigned!($Signedness, "≤&nbsp;0", "zero"), ",
+or if the base is <&nbsp;2.
+
+# Examples
+
+```rust
+use fixed::{types::extra::U4, ", $s_fixed, "};
+type Fix = ", $s_fixed, "<U4>;
+assert_eq!(Fix::from_num(4).int_log(2), 2);
+assert_eq!(Fix::from_num(5.75).int_log(5), 1);
+assert_eq!(Fix::from_num(0.25).int_log(5), -1);
+assert_eq!(Fix::from_num(0.1875).int_log(5), -2);
+```
+";
+                #[inline]
+                pub const fn int_log(self, base: u32) -> i32 {
+                    match self.checked_int_log(base) {
+                        Some(s) => s,
+                        None => {
+                            if base < 2 {
+                                panic!("log with base < 2");
+                            } else {
+                                panic!("log of non-positive number");
+                            }
+                        }
+                    }
+                }
+            }
+
+            comment! {
                 "Checked integer base-2 logarithm, rounded down.
 Returns the logarithm or [`None`] if the fixed-point number is
 ", if_signed_unsigned!($Signedness, "≤&nbsp;0", "zero"), ".
@@ -188,9 +222,10 @@ assert_eq!(", $s_fixed, "::<U6>::from_num(0.09375).checked_int_log10(), Some(-2)
             }
 
             comment! {
-                "Checked integer logarithm, rounded down.
+                "Checked integer logarithm to the specified base, rounded down.
 Returns the logarithm or [`None`] if the fixed-point number is
-", if_signed_unsigned!($Signedness, "≤&nbsp;0", "zero"), ".
+", if_signed_unsigned!($Signedness, "≤&nbsp;0", "zero"), ",
+or if the base is <&nbsp;2.
 
 # Examples
 
