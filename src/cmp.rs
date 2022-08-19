@@ -13,13 +13,15 @@
 // <https://www.apache.org/licenses/LICENSE-2.0> and
 // <https://opensource.org/licenses/MIT>.
 
+#![allow(deprecated)]
+
 use crate::{
     float_helper,
     helpers::{FloatKind, Widest},
     int_helper::{self, IntFixed},
     types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8},
     F128Bits, FixedI128, FixedI16, FixedI32, FixedI64, FixedI8, FixedU128, FixedU16, FixedU32,
-    FixedU64, FixedU8,
+    FixedU64, FixedU8, F128,
 };
 use core::cmp::Ordering;
 use half::{bf16, f16};
@@ -393,6 +395,7 @@ macro_rules! fixed_cmp_all {
         fixed_cmp_float! { $Fix($LeEqU, $Inner), bf16 }
         fixed_cmp_float! { $Fix($LeEqU, $Inner), f32 }
         fixed_cmp_float! { $Fix($LeEqU, $Inner), f64 }
+        fixed_cmp_float! { $Fix($LeEqU, $Inner), F128 }
         fixed_cmp_float! { $Fix($LeEqU, $Inner), F128Bits }
     };
 }

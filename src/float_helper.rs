@@ -13,6 +13,8 @@
 // <https://www.apache.org/licenses/LICENSE-2.0> and
 // <https://opensource.org/licenses/MIT>.
 
+#![allow(deprecated)]
+
 macro_rules! make_helper {
     ($Float:ident($Bits:ty, $IBits:ident, $prec:expr) $(; use $path:path)?) => {
         #[allow(non_snake_case)]
@@ -184,4 +186,5 @@ make_helper! { f16(u16, i16, 11); use half::f16 }
 make_helper! { bf16(u16, i16, 8); use half::bf16 }
 make_helper! { f32(u32, i32, 24) }
 make_helper! { f64(u64, i64, 53) }
+make_helper! { F128(u128, i128, 113); use crate::F128 }
 make_helper! { F128Bits(u128, i128, 113); use crate::F128Bits }

@@ -104,6 +104,9 @@ The conversions supported cover the following cases.
 
 ### Version 1.18.0 news (unreleased)
 
+  * [`F128Bits`][f128b-1-18] has been deprecated to be replaced by the new
+    [`F128`][f128-1-18] which has standard floating-point ordering and various
+    classification methods and associated constants.
   * The [`Contiguous`][bm-c-1] trait from the [*bytemuck* crate] was implemented
     for all fixed-point numbers, added as a supertrait to the [`Fixed`][tf-1-18]
     trait, and implemented for the [`Wrapping`][w-1-18] and
@@ -111,6 +114,8 @@ The conversions supported cover the following cases.
 
 [*bytemuck* crate]: https://crates.io/crates/bytemuck
 [bm-c-1]: https://docs.rs/bytemuck/^1/bytemuck/trait.Contiguous.html
+[f128-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.F128.html
+[f128b-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.F128Bits.html
 [tf-1-18]: https://docs.rs/fixed/~1.18/fixed/traits/trait.Fixed.html
 [u-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.Unwrapped.html
 [w-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.Wrapping.html

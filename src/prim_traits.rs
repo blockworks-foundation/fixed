@@ -13,6 +13,8 @@
 // <https://www.apache.org/licenses/LICENSE-2.0> and
 // <https://opensource.org/licenses/MIT>.
 
+#![allow(deprecated)]
+
 use crate::{
     float_helper,
     helpers::{FloatKind, FromFloatHelper},
@@ -20,7 +22,7 @@ use crate::{
     traits::{Fixed, FixedEquiv, FromFixed, ToFixed},
     types::extra::U0,
     F128Bits, FixedI128, FixedI16, FixedI32, FixedI64, FixedI8, FixedU128, FixedU16, FixedU32,
-    FixedU64, FixedU8,
+    FixedU64, FixedU8, F128,
 };
 use bytemuck::TransparentWrapper;
 use half::{bf16, f16};
@@ -483,4 +485,5 @@ impl_float! { f16, "f16", "{} overflows", |x| x }
 impl_float! { bf16, "bf16", "{} overflows", |x| x }
 impl_float! { f32, "f32", "{} overflows", |x| x }
 impl_float! { f64, "f64", "{} overflows", |x| x }
+impl_float! { F128, "F128", "F128::from_bits(0x{:032X}) overflows", |x: F128| x.to_bits() }
 impl_float! { F128Bits, "f64", "F128Bits({}) overflows", |x: F128Bits| x.0 }

@@ -17,6 +17,8 @@
 Traits for conversions and for generic use of fixed-point numbers.
 */
 
+#![allow(deprecated)]
+
 pub use crate::traits_bits::{
     FixedBits, FixedBitsCast, FixedBitsOptionalArbitrary, FixedBitsOptionalBorsh,
     FixedBitsOptionalNum, FixedBitsOptionalSerde,
@@ -25,7 +27,7 @@ use crate::{
     helpers::{Sealed, Widest},
     types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8, Unsigned},
     F128Bits, FixedI128, FixedI16, FixedI32, FixedI64, FixedI8, FixedU128, FixedU16, FixedU32,
-    FixedU64, FixedU8, ParseFixedError,
+    FixedU64, FixedU8, ParseFixedError, F128,
 };
 #[cfg(feature = "arbitrary")]
 use arbitrary::Arbitrary;
@@ -573,7 +575,7 @@ where
     Self: PartialOrd<u64> + PartialOrd<u128> + PartialOrd<usize>,
     Self: PartialOrd<f16> + PartialOrd<bf16>,
     Self: PartialOrd<f32> + PartialOrd<f64>,
-    Self: PartialOrd<F128Bits>,
+    Self: PartialOrd<F128> + PartialOrd<F128Bits>,
     Self: FixedOptionalFeatures,
     Self: Sealed,
 {

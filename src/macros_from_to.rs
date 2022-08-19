@@ -26,7 +26,7 @@ The other number can be:
     [`isize`], [`u8`], [`u16`], [`u32`], [`u64`], [`u128`], or
     [`usize`].
   * A floating-point number of type [`f16`], [`bf16`], [`f32`],
-    [`f64`] or [`F128Bits`]. For this conversion, the method rounds
+    [`f64`] or [`F128`]. For this conversion, the method rounds
     to the nearest, with ties rounding to even.
   * Any other number `src` for which [`ToFixed`] is implemented, in
     which case this method returns
@@ -93,7 +93,7 @@ The other number can be:
     [`usize`]. Any fractional bits are discarded, which rounds towards
     &minus;∞.
   * A floating-point number of type [`f16`], [`bf16`], [`f32`],
-    [`f64`] or [`F128Bits`]. For this conversion, the method rounds to
+    [`f64`] or [`F128`]. For this conversion, the method rounds to
     the nearest, with ties rounding to even.
   * Any other type `Dst` for which [`FromFixed`] is implemented, in
     which case this method returns
@@ -163,7 +163,7 @@ The other number can be:
     [`isize`], [`u8`], [`u16`], [`u32`], [`u64`], [`u128`], or
     [`usize`].
   * A floating-point number of type [`f16`], [`bf16`], [`f32`],
-    [`f64`] or [`F128Bits`]. For this conversion, the method rounds to
+    [`f64`] or [`F128`]. For this conversion, the method rounds to
     the nearest, with ties rounding to even.
   * Any other number `src` for which [`ToFixed`] is implemented, in
     which case this method returns
@@ -233,7 +233,7 @@ The other number can be:
     [`usize`]. Any fractional bits are discarded, which rounds towards
     &minus;∞.
   * A floating-point number of type [`f16`], [`bf16`], [`f32`],
-    [`f64`] or [`F128Bits`]. For this conversion, the method rounds to
+    [`f64`] or [`F128`]. For this conversion, the method rounds to
     the nearest, with ties rounding to even.
   * Any other type `Dst` for which [`FromFixed`] is implemented, in
     which case this method returns
@@ -301,7 +301,7 @@ The other number can be:
     [`isize`], [`u8`], [`u16`], [`u32`], [`u64`], [`u128`], or
     [`usize`].
   * A floating-point number of type [`f16`], [`bf16`], [`f32`],
-    [`f64`] or [`F128Bits`]. For this conversion, the method rounds to
+    [`f64`] or [`F128`]. For this conversion, the method rounds to
     the nearest, with ties rounding to even.
   * Any other number `src` for which [`ToFixed`] is implemented, in
     which case this method returns
@@ -374,7 +374,7 @@ The other number can be:
     [`usize`]. Any fractional bits are discarded, which rounds towards
     &minus;∞.
   * A floating-point number of type [`f16`], [`bf16`], [`f32`],
-    [`f64`] or [`F128Bits`]. For this conversion, the method rounds to
+    [`f64`] or [`F128`]. For this conversion, the method rounds to
     the nearest, with ties rounding to even.
   * Any other type `Dst` for which [`FromFixed`] is implemented, in
     which case this method returns
@@ -439,7 +439,7 @@ The other number can be:
     [`isize`], [`u8`], [`u16`], [`u32`], [`u64`], [`u128`], or
     [`usize`].
   * A floating-point number of type [`f16`], [`bf16`], [`f32`],
-    [`f64`] or [`F128Bits`]. For this conversion, the method rounds to
+    [`f64`] or [`F128`]. For this conversion, the method rounds to
     the nearest, with ties rounding to even.
   * Any other number `src` for which [`ToFixed`] is implemented, in
     which case this method returns
@@ -504,7 +504,7 @@ The other number can be:
     [`usize`]. Any fractional bits are discarded, which rounds towards
     &minus;∞.
   * A floating-point number of type [`f16`], [`bf16`], [`f32`],
-    [`f64`] or [`F128Bits`]. For this conversion, the method rounds to
+    [`f64`] or [`F128`]. For this conversion, the method rounds to
     the nearest, with ties rounding to even.
   * Any other type `Dst` for which [`FromFixed`] is implemented, in
     which case this method returns
@@ -569,7 +569,7 @@ The other number can be:
     [`isize`], [`u8`], [`u16`], [`u32`], [`u64`], [`u128`], or
     [`usize`].
   * A floating-point number of type [`f16`], [`bf16`], [`f32`],
-    [`f64`] or [`F128Bits`]. For this conversion, the method rounds to
+    [`f64`] or [`F128`]. For this conversion, the method rounds to
     the nearest, with ties rounding to even.
   * Any other number `src` for which [`ToFixed`] is implemented, in
     which case this method returns
@@ -634,7 +634,7 @@ The other number can be:
     [`usize`]. Any fractional bits are discarded, which rounds towards
     &minus;∞.
   * A floating-point number of type [`f16`], [`bf16`], [`f32`],
-    [`f64`] or [`F128Bits`]. For this conversion, the method rounds to
+    [`f64`] or [`F128`]. For this conversion, the method rounds to
     the nearest, with ties rounding to even.
   * Any other type `Dst` for which [`FromFixed`] is implemented, in
     which case this method returns
@@ -699,7 +699,7 @@ The other number can be:
     [`isize`], [`u8`], [`u16`], [`u32`], [`u64`], [`u128`], or
     [`usize`].
   * A floating-point number of type [`f16`], [`bf16`], [`f32`],
-    [`f64`] or [`F128Bits`]. For this conversion, the method rounds to
+    [`f64`] or [`F128`]. For this conversion, the method rounds to
     the nearest, with ties rounding to even.
   * Any other number `src` for which [`ToFixed`] is implemented, in
     which case this method returns
@@ -768,7 +768,7 @@ The other number can be:
     [`usize`]. Any fractional bits are discarded, which rounds towards
     &minus;∞.
   * A floating-point number of type [`f16`], [`bf16`], [`f32`],
-    [`f64`] or [`F128Bits`]. For this conversion, the method rounds to
+    [`f64`] or [`F128`]. For this conversion, the method rounds to
     the nearest, with ties rounding to even.
   * Any other type `Dst` for which [`FromFixed`] is implemented, in
     which case this method returns

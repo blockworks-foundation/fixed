@@ -339,6 +339,7 @@ pub mod consts;
 mod convert;
 mod debug_hex;
 mod display;
+mod f128;
 mod float_helper;
 mod from_str;
 mod helpers;
@@ -363,7 +364,7 @@ mod wrapping;
 
 #[cfg(feature = "num-traits")]
 pub use crate::impl_num_traits::RadixParseFixedError;
-pub use crate::{from_str::ParseFixedError, unwrapped::Unwrapped, wrapping::Wrapping};
+pub use crate::{f128::F128, from_str::ParseFixedError, unwrapped::Unwrapped, wrapping::Wrapping};
 use crate::{
     traits::{FromFixed, ToFixed},
     types::extra::{
@@ -696,24 +697,24 @@ fixed! {
 ///   * compare fixed-point numbers and the bit representation of 128-bit
 ///     floating-point numbers.
 ///
-/// # Examples
+/// This is deprecated, and [`F128`] should be used instead. There are two main
+/// differences to keep in mind when switching to [`F128`]:
 ///
-/// ```rust
-/// use fixed::{types::I16F16, F128Bits};
-/// // binary128 representation for 1.0 is 0x3FFF << 112
-/// let one = F128Bits(0x3FFF_u128 << 112);
+///   * The ordering for `F128Bits` is total ordering, not regular
+///     floating-point number ordering, while the ordering for [`F128`] is
+///     similar to ordering for standard floating-point numbers.
+///   * The underlying [`u128`] value for `F128Bits` is accessible as a public
+///     field, while for [`F128`] it is accessible only through the [`to_bits`]
+///     and [`from_bits`] methods.
 ///
-/// assert_eq!(I16F16::ONE.to_num::<F128Bits>(), one);
-/// assert_eq!(I16F16::from_num(one), I16F16::ONE);
-///
-/// // fixed-point numbers can be compared directly to F128Bits values
-/// assert!(I16F16::from_num(1.5) > one);
-/// assert!(I16F16::from_num(0.5) < one);
-/// ```
+/// [`from_bits`]: F128::from_bits
+/// [`to_bits`]: F128::to_bits
+#[deprecated(since = "1.18.0", note = "use `F128` instead")]
 #[repr(transparent)]
 #[derive(Clone, Copy, Default, Hash, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct F128Bits(pub u128);
 
+#[allow(deprecated)]
 impl F128Bits {
     #[inline]
     pub(crate) fn to_bits(self) -> u128 {

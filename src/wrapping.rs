@@ -431,7 +431,7 @@ impl<F: Fixed> Wrapping<F> {
     ///     [`isize`], [`u8`], [`u16`], [`u32`], [`u64`], [`u128`], or
     ///     [`usize`].
     ///   * A floating-point number of type [`f16`], [`bf16`],
-    ///     [`f32`], [`f64`] or [`F128Bits`]. For this conversion, the
+    ///     [`f32`], [`f64`] or [`F128`]. For this conversion, the
     ///     method rounds to the nearest, with ties rounding to even.
     ///   * Any other number `src` for which [`ToFixed`] is
     ///     implemented, in which case this method returns
@@ -470,7 +470,7 @@ impl<F: Fixed> Wrapping<F> {
     /// assert_eq!(dst_float, Wrapping(I4F4::from_bits(0b11100)));
     /// ```
     ///
-    /// [`F128Bits`]: crate::F128Bits
+    /// [`F128`]: crate::F128
     /// [`bf16`]: half::bf16
     /// [`f16`]: half::f16
     /// [finite]: f64::is_finite
@@ -491,7 +491,7 @@ impl<F: Fixed> Wrapping<F> {
     ///     [`usize`]. Any fractional bits are discarded, which rounds
     ///     towards &minus;∞.
     ///   * A floating-point number of type [`f16`], [`bf16`],
-    ///     [`f32`], [`f64`] or [`F128Bits`]. For this conversion, the
+    ///     [`f32`], [`f64`] or [`F128`]. For this conversion, the
     ///     method rounds to the nearest, with ties rounding to even.
     ///   * Any other type `Dst` for which [`FromFixed`] is
     ///     implemented, in which case this method returns
@@ -519,7 +519,7 @@ impl<F: Fixed> Wrapping<F> {
     /// assert_eq!(src.to_num::<I2F6>(), wrapped);
     /// ```
     ///
-    /// [`F128Bits`]: crate::F128Bits
+    /// [`F128`]: crate::F128
     /// [`bf16`]: half::bf16
     /// [`f16`]: half::f16
     #[inline]
