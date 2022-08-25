@@ -3094,6 +3094,9 @@ assert_eq!(Fix::from_num(3).wrapping_div_int(2), one_point_5);
                 "Wrapping shift left. Wraps `rhs` if `rhs`&nbsp;≥&nbsp;", $s_nbits, ",
 then shifts and returns the number.
 
+Unlike most other methods which wrap the result, this method (as well as
+[`wrapping_shr`]) wraps the input operand `rhs`.
+
 # Examples
 
 ```rust
@@ -3102,6 +3105,8 @@ type Fix = ", $s_fixed, "<U4>;
 assert_eq!((Fix::ONE / 2).wrapping_shl(3), Fix::from_num(4));
 assert_eq!((Fix::ONE / 2).wrapping_shl(3 + ", $s_nbits, "), Fix::from_num(4));
 ```
+
+[`wrapping_shr`]: Self::wrapping_shr
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
@@ -3114,6 +3119,9 @@ assert_eq!((Fix::ONE / 2).wrapping_shl(3 + ", $s_nbits, "), Fix::from_num(4));
                 "Wrapping shift right. Wraps `rhs` if `rhs`&nbsp;≥&nbsp;", $s_nbits, ",
 then shifts and returns the number.
 
+Unlike most other methods which wrap the result, this method (as well as
+[`wrapping_shl`]) wraps the input operand `rhs`.
+
 # Examples
 
 ```rust
@@ -3122,6 +3130,8 @@ type Fix = ", $s_fixed, "<U4>;
 assert_eq!((Fix::from_num(4)).wrapping_shr(3), Fix::ONE / 2);
 assert_eq!((Fix::from_num(4)).wrapping_shr(3 + ", $s_nbits, "), Fix::ONE / 2);
 ```
+
+[`wrapping_shl`]: Self::wrapping_shl
 ";
                 #[inline]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
