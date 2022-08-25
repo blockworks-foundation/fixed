@@ -18,7 +18,18 @@ use arbitrary::Arbitrary;
 #[cfg(feature = "borsh")]
 use borsh::{BorshDeserialize, BorshSerialize};
 #[cfg(feature = "num-traits")]
-use num_traits::Num;
+use num_traits::{
+    cast::{AsPrimitive, FromPrimitive},
+    int::PrimInt,
+    ops::{
+        checked::{CheckedNeg, CheckedRem, CheckedShl, CheckedShr},
+        euclid::{CheckedEuclid, Euclid},
+        mul_add::{MulAdd, MulAddAssign},
+        overflowing::{OverflowingAdd, OverflowingMul, OverflowingSub},
+        saturating::{SaturatingAdd, SaturatingMul, SaturatingSub},
+        wrapping::{WrappingAdd, WrappingMul, WrappingNeg, WrappingShl, WrappingShr, WrappingSub},
+    },
+};
 #[cfg(feature = "serde")]
 use serde::{de::Deserialize, ser::Serialize};
 
@@ -208,8 +219,20 @@ where
 /// depending on the crates’s [optional features], and should not be used
 /// directly.
 ///
-/// If the `num-traits` experimental feature is enabled, [`Num`] is a supertrait
-/// of [`FixedBits`].
+/// If the `num-traits` experimental feature is enabled, the following are
+/// supertraits of [`FixedBits`]:
+///
+///   * [`PrimInt`], [`FromPrimitive`]
+///   * <code>[AsPrimitive][`AsPrimitive`]&lt;T></code> where `T` can be [`i8`],
+///     [`i16`], [`i32`], [`i64`], [`i128`], [`isize`], [`u8`], [`u16`],
+///     [`u32`], [`u64`], [`u128`], [`usize`], [`f32`] or [`f64`]
+///   * [`CheckedNeg`], [`CheckedRem`], [`CheckedShl`], [`CheckedShr`]
+///   * [`SaturatingAdd`], [`SaturatingSub`], [`SaturatingMul`]
+///   * [`WrappingAdd`], [`WrappingSub`], [`WrappingNeg`], [`WrappingMul`],
+///     [`WrappingShl`], [`WrappingShr`]
+///   * [`OverflowingAdd`], [`OverflowingSub`], [`OverflowingMul`]
+///   * [`Euclid`], [`CheckedEuclid`]
+///   * [`MulAdd`], [`MulAddAssign`]
 ///
 /// [optional features]: crate#optional-features
 pub trait FixedBitsOptionalNum: Sealed {}
@@ -219,13 +242,37 @@ pub trait FixedBitsOptionalNum: Sealed {}
 /// depending on the crates’s [optional features], and should not be used
 /// directly.
 ///
-/// If the `num-traits` experimental feature is enabled, [`Num`] is a supertrait
-/// of [`FixedBits`].
+/// If the `num-traits` experimental feature is enabled, the following are
+/// supertraits of [`FixedBits`]:
+///
+///   * [`PrimInt`], [`FromPrimitive`]
+///   * <code>[AsPrimitive][`AsPrimitive`]&lt;T></code> where `T` can be [`i8`],
+///     [`i16`], [`i32`], [`i64`], [`i128`], [`isize`], [`u8`], [`u16`],
+///     [`u32`], [`u64`], [`u128`], [`usize`], [`f32`] or [`f64`]
+///   * [`CheckedNeg`], [`CheckedRem`], [`CheckedShl`], [`CheckedShr`]
+///   * [`SaturatingAdd`], [`SaturatingSub`], [`SaturatingMul`]
+///   * [`WrappingAdd`], [`WrappingSub`], [`WrappingNeg`], [`WrappingMul`],
+///     [`WrappingShl`], [`WrappingShr`]
+///   * [`OverflowingAdd`], [`OverflowingSub`], [`OverflowingMul`]
+///   * [`Euclid`], [`CheckedEuclid`]
+///   * [`MulAdd`], [`MulAddAssign`]
 ///
 /// [optional features]: crate#optional-features
 pub trait FixedBitsOptionalNum: Sealed
 where
-    Self: Num,
+    Self: PrimInt + FromPrimitive,
+    Self: AsPrimitive<i8> + AsPrimitive<i16> + AsPrimitive<i32>,
+    Self: AsPrimitive<i64> + AsPrimitive<i128> + AsPrimitive<isize>,
+    Self: AsPrimitive<u8> + AsPrimitive<u16> + AsPrimitive<u32>,
+    Self: AsPrimitive<u64> + AsPrimitive<u128> + AsPrimitive<usize>,
+    Self: AsPrimitive<f32> + AsPrimitive<f64>,
+    Self: CheckedNeg + CheckedRem + CheckedShl + CheckedShr,
+    Self: SaturatingAdd + SaturatingSub + SaturatingMul,
+    Self: WrappingAdd + WrappingSub + WrappingNeg + WrappingMul,
+    Self: WrappingShl + WrappingShr,
+    Self: OverflowingAdd + OverflowingSub + OverflowingMul,
+    Self: Euclid + CheckedEuclid,
+    Self: MulAdd + MulAddAssign,
 {
 }
 

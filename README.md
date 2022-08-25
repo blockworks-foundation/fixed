@@ -102,6 +102,14 @@ The conversions supported cover the following cases.
 
 ## What’s new
 
+### Version 1.19.0 news (unreleased)
+
+  * [`FixedBits`][fb-1-19] now implements more traits from the [*num-traits*
+    crate] if the [`num-traits`][feat-exp-1-19] experimental feature is enabled.
+
+[fb-1-19]: https://docs.rs/fixed/~1.19/fixed/traits/trait.FixedBits.html
+[feat-exp-1-19]: https://docs.rs/fixed/~1.19/fixed/index.html#experimental-optional-features
+
 ### Version 1.18.0 news (2022-08-19)
 
   * Bug fix: checked division methods were panicking when dividing

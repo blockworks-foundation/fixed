@@ -5,6 +5,15 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.19.0 (unreleased)
+===========================
+
+  * [`FixedBits`][fb-1-19] now implements more traits from the [*num-traits*
+    crate] if the [`num-traits`][feat-exp-1-19] experimental feature is enabled.
+
+[fb-1-19]: https://docs.rs/fixed/~1.19/fixed/traits/trait.FixedBits.html
+[feat-exp-1-19]: https://docs.rs/fixed/~1.19/fixed/index.html#experimental-optional-features
+
 Version 1.18.0 (2022-08-19)
 ===========================
 
@@ -1243,6 +1252,7 @@ Version 0.1.0 (2018-08-10)
 [*borsh* crate]: https://crates.io/crates/borsh
 [*bytemuck* crate]: https://crates.io/crates/bytemuck
 [*half* crate]: https://crates.io/crates/half
+[*num-traits* crate]: https://crates.io/crates/num-traits
 [*typenum* crate]: https://crates.io/crates/typenum
 [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
 [`BitAndAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.BitAndAssign.html
