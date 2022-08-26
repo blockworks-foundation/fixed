@@ -13,10 +13,29 @@
 // <https://www.apache.org/licenses/LICENSE-2.0> and
 // <https://opensource.org/licenses/MIT>.
 
+use crate::traits::FixedEquiv;
 #[cfg(feature = "arbitrary")]
 use arbitrary::Arbitrary;
+use az_crate::{
+    Cast, CastFrom, CheckedCast, CheckedCastFrom, OverflowingCast, OverflowingCastFrom,
+    SaturatingCast, SaturatingCastFrom, UnwrappedCast, UnwrappedCastFrom, WrappingCast,
+    WrappingCastFrom,
+};
 #[cfg(feature = "borsh")]
 use borsh::{BorshDeserialize, BorshSerialize};
+use bytemuck::{Contiguous, Pod};
+use core::{
+    fmt::{Binary, Debug, Display, LowerHex, Octal, UpperHex},
+    hash::Hash,
+    iter::{Product, Sum},
+    num::ParseIntError,
+    ops::{
+        Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div,
+        DivAssign, Mul, MulAssign, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub,
+        SubAssign,
+    },
+    str::FromStr,
+};
 #[cfg(feature = "num-traits")]
 use num_traits::{
     cast::{AsPrimitive, FromPrimitive},
@@ -33,26 +52,6 @@ use num_traits::{
 };
 #[cfg(feature = "serde")]
 use serde::{de::Deserialize, ser::Serialize};
-
-use crate::traits::FixedEquiv;
-use az_crate::{
-    Cast, CastFrom, CheckedCast, CheckedCastFrom, OverflowingCast, OverflowingCastFrom,
-    SaturatingCast, SaturatingCastFrom, UnwrappedCast, UnwrappedCastFrom, WrappingCast,
-    WrappingCastFrom,
-};
-use bytemuck::{Contiguous, Pod};
-use core::{
-    fmt::{Binary, Debug, Display, LowerHex, Octal, UpperHex},
-    hash::Hash,
-    iter::{Product, Sum},
-    num::ParseIntError,
-    ops::{
-        Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div,
-        DivAssign, Mul, MulAssign, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub,
-        SubAssign,
-    },
-    str::FromStr,
-};
 
 macro_rules! impl_bits {
     ($Bits:ident) => {
