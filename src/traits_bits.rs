@@ -29,6 +29,7 @@ use num_traits::{
         saturating::{SaturatingAdd, SaturatingMul, SaturatingSub},
         wrapping::{WrappingAdd, WrappingMul, WrappingNeg, WrappingShl, WrappingShr, WrappingSub},
     },
+    Num, NumAssignRef, NumRef,
 };
 #[cfg(feature = "serde")]
 use serde::{de::Deserialize, ser::Serialize};
@@ -237,8 +238,8 @@ where
 /// depending on the crates’s [optional features], and should not be used
 /// directly.
 ///
-/// If the `num-traits` experimental feature is enabled, the following are
-/// supertraits of [`FixedBits`]:
+/// If the [`num-traits` experimental feature][experimental features] is
+/// enabled, the following are supertraits of [`FixedBits`]:
 ///
 ///   * [`PrimInt`], [`FromPrimitive`]
 ///   * <code>[AsPrimitive][`AsPrimitive`]&lt;T></code> where `T` can be [`i8`],
@@ -252,6 +253,7 @@ where
 ///   * [`Euclid`], [`CheckedEuclid`]
 ///   * [`MulAdd`], [`MulAddAssign`]
 ///
+/// [experimental features]: crate#experimental-optional-features
 /// [optional features]: crate#optional-features
 pub trait FixedBitsOptionalNum: Sealed {}
 
@@ -260,9 +262,10 @@ pub trait FixedBitsOptionalNum: Sealed {}
 /// depending on the crates’s [optional features], and should not be used
 /// directly.
 ///
-/// If the `num-traits` experimental feature is enabled, the following are
-/// supertraits of [`FixedBits`]:
+/// If the [`num-traits` experimental feature][experimental features] is
+/// enabled, the following are supertraits of [`FixedBits`]:
 ///
+///   * [`Num`], [`NumRef`], [`NumAssignRef`]
 ///   * [`PrimInt`], [`FromPrimitive`]
 ///   * <code>[AsPrimitive][`AsPrimitive`]&lt;T></code> where `T` can be [`i8`],
 ///     [`i16`], [`i32`], [`i64`], [`i128`], [`isize`], [`u8`], [`u16`],
@@ -275,9 +278,11 @@ pub trait FixedBitsOptionalNum: Sealed {}
 ///   * [`Euclid`], [`CheckedEuclid`]
 ///   * [`MulAdd`], [`MulAddAssign`]
 ///
+/// [experimental features]: crate#experimental-optional-features
 /// [optional features]: crate#optional-features
 pub trait FixedBitsOptionalNum: Sealed
 where
+    Self: Num<FromStrRadixErr = ParseIntError> + NumRef + NumAssignRef,
     Self: PrimInt + FromPrimitive,
     Self: AsPrimitive<i8> + AsPrimitive<i16> + AsPrimitive<i32>,
     Self: AsPrimitive<i64> + AsPrimitive<i128> + AsPrimitive<isize>,
