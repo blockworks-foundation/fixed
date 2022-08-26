@@ -54,7 +54,12 @@ use core::{
 
 macro_rules! impl_bits {
     ($Bits:ident) => {
-        impl FixedBits for $Bits {}
+        impl FixedBits for $Bits {
+            const MIN: $Bits = $Bits::MIN;
+            const MAX: $Bits = $Bits::MAX;
+            const IS_SIGNED: bool = $Bits::MIN != 0;
+            const BITS: u32 = $Bits::BITS;
+        }
         impl Sealed for $Bits {}
         impl FixedBitsCast<i8> for $Bits {}
         impl FixedBitsCast<i16> for $Bits {}
@@ -132,6 +137,17 @@ where
     Self: FixedBitsOptionalSerde,
     Self: Sealed,
 {
+    /// The smallest value that can be represented by this integer type.
+    const MIN: Self;
+
+    /// The largest value that can be represented by this integer type.
+    const MAX: Self;
+
+    /// [`true`] if this integer type is signed.
+    const IS_SIGNED: bool;
+
+    /// The size of this integer type in bits.
+    const BITS: u32;
 }
 
 /// This trait is used to provide supertraits to the [`FixedBits`] trait, and
