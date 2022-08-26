@@ -12,7 +12,9 @@ Version 1.19.0 (unreleased)
     trait:
       * [`MIN`][fb-mi-1-19], [`MAX`][fb-ma-1-19]
       * [`IS_SIGNED`][fb-is-1-19], [`BITS`][fb-b-1-19]
-  * [`FixedBits`][fb-1-19] now implements more traits from the [*num-traits*
+  * [`FixedEquiv`][fe-1-19] is now a supertrait of the [`FixedBits`][fb-1-19]
+    trait.
+  * [`FixedBits`][fb-1-19] now has more supertraits from the [*num-traits*
     crate] if the [`num-traits`][feat-exp-1-19] experimental feature is enabled.
 
 [fb-1-19]: https://docs.rs/fixed/~1.19/fixed/traits/trait.FixedBits.html
@@ -20,6 +22,7 @@ Version 1.19.0 (unreleased)
 [fb-is-1-19]: https://docs.rs/fixed/~1.19/fixed/traits/trait.FixedBits.html#associatedconstant.IS_SIGNED
 [fb-ma-1-19]: https://docs.rs/fixed/~1.19/fixed/traits/trait.FixedBits.html#associatedconstant.MAX
 [fb-mi-1-19]: https://docs.rs/fixed/~1.19/fixed/traits/trait.FixedBits.html#associatedconstant.MIN
+[fe-1-19]: https://docs.rs/fixed/~1.19/fixed/traits/trait.FixedEquiv.html
 [feat-exp-1-19]: https://docs.rs/fixed/~1.19/fixed/index.html#experimental-optional-features
 
 Version 1.18.0 (2022-08-19)

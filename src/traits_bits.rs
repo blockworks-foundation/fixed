@@ -33,6 +33,7 @@ use num_traits::{
 #[cfg(feature = "serde")]
 use serde::{de::Deserialize, ser::Serialize};
 
+use crate::traits::FixedEquiv;
 use az_crate::{
     Cast, CastFrom, CheckedCast, CheckedCastFrom, OverflowingCast, OverflowingCastFrom,
     SaturatingCast, SaturatingCastFrom, UnwrappedCast, UnwrappedCastFrom, WrappingCast,
@@ -127,6 +128,7 @@ where
     Self: Shl<u32, Output = Self> + ShlAssign<u32>,
     Self: Shr<u32, Output = Self> + ShrAssign<u32>,
     Self: Sum + Product,
+    Self: FixedEquiv,
     Self: FixedBitsCast<i8> + FixedBitsCast<i16> + FixedBitsCast<i32>,
     Self: FixedBitsCast<i64> + FixedBitsCast<i128> + FixedBitsCast<isize>,
     Self: FixedBitsCast<u8> + FixedBitsCast<u16> + FixedBitsCast<u32>,
