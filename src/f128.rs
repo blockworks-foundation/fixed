@@ -61,11 +61,12 @@ impl F128 {
     pub const ONE: F128 = F128::from_bits((EXP_BIAS as u128) << (PREC - 1));
     /// Negative one (&minus;1).
     pub const NEG_ONE: F128 = F128::from_bits(SIGN_MASK | F128::ONE.to_bits());
-    /// Smallest positive subnormal number.
+    /// Smallest positive subnormal number, 2<sup>&minus;16494</sup>.
     pub const MIN_POSITIVE_SUB: F128 = F128::from_bits(1);
-    /// Smallest positive normal number.
+    /// Smallest positive normal number, 2<sup>&minus;16382</sup>.
     pub const MIN_POSITIVE: F128 = F128::from_bits(MANT_MASK + 1);
-    /// Largest finite number.
+    /// Largest finite number,
+    /// 2<sup>16384</sup>&nbsp;&minus;&nbsp;2<sup>16271</sup>.
     pub const MAX: F128 = F128::from_bits(EXP_MASK - 1);
     /// Smallest finite number; equal to &minus;[`MAX`][Self::MAX].
     pub const MIN: F128 = F128::from_bits(SIGN_MASK | F128::MAX.to_bits());
@@ -81,7 +82,8 @@ impl F128 {
     /// Number of significant digits in base 2.
     pub const MANTISSA_DIGITS: u32 = PREC;
 
-    /// The difference between 1 and the next larger representable number.
+    /// The difference between 1 and the next larger representable number,
+    /// 2<sup>&minus;112</sup>.
     pub const EPSILON: F128 = F128::from_bits(((EXP_BIAS - (PREC - 1)) as u128) << (PREC - 1));
     /// If <i>x</i>&nbsp;=&nbsp;`MIN_EXP`, then normal numbers
     /// ≥&nbsp;0.5&nbsp;×&nbsp;2<sup><i>x</i></sup>.
