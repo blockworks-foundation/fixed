@@ -104,6 +104,8 @@ The conversions supported cover the following cases.
 
 ### Version 1.19.0 news (unreleased)
 
+  * Bug fix: comparison of and conversion from subnormal floating-point numbers
+    to fixed-point numbers were off by a factor of 2.
   * The following associated constants were added to the [`FixedBits`][fb-1-19]
     trait:
       * [`MIN`][fb-mi-1-19], [`MAX`][fb-ma-1-19]

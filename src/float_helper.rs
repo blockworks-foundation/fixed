@@ -110,7 +110,7 @@ macro_rules! make_helper {
             pub fn to_float_kind(val: $Float, dst_frac_bits: u32, dst_int_bits: u32) -> FloatKind {
                 let prec = PREC as i32;
 
-                let (neg, exp, mut mantissa) = parts(val);
+                let (neg, mut exp, mut mantissa) = parts(val);
                 if exp > EXP_MAX {
                     if mantissa == 0 {
                         return FloatKind::Infinite { neg };
@@ -118,9 +118,11 @@ macro_rules! make_helper {
                         return FloatKind::NaN;
                     };
                 }
-                // if not subnormal, add implicit bit
+                // if not subnormal add implicit bit, otherwise update exp
                 if exp >= EXP_MIN {
                     mantissa |= 1 << (prec - 1);
+                } else {
+                    exp = EXP_MIN;
                 }
                 if mantissa == 0 {
                     let conv = ToFixedHelper {
