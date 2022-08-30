@@ -34,7 +34,7 @@ before_test:
 test_script:
   - cargo +beta-%TARGET% clippy --all-targets --features "fail-on-warnings arbitrary borsh num-traits serde std"
   - cargo +beta-%TARGET% test --release --features "fail-on-warnings arbitrary borsh num-traits serde std"
-  - cargo +1.61.0-%TARGET% test --lib --features "fail-on-warnings arbitrary borsh num-traits serde std"
+  - cargo +1.61.0-%TARGET% test --lib --features "fail-on-warnings num-traits std"
 
 after_test:
   - bash -c "if [ -d $USERPROFILE/.cargo/registry/cache ]; then cd $USERPROFILE/.cargo/registry; for c in cache/*/*.crate; do s=src/${c#cache/}; if [ ! -e ${s/.crate/} ]; then rm -v $c; fi; done; find cache -name \*.crate | sort; fi"

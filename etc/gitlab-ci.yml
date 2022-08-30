@@ -31,8 +31,8 @@ x86_64-gnulinux:
   - rustup toolchain install --profile minimal beta-$TARGET 1.61.0-$TARGET
   - cargo +beta-$TARGET test --features "fail-on-warnings arbitrary borsh num-traits serde std"
   - cargo +beta-$TARGET test --release --features "fail-on-warnings arbitrary borsh num-traits serde std"
-  - cargo +1.61.0-$TARGET test --lib --features "fail-on-warnings arbitrary borsh num-traits serde std"
-  - cargo +1.61.0-$TARGET test --release --lib --features "fail-on-warnings arbitrary borsh num-traits serde std"
+  - cargo +1.61.0-$TARGET test --lib --features "fail-on-warnings num-traits std"
+  - cargo +1.61.0-$TARGET test --release --lib --features "fail-on-warnings num-traits std"
 
 i686-gnulinux:
   image: i386/rust:1
@@ -46,8 +46,8 @@ i686-gnulinux:
   - rustup toolchain install --profile minimal beta-$TARGET 1.61.0-$TARGET
   - cargo +beta-$TARGET test --features "fail-on-warnings arbitrary borsh num-traits serde std"
   - cargo +beta-$TARGET test --release --features "fail-on-warnings arbitrary borsh num-traits serde std"
-  - cargo +1.61.0-$TARGET test --lib --features "fail-on-warnings arbitrary borsh num-traits serde std"
-  - cargo +1.61.0-$TARGET test --release --lib --features "fail-on-warnings arbitrary borsh num-traits serde std"
+  - cargo +1.61.0-$TARGET test --lib --features "fail-on-warnings num-traits std"
+  - cargo +1.61.0-$TARGET test --release --lib --features "fail-on-warnings num-traits std"
 
 x86_64-gnulinux-tidy:
   image: amd64/rust:1
