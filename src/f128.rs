@@ -98,6 +98,14 @@ impl F128 {
     /// Number of significant digits in base 2.
     pub const MANTISSA_DIGITS: u32 = PREC;
 
+    /// Any decimal floating-point number with this number of digits can be
+    /// converted to [`F128`] and back without change.
+    ///
+    /// This is equal to floor(log<sub>10</sub>&nbsp;2<sup>[`MANTISSA_DIGITS`]&nbsp;&minus;&nbsp;1</sup>).
+    ///
+    /// [`MANTISSA_DIGITS`]: Self::MANTISSA_DIGITS
+    pub const DIGITS: u32 = 33;
+
     /// The difference between 1 and the next larger representable number,
     /// 2<sup>1&nbsp;&minus;&nbsp;[`MANTISSA_DIGITS`]</sup>.
     ///
@@ -111,6 +119,22 @@ impl F128 {
     /// If <i>x</i>&nbsp;=&nbsp;`MAX_EXP`, then normal numbers
     /// <&nbsp;1&nbsp;×&nbsp;2<sup><i>x</i></sup>.
     pub const MAX_EXP: i32 = EXP_BIAS as i32 + 1;
+
+    /// Minimum integer such that 10 raised to that power is in the normal range
+    /// for [`F128`].
+    ///
+    /// This is equal to ceil(log<sub>10</sub>&nbsp;[`MIN_POSITIVE`]).
+    ///
+    /// [`MIN_POSITIVE`]: Self::MIN_POSITIVE
+    pub const MIN_10_EXP: i32 = -4931;
+
+    /// Maximum integer such that 10 raised to that power is in the normal range
+    /// for [`F128`].
+    ///
+    /// This is equal to floor(log<sub>10</sub>&nbsp;[`MAX`]).
+    ///
+    /// [`MAX`]: Self::MAX
+    pub const MAX_10_EXP: i32 = 4932;
 
     /// Raw transmutation from [`u128`].
     ///

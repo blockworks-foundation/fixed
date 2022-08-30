@@ -5,6 +5,19 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.20.0 (unreleased)
+===========================
+
+  * The following associated constants were added to the [`F128`][f128-1-20]
+    struct:
+      * [`DIGITS`][f128-d-1-20]
+      * [`MIN_10_EXP`][f128-mi10e-1-20], [`MAX_10_EXP`][f128-ma10e-1-20]
+
+[f128-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.F128.html
+[f128-d-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.F128.html#associatedconstant.DIGITS
+[f128-ma10e-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.F128.html#associatedconstant.MAX_10_EXP
+[f128-mi10e-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.F128.html#associatedconstant.MIN_10_EXP
+
 Version 1.19.0 (2022-08-29)
 ===========================
 
