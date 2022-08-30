@@ -61,33 +61,53 @@ impl F128 {
     pub const ONE: F128 = F128::from_bits((EXP_BIAS as u128) << (PREC - 1));
     /// Negative one (&minus;1).
     pub const NEG_ONE: F128 = F128::from_bits(SIGN_MASK | F128::ONE.to_bits());
-    /// Smallest positive subnormal number, 2<sup>&minus;16494</sup>.
+
+    /// Smallest positive subnormal number, 2<sup>[`MIN_EXP`]&nbsp;&minus;&nbsp;[`MANTISSA_DIGITS`]</sup>.
+    ///
+    /// [`MANTISSA_DIGITS`]: Self::MANTISSA_DIGITS
+    /// [`MIN_EXP`]: Self::MIN_EXP
     pub const MIN_POSITIVE_SUB: F128 = F128::from_bits(1);
-    /// Smallest positive normal number, 2<sup>&minus;16382</sup>.
+
+    /// Smallest positive normal number, 2<sup>[`MIN_EXP`]&nbsp;&minus;&nbsp;1</sup>.
+    ///
+    /// [`MIN_EXP`]: Self::MIN_EXP
     pub const MIN_POSITIVE: F128 = F128::from_bits(MANT_MASK + 1);
+
     /// Largest finite number,
-    /// 2<sup>16384</sup>&nbsp;&minus;&nbsp;2<sup>16271</sup>.
+    /// (1&nbsp;&minus;&nbsp;2<sup>&minus;[`MANTISSA_DIGITS`]</sup>)&nbsp;2<sup>[`MAX_EXP`]</sup>.
+    ///
+    /// [`MANTISSA_DIGITS`]: Self::MANTISSA_DIGITS
+    /// [`MAX_EXP`]: Self::MAX_EXP
     pub const MAX: F128 = F128::from_bits(EXP_MASK - 1);
+
     /// Smallest finite number; equal to &minus;[`MAX`][Self::MAX].
     pub const MIN: F128 = F128::from_bits(SIGN_MASK | F128::MAX.to_bits());
+
     /// Infinity (∞).
     pub const INFINITY: F128 = F128::from_bits(EXP_MASK);
+
     /// Negative infinity (&minus;∞).
     pub const NEG_INFINITY: F128 = F128::from_bits(SIGN_MASK | EXP_MASK);
+
     /// NaN.
     pub const NAN: F128 = F128::from_bits(EXP_MASK | (1u128 << (PREC - 2)));
 
     /// The radix or base of the internal representation.
     pub const RADIX: u32 = 2;
+
     /// Number of significant digits in base 2.
     pub const MANTISSA_DIGITS: u32 = PREC;
 
     /// The difference between 1 and the next larger representable number,
-    /// 2<sup>&minus;112</sup>.
+    /// 2<sup>1&nbsp;&minus;&nbsp;[`MANTISSA_DIGITS`]</sup>.
+    ///
+    /// [`MANTISSA_DIGITS`]: Self::MANTISSA_DIGITS
     pub const EPSILON: F128 = F128::from_bits(((EXP_BIAS - (PREC - 1)) as u128) << (PREC - 1));
+
     /// If <i>x</i>&nbsp;=&nbsp;`MIN_EXP`, then normal numbers
     /// ≥&nbsp;0.5&nbsp;×&nbsp;2<sup><i>x</i></sup>.
     pub const MIN_EXP: i32 = 3 - F128::MAX_EXP;
+
     /// If <i>x</i>&nbsp;=&nbsp;`MAX_EXP`, then normal numbers
     /// <&nbsp;1&nbsp;×&nbsp;2<sup><i>x</i></sup>.
     pub const MAX_EXP: i32 = EXP_BIAS as i32 + 1;
