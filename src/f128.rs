@@ -20,12 +20,12 @@ use core::{
     ops::Neg,
 };
 
-const SIGN_MASK: u128 = 1u128 << 127;
-const EXP_MASK: u128 = 0x7FFF_u128 << 112;
-const MANT_MASK: u128 = (1u128 << 112) - 1;
 const PREC: u32 = 113;
-const EXP_BITS: u32 = 15;
+const EXP_BITS: u32 = u128::BITS - PREC;
 const EXP_BIAS: u32 = (1 << (EXP_BITS - 1)) - 1;
+const SIGN_MASK: u128 = 1 << (u128::BITS - 1);
+const EXP_MASK: u128 = ((1 << EXP_BITS) - 1) << (PREC - 1);
+const MANT_MASK: u128 = (1 << (PREC - 1)) - 1;
 
 /// The bit representation of a *binary128* floating-point number (`f128`).
 ///
@@ -594,74 +594,92 @@ mod tests {
 
     // Apart from F128 include f16, bf16, f32, f64 as a sanity check for the tests.
 
+    struct Params {
+        mantissa_digits: u32,
+        min_exp: i32,
+        max_exp: i32,
+        digits: u32,
+        min_10_exp: i32,
+        max_10_exp: i32,
+    }
+
+    impl Params {
+        #[track_caller]
+        fn check(self) {
+            let p = f64::from(self.mantissa_digits);
+            let e_min = f64::from(self.min_exp);
+            let e_max = f64::from(self.max_exp);
+            assert_eq!(self.digits, ((p - 1.) * 2f64.log10()).floor() as u32);
+            assert_eq!(self.min_10_exp, ((e_min - 1.) * 2f64.log10()).ceil() as i32);
+            assert_eq!(
+                self.max_10_exp,
+                ((-(-p).exp2()).ln_1p() / 10f64.ln() + e_max * 2f64.log10()).floor() as i32
+            );
+        }
+    }
+
     #[test]
     fn decimal_constants_f16() {
-        let p = f64::from(f16::MANTISSA_DIGITS);
-        let e_min = f64::from(f16::MIN_EXP);
-        let e_max = f64::from(f16::MAX_EXP);
-        assert_eq!(f16::DIGITS, ((p - 1.) * 2f64.log10()).floor() as u32);
-        assert_eq!(f16::MIN_10_EXP, ((e_min - 1.) * 2f64.log10()).ceil() as i32);
-        assert_eq!(
-            f16::MAX_10_EXP,
-            ((-(-p).exp2()).ln_1p() / 10f64.ln() + e_max * 2f64.log10()).floor() as i32
-        );
+        let params = Params {
+            mantissa_digits: f16::MANTISSA_DIGITS,
+            min_exp: f16::MIN_EXP,
+            max_exp: f16::MAX_EXP,
+            digits: f16::DIGITS,
+            min_10_exp: f16::MIN_10_EXP,
+            max_10_exp: f16::MAX_10_EXP,
+        };
+        params.check();
     }
 
     #[test]
     fn decimal_constants_bf16() {
-        let p = f64::from(bf16::MANTISSA_DIGITS);
-        let e_min = f64::from(bf16::MIN_EXP);
-        let e_max = f64::from(bf16::MAX_EXP);
-        assert_eq!(bf16::DIGITS, ((p - 1.) * 2f64.log10()).floor() as u32);
-        assert_eq!(
-            bf16::MIN_10_EXP,
-            ((e_min - 1.) * 2f64.log10()).ceil() as i32
-        );
-        assert_eq!(
-            bf16::MAX_10_EXP,
-            ((-(-p).exp2()).ln_1p() / 10f64.ln() + e_max * 2f64.log10()).floor() as i32
-        );
+        let params = Params {
+            mantissa_digits: bf16::MANTISSA_DIGITS,
+            min_exp: bf16::MIN_EXP,
+            max_exp: bf16::MAX_EXP,
+            digits: bf16::DIGITS,
+            min_10_exp: bf16::MIN_10_EXP,
+            max_10_exp: bf16::MAX_10_EXP,
+        };
+        params.check();
     }
 
     #[test]
     fn decimal_constants_f32() {
-        let p = f64::from(f32::MANTISSA_DIGITS);
-        let e_min = f64::from(f32::MIN_EXP);
-        let e_max = f64::from(f32::MAX_EXP);
-        assert_eq!(f32::DIGITS, ((p - 1.) * 2f64.log10()).floor() as u32);
-        assert_eq!(f32::MIN_10_EXP, ((e_min - 1.) * 2f64.log10()).ceil() as i32);
-        assert_eq!(
-            f32::MAX_10_EXP,
-            ((-(-p).exp2()).ln_1p() / 10f64.ln() + e_max * 2f64.log10()).floor() as i32
-        );
+        let params = Params {
+            mantissa_digits: f32::MANTISSA_DIGITS,
+            min_exp: f32::MIN_EXP,
+            max_exp: f32::MAX_EXP,
+            digits: f32::DIGITS,
+            min_10_exp: f32::MIN_10_EXP,
+            max_10_exp: f32::MAX_10_EXP,
+        };
+        params.check();
     }
 
     #[test]
     fn decimal_constants_f64() {
-        let p = f64::from(f64::MANTISSA_DIGITS);
-        let e_min = f64::from(f64::MIN_EXP);
-        let e_max = f64::from(f64::MAX_EXP);
-        assert_eq!(f64::DIGITS, ((p - 1.) * 2f64.log10()).floor() as u32);
-        assert_eq!(f64::MIN_10_EXP, ((e_min - 1.) * 2f64.log10()).ceil() as i32);
-        assert_eq!(
-            f64::MAX_10_EXP,
-            ((-(-p).exp2()).ln_1p() / 10f64.ln() + e_max * 2f64.log10()).floor() as i32
-        );
+        let params = Params {
+            mantissa_digits: f64::MANTISSA_DIGITS,
+            min_exp: f64::MIN_EXP,
+            max_exp: f64::MAX_EXP,
+            digits: f64::DIGITS,
+            min_10_exp: f64::MIN_10_EXP,
+            max_10_exp: f64::MAX_10_EXP,
+        };
+        params.check();
     }
 
     #[test]
     fn decimal_constants_f128() {
-        let p = f64::from(F128::MANTISSA_DIGITS);
-        let e_min = f64::from(F128::MIN_EXP);
-        let e_max = f64::from(F128::MAX_EXP);
-        assert_eq!(F128::DIGITS, ((p - 1.) * 2f64.log10()).floor() as u32);
-        assert_eq!(
-            F128::MIN_10_EXP,
-            ((e_min - 1.) * 2f64.log10()).ceil() as i32
-        );
-        assert_eq!(
-            F128::MAX_10_EXP,
-            ((-(-p).exp2()).ln_1p() / 10f64.ln() + e_max * 2f64.log10()).floor() as i32
-        );
+        let params = Params {
+            mantissa_digits: F128::MANTISSA_DIGITS,
+            min_exp: F128::MIN_EXP,
+            max_exp: F128::MAX_EXP,
+            digits: F128::DIGITS,
+            min_10_exp: F128::MIN_10_EXP,
+            max_10_exp: F128::MAX_10_EXP,
+        };
+        params.check();
     }
 }
