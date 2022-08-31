@@ -12,6 +12,8 @@ Version 1.20.0 (unreleased)
     struct:
       * [`DIGITS`][f128-d-1-20]
       * [`MIN_10_EXP`][f128-mi10e-1-20], [`MAX_10_EXP`][f128-ma10e-1-20]
+  * [`F128`][f128-1-20] now implements [`From`] for conversions from [`f64`],
+    [`f32`], [`f16`][half-2-f16] and [`bf16`][half-2-bf16].
   * The <code>[fixed][cf-1-20]::[f128][mf128-1-20]::[consts][mf128c-1-20]</code>
     module was added with [`F128`][f128-1-20] basic mathematical constants.
 
@@ -20,6 +22,8 @@ Version 1.20.0 (unreleased)
 [f128-d-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.F128.html#associatedconstant.DIGITS
 [f128-ma10e-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.F128.html#associatedconstant.MAX_10_EXP
 [f128-mi10e-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.F128.html#associatedconstant.MIN_10_EXP
+[half-2-bf16]: https://docs.rs/half/^2/half/struct.bf16.html
+[half-2-f16]: https://docs.rs/half/^2/half/struct.f16.html
 [mf128-1-20]: https://docs.rs/fixed/~1.20/fixed/f128/index.html
 [mf128c-1-20]: https://docs.rs/fixed/~1.20/fixed/f128/consts/index.html
 
@@ -1294,6 +1298,7 @@ Version 0.1.0 (2018-08-10)
 [`Div`]: https://doc.rust-lang.org/nightly/core/ops/trait.Div.html
 [`FromStr::from_str`]: https://doc.rust-lang.org/nightly/core/str/trait.FromStr.html#tymethod.from_str
 [`FromStr`]: https://doc.rust-lang.org/nightly/core/str/trait.FromStr.html
+[`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
 [`MulAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.MulAssign.html
 [`NonZeroI32`]: https://doc.rust-lang.org/nightly/core/num/struct.NonZeroI32.html
 [`NonZeroU32`]: https://doc.rust-lang.org/nightly/core/num/struct.NonZeroU32.html
@@ -1302,4 +1307,6 @@ Version 0.1.0 (2018-08-10)
 [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
 [`SubAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.SubAssign.html
 [`Sum`]: https://doc.rust-lang.org/nightly/core/iter/trait.Sum.html
+[`f32`]: https://doc.rust-lang.org/nightly/core/primitive.f32.html
+[`f64`]: https://doc.rust-lang.org/nightly/core/primitive.f64.html
 [`rust-version`]: https://doc.rust-lang.org/nightly/cargo/reference/manifest.html#the-rust-version-field
