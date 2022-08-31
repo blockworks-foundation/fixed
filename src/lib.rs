@@ -366,7 +366,7 @@ mod wrapping;
 #[cfg(feature = "num-traits")]
 pub use crate::impl_num_traits::RadixParseFixedError;
 pub use crate::{
-    f128::f128::F128, from_str::ParseFixedError, unwrapped::Unwrapped, wrapping::Wrapping,
+    f128::private::F128, from_str::ParseFixedError, unwrapped::Unwrapped, wrapping::Wrapping,
 };
 use crate::{
     traits::{FromFixed, ToFixed},

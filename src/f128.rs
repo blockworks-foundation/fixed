@@ -20,7 +20,7 @@
 //! For constants related to the floating-point representation itself, see the
 //! associated constants defined directly on the [`F128`] type.
 
-use crate::f128::f128::F128;
+use crate::F128;
 use core::{
     cmp::Ordering,
     hash::{Hash, Hasher},
@@ -35,7 +35,7 @@ const SIGN_MASK: u128 = 1 << (u128::BITS - 1);
 const EXP_MASK: u128 = ((1 << EXP_BITS) - 1) << (PREC - 1);
 const MANT_MASK: u128 = (1 << (PREC - 1)) - 1;
 
-pub(crate) mod f128 {
+pub(crate) mod private {
     /// The bit representation of a *binary128* floating-point number (`f128`).
     ///
     /// This type can be used to
