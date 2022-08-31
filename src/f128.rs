@@ -13,6 +13,14 @@
 // <https://www.apache.org/licenses/LICENSE-2.0> and
 // <https://opensource.org/licenses/MIT>.
 
+//! Constants specific to the [`F128`] quadruple-precision floating-point type.
+//!
+//! Mathematically significant numbers are provided in the [`consts`] sub-module.
+//!
+//! For constants related to the floating-point representation itself, see the
+//! associated constants defined directly on the [`F128`] type.
+
+use crate::f128::f128::F128;
 use core::{
     cmp::Ordering,
     hash::{Hash, Hasher},
@@ -27,29 +35,41 @@ const SIGN_MASK: u128 = 1 << (u128::BITS - 1);
 const EXP_MASK: u128 = ((1 << EXP_BITS) - 1) << (PREC - 1);
 const MANT_MASK: u128 = (1 << (PREC - 1)) - 1;
 
-/// The bit representation of a *binary128* floating-point number (`f128`).
-///
-/// This type can be used to
-///
-///   * convert between fixed-point numbers and the bit representation of
-///     128-bit floating-point numbers.
-///   * compare fixed-point numbers and the bit representation of 128-bit
-///     floating-point numbers.
-///
-/// # Examples
-///
-/// ```rust
-/// use fixed::{types::I16F16, F128};
-/// assert_eq!(I16F16::ONE.to_num::<F128>(), F128::ONE);
-/// assert_eq!(I16F16::from_num(F128::ONE), I16F16::ONE);
-///
-/// // fixed-point numbers can be compared directly to F128 values
-/// assert!(I16F16::from_num(1.5) > F128::ONE);
-/// assert!(I16F16::from_num(0.5) < F128::ONE);
-/// ```
-#[derive(Clone, Copy, Default, Debug)]
-pub struct F128 {
-    bits: u128,
+pub(crate) mod f128 {
+    /// The bit representation of a *binary128* floating-point number (`f128`).
+    ///
+    /// This type can be used to
+    ///
+    ///   * convert between fixed-point numbers and the bit representation of
+    ///     128-bit floating-point numbers.
+    ///   * compare fixed-point numbers and the bit representation of 128-bit
+    ///     floating-point numbers.
+    ///
+    /// Please see [<i>Quadruple-precision floating-point format</i> on
+    /// Wikipedia][quad] for more information on *binary128*.
+    ///
+    /// *See also the <code>[fixed]::[f128]::[consts]</code> module.*
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use fixed::{types::I16F16, F128};
+    /// assert_eq!(I16F16::ONE.to_num::<F128>(), F128::ONE);
+    /// assert_eq!(I16F16::from_num(F128::ONE), I16F16::ONE);
+    ///
+    /// // fixed-point numbers can be compared directly to F128 values
+    /// assert!(I16F16::from_num(1.5) > F128::ONE);
+    /// assert!(I16F16::from_num(0.5) < F128::ONE);
+    /// ```
+    ///
+    /// [consts]: crate::f128::consts
+    /// [f128]: crate::f128
+    /// [fixed]: crate
+    /// [quad]: https://en.wikipedia.org/wiki/Quadruple-precision_floating-point_format
+    #[derive(Clone, Copy, Default, Debug)]
+    pub struct F128 {
+        pub(crate) bits: u128,
+    }
 }
 
 impl F128 {
@@ -597,9 +617,181 @@ impl Neg for F128 {
     }
 }
 
+/*
+```rust
+use core::{cmp::Ord, convert::TryFrom};
+use rug::{
+    float::{Constant, Round},
+    Assign, Float, Integer,
+};
+
+fn decimal_string(val: &Float, prec: i32) -> String {
+    let log10 = val.clone().log10();
+    let floor_log10 = log10.to_i32_saturating_round(Round::Down).unwrap();
+    let shift = u32::try_from(prec - 1 - floor_log10).unwrap();
+    let val = val.clone() * Integer::from(Integer::u_pow_u(10, shift));
+    let int = val.to_integer_round(Round::Down).unwrap().0;
+    let padding = "0".repeat(usize::try_from(-floor_log10.min(0)).unwrap());
+    let mut s = format!("{}{}", padding, int);
+    s.insert(1, '.');
+    s
+}
+
+fn hex_bits(bits: u128) -> String {
+    let mut s = format!("0x{:016X}", bits);
+    for i in 0..7 {
+        s.insert(6 + 5 * i, '_');
+    }
+    s
+}
+
+fn print(doc: &str, name: &str, val: Float) {
+    println!();
+    println!("    /// {} = {}…", doc, decimal_string(&val, 6));
+    println!("    // {} = {}...", name, decimal_string(&val, 40));
+    let round = Float::with_val(113, &val);
+
+    let sign_bit = if round.is_sign_negative() {
+        1u128 << 127
+    } else {
+        0
+    };
+
+    let unbiased_exp = round.get_exp().unwrap();
+    assert!(-16_381 <= unbiased_exp && unbiased_exp <= 16_384);
+    let exp_bits = u128::from((unbiased_exp + 16_382).unsigned_abs()) << 112;
+
+    let unshifted_mant = round.get_significand().unwrap();
+    let mant = unshifted_mant.clone() >> (unshifted_mant.significant_bits() - 113);
+    let mant_128 = mant.to_u128_wrapping();
+    assert_eq!(mant_128 >> 112, 1);
+    let mant_bits = mant_128 & ((1 << 112) - 1);
+
+    println!(
+        "    pub const {name}: F128 = F128::from_bits({});",
+        hex_bits(sign_bit | exp_bits | mant_bits)
+    );
+}
+
+fn float<T>(t: T) -> Float
+where
+    Float: Assign<T>,
+{
+    Float::with_val(1000, t)
+}
+
+fn main() {
+    println!("/// Basic mathematical constants.");
+    println!("pub mod consts {{");
+    println!("    use crate::F128;");
+    print("Archimedes’ constant, π", "PI", float(Constant::Pi));
+    print("A turn, τ", "TAU", float(Constant::Pi) * 2);
+    print("π/2", "FRAC_PI_2", float(Constant::Pi) / 2);
+    print("π/3", "FRAC_PI_3", float(Constant::Pi) / 3);
+    print("π/4", "FRAC_PI_4", float(Constant::Pi) / 4);
+    print("π/6", "FRAC_PI_6", float(Constant::Pi) / 6);
+    print("π/8", "FRAC_PI_8", float(Constant::Pi) / 8);
+    print("1/π", "FRAC_1_PI", 1 / float(Constant::Pi));
+    print("2/π", "FRAC_2_PI", 2 / float(Constant::Pi));
+    print("2/√π", "FRAC_2_SQRT_PI", 2 / float(Constant::Pi).sqrt());
+    print("√2", "SQRT_2", float(2).sqrt());
+    print("1/√2", "FRAC_1_SQRT_2", float(0.5).sqrt());
+    print("Euler’s number, e", "E", float(1).exp());
+    print("log<sub>2</sub> 10", "LOG2_10", float(10).log2());
+    print("log<sub>2</sub> e", "LOG2_E", float(1).exp().log2());
+    print("log<sub>10</sub> 2", "LOG10_2", float(2).log10());
+    print("log<sub>10</sub> e", "LOG10_E", float(1).exp().log10());
+    print("ln 2", "LN_2", float(2).ln());
+    print("ln 10", "LN_10", float(10).ln());
+    println!("}}");
+}
+```
+*/
+
+/// Basic mathematical constants.
+pub mod consts {
+    use crate::F128;
+
+    /// Archimedes’ constant, π = 3.14159…
+    // PI = 3.141592653589793238462643383279502884197...
+    pub const PI: F128 = F128::from_bits(0x4000_921F_B544_42D1_8469_898C_C517_01B8);
+
+    /// A turn, τ = 6.28318…
+    // TAU = 6.283185307179586476925286766559005768394...
+    pub const TAU: F128 = F128::from_bits(0x4001_921F_B544_42D1_8469_898C_C517_01B8);
+
+    /// π/2 = 1.57079…
+    // FRAC_PI_2 = 1.570796326794896619231321691639751442098...
+    pub const FRAC_PI_2: F128 = F128::from_bits(0x3FFF_921F_B544_42D1_8469_898C_C517_01B8);
+
+    /// π/3 = 1.04719…
+    // FRAC_PI_3 = 1.047197551196597746154214461093167628065...
+    pub const FRAC_PI_3: F128 = F128::from_bits(0x3FFF_0C15_2382_D736_5846_5BB3_2E0F_567B);
+
+    /// π/4 = 0.785398…
+    // FRAC_PI_4 = 0.7853981633974483096156608458198757210492...
+    pub const FRAC_PI_4: F128 = F128::from_bits(0x3FFE_921F_B544_42D1_8469_898C_C517_01B8);
+
+    /// π/6 = 0.523598…
+    // FRAC_PI_6 = 0.5235987755982988730771072305465838140328...
+    pub const FRAC_PI_6: F128 = F128::from_bits(0x3FFE_0C15_2382_D736_5846_5BB3_2E0F_567B);
+
+    /// π/8 = 0.392699…
+    // FRAC_PI_8 = 0.3926990816987241548078304229099378605246...
+    pub const FRAC_PI_8: F128 = F128::from_bits(0x3FFD_921F_B544_42D1_8469_898C_C517_01B8);
+
+    /// 1/π = 0.318309…
+    // FRAC_1_PI = 0.3183098861837906715377675267450287240689...
+    pub const FRAC_1_PI: F128 = F128::from_bits(0x3FFD_45F3_06DC_9C88_2A53_F84E_AFA3_EA6A);
+
+    /// 2/π = 0.636619…
+    // FRAC_2_PI = 0.6366197723675813430755350534900574481378...
+    pub const FRAC_2_PI: F128 = F128::from_bits(0x3FFE_45F3_06DC_9C88_2A53_F84E_AFA3_EA6A);
+
+    /// 2/√π = 1.12837…
+    // FRAC_2_SQRT_PI = 1.128379167095512573896158903121545171688...
+    pub const FRAC_2_SQRT_PI: F128 = F128::from_bits(0x3FFF_20DD_7504_29B6_D11A_E3A9_14FE_D7FE);
+
+    /// √2 = 1.41421…
+    // SQRT_2 = 1.414213562373095048801688724209698078569...
+    pub const SQRT_2: F128 = F128::from_bits(0x3FFF_6A09_E667_F3BC_C908_B2FB_1366_EA95);
+
+    /// 1/√2 = 0.707106…
+    // FRAC_1_SQRT_2 = 0.7071067811865475244008443621048490392848...
+    pub const FRAC_1_SQRT_2: F128 = F128::from_bits(0x3FFE_6A09_E667_F3BC_C908_B2FB_1366_EA95);
+
+    /// Euler’s number, e = 2.71828…
+    // E = 2.718281828459045235360287471352662497757...
+    pub const E: F128 = F128::from_bits(0x4000_5BF0_A8B1_4576_9535_5FB8_AC40_4E7A);
+
+    /// log<sub>2</sub> 10 = 3.32192…
+    // LOG2_10 = 3.321928094887362347870319429489390175864...
+    pub const LOG2_10: F128 = F128::from_bits(0x4000_A934_F097_9A37_15FC_9257_EDFE_9B60);
+
+    /// log<sub>2</sub> e = 1.44269…
+    // LOG2_E = 1.442695040888963407359924681001892137426...
+    pub const LOG2_E: F128 = F128::from_bits(0x3FFF_7154_7652_B82F_E177_7D0F_FDA0_D23A);
+
+    /// log<sub>10</sub> 2 = 0.301029…
+    // LOG10_2 = 0.3010299956639811952137388947244930267681...
+    pub const LOG10_2: F128 = F128::from_bits(0x3FFD_3441_3509_F79F_EF31_1F12_B358_16F9);
+
+    /// log<sub>10</sub> e = 0.434294…
+    // LOG10_E = 0.4342944819032518276511289189166050822943...
+    pub const LOG10_E: F128 = F128::from_bits(0x3FFD_BCB7_B152_6E50_E32A_6AB7_555F_5A68);
+
+    /// ln 2 = 0.693147…
+    // LN_2 = 0.6931471805599453094172321214581765680755...
+    pub const LN_2: F128 = F128::from_bits(0x3FFE_62E4_2FEF_A39E_F357_93C7_6730_07E6);
+
+    /// ln 10 = 2.30258…
+    // LN_10 = 2.302585092994045684017991454684364207601...
+    pub const LN_10: F128 = F128::from_bits(0x4000_26BB_1BBB_5551_582D_D4AD_AC57_05A6);
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::F128;
+    use crate::{traits::FromFixed, F128};
     use half::{bf16, f16};
 
     // Apart from F128 include f16, bf16, f32, f64 as a sanity check for the tests.
@@ -691,5 +883,29 @@ mod tests {
             max_10_exp: F128::MAX_10_EXP,
         };
         params.check();
+    }
+
+    #[test]
+    fn math_constants() {
+        use crate::{consts as fix, f128::consts as f128};
+        assert_eq!(f128::PI, F128::from_fixed(fix::PI));
+        assert_eq!(f128::TAU, F128::from_fixed(fix::TAU));
+        assert_eq!(f128::FRAC_PI_2, F128::from_fixed(fix::FRAC_PI_2));
+        assert_eq!(f128::FRAC_PI_3, F128::from_fixed(fix::FRAC_PI_3));
+        assert_eq!(f128::FRAC_PI_4, F128::from_fixed(fix::FRAC_PI_4));
+        assert_eq!(f128::FRAC_PI_6, F128::from_fixed(fix::FRAC_PI_6));
+        assert_eq!(f128::FRAC_PI_8, F128::from_fixed(fix::FRAC_PI_8));
+        assert_eq!(f128::FRAC_1_PI, F128::from_fixed(fix::FRAC_1_PI));
+        assert_eq!(f128::FRAC_2_PI, F128::from_fixed(fix::FRAC_2_PI));
+        assert_eq!(f128::FRAC_2_SQRT_PI, F128::from_fixed(fix::FRAC_2_SQRT_PI));
+        assert_eq!(f128::SQRT_2, F128::from_fixed(fix::SQRT_2));
+        assert_eq!(f128::FRAC_1_SQRT_2, F128::from_fixed(fix::FRAC_1_SQRT_2));
+        assert_eq!(f128::E, F128::from_fixed(fix::E));
+        assert_eq!(f128::LOG2_10, F128::from_fixed(fix::LOG2_10));
+        assert_eq!(f128::LOG2_E, F128::from_fixed(fix::LOG2_E));
+        assert_eq!(f128::LOG10_2, F128::from_fixed(fix::LOG10_2));
+        assert_eq!(f128::LOG10_E, F128::from_fixed(fix::LOG10_E));
+        assert_eq!(f128::LN_2, F128::from_fixed(fix::LN_2));
+        assert_eq!(f128::LN_10, F128::from_fixed(fix::LN_10));
     }
 }

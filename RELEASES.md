@@ -12,11 +12,16 @@ Version 1.20.0 (unreleased)
     struct:
       * [`DIGITS`][f128-d-1-20]
       * [`MIN_10_EXP`][f128-mi10e-1-20], [`MAX_10_EXP`][f128-ma10e-1-20]
+  * The <code>[fixed][cf-1-20]::[f128][mf128-1-20]::[consts][mf128c-1-20]</code>
+    module was added with [`F128`][f128-1-20] basic mathematical constants.
 
+[cf-1-20]: https://docs.rs/fixed/~1.20/fixed/index.html
 [f128-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.F128.html
 [f128-d-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.F128.html#associatedconstant.DIGITS
 [f128-ma10e-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.F128.html#associatedconstant.MAX_10_EXP
 [f128-mi10e-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.F128.html#associatedconstant.MIN_10_EXP
+[mf128-1-20]: https://docs.rs/fixed/~1.20/fixed/f128/index.html
+[mf128c-1-20]: https://docs.rs/fixed/~1.20/fixed/f128/consts/index.html
 
 Version 1.19.0 (2022-08-29)
 ===========================

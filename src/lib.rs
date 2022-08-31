@@ -339,7 +339,7 @@ pub mod consts;
 mod convert;
 mod debug_hex;
 mod display;
-mod f128;
+pub mod f128;
 mod float_helper;
 mod from_str;
 mod helpers;
@@ -365,7 +365,9 @@ mod wrapping;
 
 #[cfg(feature = "num-traits")]
 pub use crate::impl_num_traits::RadixParseFixedError;
-pub use crate::{f128::F128, from_str::ParseFixedError, unwrapped::Unwrapped, wrapping::Wrapping};
+pub use crate::{
+    f128::f128::F128, from_str::ParseFixedError, unwrapped::Unwrapped, wrapping::Wrapping,
+};
 use crate::{
     traits::{FromFixed, ToFixed},
     types::extra::{
