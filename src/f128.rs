@@ -62,25 +62,33 @@ impl F128 {
     /// Negative one (&minus;1).
     pub const NEG_ONE: F128 = F128::from_bits(SIGN_MASK | F128::ONE.to_bits());
 
-    /// Smallest positive subnormal number, 2<sup>[`MIN_EXP`]&nbsp;&minus;&nbsp;[`MANTISSA_DIGITS`]</sup>.
+    /// Smallest positive subnormal number.
+    ///
+    /// Equal to 2<sup>[`MIN_EXP`]&nbsp;&minus;&nbsp;[`MANTISSA_DIGITS`]</sup>.
     ///
     /// [`MANTISSA_DIGITS`]: Self::MANTISSA_DIGITS
     /// [`MIN_EXP`]: Self::MIN_EXP
     pub const MIN_POSITIVE_SUB: F128 = F128::from_bits(1);
 
-    /// Smallest positive normal number, 2<sup>[`MIN_EXP`]&nbsp;&minus;&nbsp;1</sup>.
+    /// Smallest positive normal number.
+    ///
+    /// Equal to 2<sup>[`MIN_EXP`]&nbsp;&minus;&nbsp;1</sup>.
     ///
     /// [`MIN_EXP`]: Self::MIN_EXP
     pub const MIN_POSITIVE: F128 = F128::from_bits(MANT_MASK + 1);
 
-    /// Largest finite number,
+    /// Largest finite number.
+    ///
+    /// Equal to
     /// (1&nbsp;&minus;&nbsp;2<sup>&minus;[`MANTISSA_DIGITS`]</sup>)&nbsp;2<sup>[`MAX_EXP`]</sup>.
     ///
     /// [`MANTISSA_DIGITS`]: Self::MANTISSA_DIGITS
     /// [`MAX_EXP`]: Self::MAX_EXP
     pub const MAX: F128 = F128::from_bits(EXP_MASK - 1);
 
-    /// Smallest finite number; equal to &minus;[`MAX`][Self::MAX].
+    /// Smallest finite number (&minus;[`MAX`]).
+    ///
+    /// [`MAX`]: Self::MAX
     pub const MIN: F128 = F128::from_bits(SIGN_MASK | F128::MAX.to_bits());
 
     /// Infinity (∞).
@@ -92,22 +100,24 @@ impl F128 {
     /// NaN.
     pub const NAN: F128 = F128::from_bits(EXP_MASK | (1u128 << (PREC - 2)));
 
-    /// The radix or base of the internal representation.
+    /// The radix or base of the internal representation (2).
     pub const RADIX: u32 = 2;
 
     /// Number of significant digits in base 2.
     pub const MANTISSA_DIGITS: u32 = PREC;
 
-    /// Any decimal floating-point number with this number of digits can be
-    /// converted to [`F128`] and back without change.
+    /// Maximum <i>x</i> such that any decimal number with <i>x</i> significant
+    /// digits can be converted to [`F128`] and back without loss.
     ///
-    /// This is equal to floor(log<sub>10</sub>&nbsp;2<sup>[`MANTISSA_DIGITS`]&nbsp;&minus;&nbsp;1</sup>).
+    /// Equal to
+    /// floor(log<sub>10</sub>&nbsp;2<sup>[`MANTISSA_DIGITS`]&nbsp;&minus;&nbsp;1</sup>).
     ///
     /// [`MANTISSA_DIGITS`]: Self::MANTISSA_DIGITS
     pub const DIGITS: u32 = 33;
 
-    /// The difference between 1 and the next larger representable number,
-    /// 2<sup>1&nbsp;&minus;&nbsp;[`MANTISSA_DIGITS`]</sup>.
+    /// The difference between 1 and the next larger representable number.
+    ///
+    /// Equal to 2<sup>1&nbsp;&minus;&nbsp;[`MANTISSA_DIGITS`]</sup>.
     ///
     /// [`MANTISSA_DIGITS`]: Self::MANTISSA_DIGITS
     pub const EPSILON: F128 = F128::from_bits(((EXP_BIAS - (PREC - 1)) as u128) << (PREC - 1));
@@ -120,18 +130,18 @@ impl F128 {
     /// <&nbsp;1&nbsp;×&nbsp;2<sup><i>x</i></sup>.
     pub const MAX_EXP: i32 = EXP_BIAS as i32 + 1;
 
-    /// Minimum integer such that 10 raised to that power is in the normal range
-    /// for [`F128`].
+    /// Minimum <i>x</i> for which 10<sup><i>x</i></sup> is in the normal range
+    /// of [`F128`].
     ///
-    /// This is equal to ceil(log<sub>10</sub>&nbsp;[`MIN_POSITIVE`]).
+    /// Equal to ceil(log<sub>10</sub>&nbsp;[`MIN_POSITIVE`]).
     ///
     /// [`MIN_POSITIVE`]: Self::MIN_POSITIVE
     pub const MIN_10_EXP: i32 = -4931;
 
-    /// Maximum integer such that 10 raised to that power is in the normal range
-    /// for [`F128`].
+    /// Maximum <i>x</i> for which 10<sup><i>x</i></sup> is in the normal range
+    /// of [`F128`].
     ///
-    /// This is equal to floor(log<sub>10</sub>&nbsp;[`MAX`]).
+    /// Equal to floor(log<sub>10</sub>&nbsp;[`MAX`]).
     ///
     /// [`MAX`]: Self::MAX
     pub const MAX_10_EXP: i32 = 4932;
