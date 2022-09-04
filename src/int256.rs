@@ -78,13 +78,35 @@ pub const fn overflowing_add_i256_i128(a: I256, b: i128) -> (I256, bool) {
 }
 
 #[inline]
-const fn u128_lo_hi(u: u128) -> (u128, u128) {
-    (u & !(!0 << 64), u >> 64)
+const fn u128_lo_hi(u: u128) -> (u64, u64) {
+    (u as u64, (u >> 64) as u64)
 }
 
 #[inline]
-const fn i128_lo_hi(i: i128) -> (i128, i128) {
-    (i & !(!0 << 64), i >> 64)
+const fn i128_lo_hi(i: i128) -> (u64, i64) {
+    (i as u64, (i >> 64) as i64)
+}
+
+#[inline]
+const fn mul_u64_u64(a: u64, b: u64) -> u128 {
+    (a as u128) * (b as u128)
+}
+
+#[inline]
+const fn mul_i64_i64(a: i64, b: i64) -> i128 {
+    (a as i128) * (b as i128)
+}
+
+#[inline]
+const fn mul_u64_i64(a: u64, b: i64) -> i128 {
+    let a = a as i64;
+    // if a has become negative, we need to add 2^64 * b to the answer
+    let correction = if a.is_negative() {
+        (b as i128) << 64
+    } else {
+        0
+    };
+    (a as i128) * (b as i128) + correction
 }
 
 #[inline]
@@ -92,20 +114,20 @@ pub const fn wide_mul_u128(lhs: u128, rhs: u128) -> U256 {
     let (ll, lh) = u128_lo_hi(lhs);
     let (rl, rh) = u128_lo_hi(rhs);
     // 0 <= ll_rl <= 2^128 - 2^65 + 1; ll_rl unit is 1
-    let ll_rl = ll.wrapping_mul(rl);
+    let ll_rl = mul_u64_u64(ll, rl);
     // 0 <= lh_rl <= 2^128 - 2^65 + 1; lh_rl unit is 2^64
-    let lh_rl = lh.wrapping_mul(rl);
+    let lh_rl = mul_u64_u64(lh, rl);
     // 0 <= ll_rh <= 2^128 - 2^65 + 1; ll_rh unit is 2^64
-    let ll_rh = ll.wrapping_mul(rh);
+    let ll_rh = mul_u64_u64(ll, rh);
     // 0 <= lh_rh <= 2^128 - 2^65 + 1; lh_rh unit is 2^128
-    let lh_rh = lh.wrapping_mul(rh);
+    let lh_rh = mul_u64_u64(lh, rh);
 
     // 0 <= col0 <= 2^64 - 1
     // 0 <= col64a <= 2^64 - 2
     let (col0, col64a) = u128_lo_hi(ll_rl);
 
     // 0 <= col64b <= 2^128 - 2^64 - 1
-    let col64b = col64a.wrapping_add(lh_rl);
+    let col64b = (col64a as u128).wrapping_add(lh_rl);
 
     // 0 <= col64c <= 2^128 - 1
     // 0 <= col192 <= 1
@@ -117,9 +139,11 @@ pub const fn wide_mul_u128(lhs: u128, rhs: u128) -> U256 {
     let (col64, col128) = u128_lo_hi(col64c);
 
     // Since both col0 and col64 fit in 64 bits, ans0 sum will never overflow.
-    let ans0 = col0.wrapping_add(col64 << 64);
+    let ans0 = (col0 as u128) | ((col64 as u128) << 64);
     // Since lhs * rhs fits in 256 bits, ans128 sum will never overflow.
-    let ans128 = lh_rh.wrapping_add(col128).wrapping_add(col192 << 64);
+    let ans128 = lh_rh
+        .wrapping_add(col128 as u128)
+        .wrapping_add(col192 << 64);
     U256 {
         lo: ans0,
         hi: ans128,
@@ -131,13 +155,13 @@ pub const fn wide_mul_i128(lhs: i128, rhs: i128) -> I256 {
     let (ll, lh) = i128_lo_hi(lhs);
     let (rl, rh) = i128_lo_hi(rhs);
     // 0 <= ll_rl <= 2^128 - 2^65 + 1; ll_rl unit is 1; must be unsigned to hold all range!
-    let ll_rl = (ll as u128).wrapping_mul(rl as u128);
+    let ll_rl = mul_u64_u64(ll, rl);
     // -2^127 + 2^63 <= lh_rl <= 2^127 - 2^64 - 2^63 + 1; lh_rl unit is 2^64
-    let lh_rl = lh.wrapping_mul(rl);
+    let lh_rl = mul_u64_i64(rl, lh);
     // -2^127 + 2^63 <= ll_rh <= 2^127 - 2^64 - 2^63 + 1; ll_rh unit is 2^64
-    let ll_rh = ll.wrapping_mul(rh);
+    let ll_rh = mul_u64_i64(ll, rh);
     // -2^126 + 2^63 <= lh_rh <= 2^126; lh_rh unit is 2^128
-    let lh_rh = lh.wrapping_mul(rh);
+    let lh_rh = mul_i64_i64(lh, rh);
 
     // 0 <= col0 <= 2^64 - 1
     // 0 <= col64a <= 2^64 - 2
@@ -165,9 +189,11 @@ pub const fn wide_mul_i128(lhs: i128, rhs: i128) -> I256 {
     let (col64, col128) = i128_lo_hi(col64c);
 
     // Since both col0 and col64 fit in 64 bits, ans0 sum will never overflow.
-    let ans0 = col0.wrapping_add((col64 as u128) << 64);
+    let ans0 = (col0 as u128) | ((col64 as u128) << 64);
     // Since lhs * rhs fits in 256 bits, ans128 sum will never overflow.
-    let ans128 = lh_rh.wrapping_add(col128).wrapping_add(col192 << 64);
+    let ans128 = lh_rh
+        .wrapping_add(col128 as i128)
+        .wrapping_add(col192 << 64);
     I256 {
         lo: ans0,
         hi: ans128,
@@ -209,7 +235,7 @@ pub const fn shl_i256_max_128(a: I256, sh: u32) -> I256 {
 ///
 /// d must have msb set.
 #[inline]
-const unsafe fn div_half_u128(r: u128, d: u128, next_half: u128) -> (u128, u128) {
+const unsafe fn div_half_u128(r: u128, d: u128, next_half: u64) -> (u128, u128) {
     let (dl, dh) = u128_lo_hi(d);
     // SAFETY: we know d has the most significant bit set because we normalized
     if dh == 0 {
@@ -222,9 +248,9 @@ const unsafe fn div_half_u128(r: u128, d: u128, next_half: u128) -> (u128, u128)
             hint::unreachable_unchecked();
         }
     }
-    let (mut q, rr) = (r / dh, r % dh);
-    let m = q * dl;
-    let mut r = next_half + (rr << 64);
+    let (mut q, rr) = (r / (dh as u128), r % (dh as u128));
+    let m = q * (dl as u128);
+    let mut r = (next_half as u128) + (rr << 64);
     if r < m {
         q -= 1;
         let (new_r, overflow) = r.overflowing_add(d);
