@@ -72,7 +72,7 @@ impl Environment {
             create_file_or_panic(&try_dir.join(&filename), file_contents);
             let mut cmd = Command::new(&self.rustc);
             cmd.current_dir(&try_dir)
-                .args(&[&filename, "--emit=dep-info,metadata"]);
+                .args([&filename, "--emit=dep-info,metadata"]);
             println!("$ {:?}", cmd);
             let status = cmd
                 .status()
