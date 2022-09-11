@@ -104,6 +104,10 @@ The conversions supported cover the following cases.
 
 ### Version 1.20.0 news (unreleased)
 
+  * The [`TRY_ONE`][tf-to-1-20] associated constant was added to the
+    [`Fixed`][tf-1-20] trait.
+  * The [`TRY_NEG_ONE`][tfs-tno-1-20] associated constant was added to the
+    [`FixedSigned`][tfs-1-20] trait.
   * The following associated constants were added to the [`F128`][f128-1-20]
     struct:
       * [`DIGITS`][f128-d-1-20]
@@ -124,6 +128,10 @@ The conversions supported cover the following cases.
 [half-2-f16]: https://docs.rs/half/^2/half/struct.f16.html
 [mf128-1-20]: https://docs.rs/fixed/~1.20/fixed/f128/index.html
 [mf128c-1-20]: https://docs.rs/fixed/~1.20/fixed/f128/consts/index.html
+[tf-1-20]: https://docs.rs/fixed/~1.20/fixed/traits/trait.Fixed.html
+[tf-to-1-20]: https://docs.rs/fixed/~1.20/fixed/traits/trait.Fixed.html#associatedconstant.TRY_ONE
+[tfs-1-20]: https://docs.rs/fixed/~1.20/fixed/traits/trait.FixedSigned.html
+[tfs-tno-1-20]: https://docs.rs/fixed/~1.20/fixed/traits/trait.FixedSigned.html#associatedconstant.TRY_NEG_ONE
 
 ### Version 1.19.0 news (2022-08-29)
 

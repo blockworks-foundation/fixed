@@ -2882,7 +2882,7 @@ assert_eq!(
                 }
             }
 
-            const TRY_ONE: Option<Self> =
+            pub(crate) const TRY_ONE: Option<Self> =
                 if Self::FRAC_NBITS < $Inner::BITS - if_signed_unsigned!($Signedness, 1, 0) {
                     Some(Self::DELTA.unwrapped_shl(Self::FRAC_NBITS))
                 } else {
@@ -2891,7 +2891,7 @@ assert_eq!(
 
             if_signed! {
                 $Signedness;
-                const TRY_NEG_ONE: Option<Self> = if Self::FRAC_NBITS < $Inner::BITS {
+                pub(crate) const TRY_NEG_ONE: Option<Self> = if Self::FRAC_NBITS < $Inner::BITS {
                     Some(Self::DELTA.unwrapped_neg().unwrapped_shl(Self::FRAC_NBITS))
                 } else {
                     None
