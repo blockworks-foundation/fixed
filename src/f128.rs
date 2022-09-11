@@ -37,7 +37,7 @@ const EXP_MASK: u128 = ((1 << EXP_BITS) - 1) << (PREC - 1);
 const MANT_MASK: u128 = (1 << (PREC - 1)) - 1;
 
 pub(crate) mod private {
-    /// The bit representation of a *binary128* floating-point number (`f128`).
+    /// A *binary128* floating-point number (`f128`).
     ///
     /// This type can be used to
     ///
@@ -45,6 +45,8 @@ pub(crate) mod private {
     ///     128-bit floating-point numbers.
     ///   * compare fixed-point numbers and the bit representation of 128-bit
     ///     floating-point numbers.
+    ///
+    /// This type does *not* support arithmetic or general analytic functions.
     ///
     /// Please see [<i>Quadruple-precision floating-point format</i> on
     /// Wikipedia][quad] for more information on *binary128*.
