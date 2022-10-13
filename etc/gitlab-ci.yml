@@ -33,6 +33,8 @@ x86_64-gnulinux:
   - cargo +beta-$TARGET test --release --features "fail-on-warnings arbitrary borsh num-traits serde std"
   - cargo +1.61.0-$TARGET test --lib --features "fail-on-warnings num-traits std"
   - cargo +1.61.0-$TARGET test --release --lib --features "fail-on-warnings num-traits std"
+  only:
+  - ci
 
 i686-gnulinux:
   image: i386/rust:1
@@ -48,6 +50,8 @@ i686-gnulinux:
   - cargo +beta-$TARGET test --release --features "fail-on-warnings arbitrary borsh num-traits serde std"
   - cargo +1.61.0-$TARGET test --lib --features "fail-on-warnings num-traits std"
   - cargo +1.61.0-$TARGET test --release --lib --features "fail-on-warnings num-traits std"
+  only:
+  - ci
 
 x86_64-gnulinux-tidy:
   image: amd64/rust:1
@@ -69,6 +73,8 @@ x86_64-gnulinux-tidy:
   - cargo +beta-$TARGET clippy --all-targets --features "fail-on-warnings serde-str"
   - cargo +beta-$TARGET clippy --all-targets --features "fail-on-warnings std"
   - cargo +beta-$TARGET clippy --all-targets --features fail-on-warnings
+  only:
+  - ci
 
 i686-gnulinux-tidy:
   image: i386/rust:1
@@ -90,6 +96,8 @@ i686-gnulinux-tidy:
   - cargo +beta-$TARGET clippy --all-targets --features "fail-on-warnings serde-str"
   - cargo +beta-$TARGET clippy --all-targets --features "fail-on-warnings std"
   - cargo +beta-$TARGET clippy --all-targets --features fail-on-warnings
+  only:
+  - ci
 
 x86_64-gnulinux-tarpaulin:
   image: amd64/rust:1
@@ -106,6 +114,8 @@ x86_64-gnulinux-tarpaulin:
   - stdbuf -oL cargo +beta-$TARGET tarpaulin -v --ignore-tests --exclude-files build.rs --features "arbitrary borsh num-traits serde std" | tee tarpaulin.log
   - echo "Check that coverage not less than $REQ_COVERAGE%"
   - tail -1 tarpaulin.log | awk '{ if ($1 < '$REQ_COVERAGE') { exit 1 } }'
+  only:
+  - ci
 
 pages:
   image: amd64/rust:1
@@ -126,4 +136,4 @@ pages:
     paths:
     - public
   only:
-  - master
+  - www
