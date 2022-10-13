@@ -17,7 +17,7 @@
 
 use crate::{
     float_helper,
-    helpers::{FloatKind, FromFloatHelper},
+    helpers::{FloatKind, FromFloatHelper, Private},
     int_helper::IntFixed,
     traits::{Fixed, FixedEquiv, FromFixed, ToFixed},
     types::extra::U0,
@@ -287,7 +287,7 @@ macro_rules! impl_float {
             /// [`wrapping_from_fixed`]: FromFixed::wrapping_from_fixed
             #[inline]
             fn from_fixed<F: Fixed>(src: F) -> Self {
-                let helper = src.private_to_float_helper();
+                let helper = src.to_float_helper(Private);
                 float_helper::$Float::from_to_float_helper(helper, F::FRAC_NBITS, F::INT_NBITS)
             }
 
@@ -382,7 +382,7 @@ it panics; if wrapping is required use [`wrapping_to_fixed`] instead.
                 match kind {
                     FloatKind::Finite { .. } => {
                         let helper = FromFloatHelper { kind };
-                        match F::private_overflowing_from_float_helper(helper) {
+                        match F::overflowing_from_float_helper(Private, helper) {
                             (_, true) => None,
                             (wrapped, false) => Some(wrapped),
                         }
@@ -408,7 +408,7 @@ Panics if `self` is [NaN].
                     let kind =
                         float_helper::$Float::to_float_kind(self, F::FRAC_NBITS, F::INT_NBITS);
                     let helper = FromFloatHelper { kind };
-                    F::private_saturating_from_float_helper(helper)
+                    F::saturating_from_float_helper(Private, helper)
                 }
             }
 
@@ -452,7 +452,7 @@ Panics if `self` is not [finite].
                     let kind =
                         float_helper::$Float::to_float_kind(self, F::FRAC_NBITS, F::INT_NBITS);
                     let helper = FromFloatHelper { kind };
-                    F::private_overflowing_from_float_helper(helper)
+                    F::overflowing_from_float_helper(Private, helper)
                 }
             }
 

@@ -48,18 +48,21 @@ pub enum FloatKind {
     Finite { neg: bool, conv: ToFixedHelper },
 }
 
+pub struct Private;
+
 pub trait Sealed: Copy {
-    fn private_to_fixed_helper(self, dst_frac_nbits: u32, dst_int_nbits: u32) -> ToFixedHelper;
-    fn private_to_float_helper(self) -> ToFloatHelper;
-    fn private_saturating_from_float_helper(src: FromFloatHelper) -> Self;
-    fn private_overflowing_from_float_helper(src: FromFloatHelper) -> (Self, bool);
+    fn to_fixed_helper(self, _: Private, dst_frac_nbits: u32, dst_int_nbits: u32) -> ToFixedHelper;
+    fn to_float_helper(self, _: Private) -> ToFloatHelper;
+    fn saturating_from_float_helper(_: Private, src: FromFloatHelper) -> Self;
+    fn overflowing_from_float_helper(_: Private, src: FromFloatHelper) -> (Self, bool);
 }
 macro_rules! impl_sealed {
     ($Fixed:ident($LeEqU:ident, $Signedness:tt, $Inner:ident)) => {
         impl<Frac: $LeEqU> Sealed for $Fixed<Frac> {
             #[inline]
-            fn private_to_fixed_helper(
+            fn to_fixed_helper(
                 self,
+                _: Private,
                 dst_frac_nbits: u32,
                 dst_int_nbits: u32,
             ) -> ToFixedHelper {
@@ -71,13 +74,13 @@ macro_rules! impl_sealed {
                 )
             }
             #[inline]
-            fn private_to_float_helper(self) -> ToFloatHelper {
+            fn to_float_helper(self, _: Private) -> ToFloatHelper {
                 let (neg, abs) = int_helper::$Inner::neg_abs(self.to_bits());
                 let abs = abs.into();
                 ToFloatHelper { neg, abs }
             }
             #[inline]
-            fn private_saturating_from_float_helper(src: FromFloatHelper) -> Self {
+            fn saturating_from_float_helper(_: Private, src: FromFloatHelper) -> Self {
                 let neg = match src.kind {
                     FloatKind::NaN => panic!("NaN"),
                     FloatKind::Infinite { neg } => neg,
@@ -112,7 +115,7 @@ macro_rules! impl_sealed {
             }
             #[inline]
             #[track_caller]
-            fn private_overflowing_from_float_helper(src: FromFloatHelper) -> (Self, bool) {
+            fn overflowing_from_float_helper(_: Private, src: FromFloatHelper) -> (Self, bool) {
                 let conv = match src.kind {
                     FloatKind::NaN => panic!("NaN"),
                     FloatKind::Infinite { .. } => panic!("infinite"),

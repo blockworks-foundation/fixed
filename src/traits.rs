@@ -24,7 +24,7 @@ pub use crate::traits_bits::{
     FixedBitsOptionalNum, FixedBitsOptionalSerde,
 };
 use crate::{
-    helpers::{Sealed, Widest},
+    helpers::{Private, Sealed, Widest},
     types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8, Unsigned},
     F128Bits, FixedI128, FixedI16, FixedI32, FixedI64, FixedI8, FixedU128, FixedU16, FixedU32,
     FixedU64, FixedU8, ParseFixedError, F128,
@@ -4207,7 +4207,7 @@ macro_rules! impl_fixed {
             /// Any extra fractional bits are discarded, which rounds towards &minus;∞.
             #[inline]
             fn saturating_from_fixed<F: Fixed>(src: F) -> Self {
-                let conv = src.private_to_fixed_helper(Self::FRAC_NBITS, Self::INT_NBITS);
+                let conv = src.to_fixed_helper(Private, Self::FRAC_NBITS, Self::INT_NBITS);
                 if conv.overflow {
                     return if src < 0 { Self::MIN } else { Self::MAX };
                 }
@@ -4250,7 +4250,7 @@ macro_rules! impl_fixed {
             /// Any extra fractional bits are discarded, which rounds towards &minus;∞.
             #[inline]
             fn overflowing_from_fixed<F: Fixed>(src: F) -> (Self, bool) {
-                let conv = src.private_to_fixed_helper(Self::FRAC_NBITS, Self::INT_NBITS);
+                let conv = src.to_fixed_helper(Private, Self::FRAC_NBITS, Self::INT_NBITS);
                 let mut new_overflow = false;
                 let bits = if_signed_unsigned!(
                     $Signedness,
