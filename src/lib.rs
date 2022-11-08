@@ -782,6 +782,7 @@ impl F128Bits {
 /// constants using [`i32`] expressions, not [`i16`] expressions.
 ///
 /// ```rust,compile_fail
+/// # #![allow(deprecated)]
 /// use fixed::{const_fixed_from_int, types::I16F16};
 /// const_fixed_from_int! {
 ///     // fails because 0i16 is not of type i32
@@ -814,31 +815,27 @@ macro_rules! const_fixed_from_int {
 /// The first snippet succeeds, and acts as a control.
 ///
 /// ```rust
-/// use fixed::{const_fixed_from_int, types::*};
-/// const_fixed_from_int! {
-///     const ZERO_I0: I0F32 = 0;
-///     const ZERO_I1: I32F0 = 0;
-///     const ZERO_U0: U0F32 = 0;
-///     const ZERO_U1: U32F0 = 0;
+/// use fixed::types::*;
+/// const ZERO_I0: I0F32 = I0F32::const_from_int(0);
+/// const ZERO_I1: I32F0 = I32F0::const_from_int(0);
+/// const ZERO_U0: U0F32 = U0F32::const_from_int(0);
+/// const ZERO_U1: U32F0 = U32F0::const_from_int(0);
 ///
-///     const ONE_I0: I2F30 = 1;
-///     const ONE_I1: I32F0 = 1;
-///     const ONE_U0: U1F31 = 1;
-///     const ONE_U1: U32F0 = 1;
+/// const ONE_I0: I2F30 = I2F30::const_from_int(1);
+/// const ONE_I1: I32F0 = I32F0::const_from_int(1);
+/// const ONE_U0: U1F31 = U1F31::const_from_int(1);
+/// const ONE_U1: U32F0 = U32F0::const_from_int(1);
 ///
-///     const MINUS_ONE_I0: I1F31 = -1;
-///     const MINUS_ONE_I1: I32F0 = -1;
+/// const MINUS_ONE_I0: I1F31 = I1F31::const_from_int(-1);
+/// const MINUS_ONE_I1: I32F0 = I32F0::const_from_int(-1);
 ///
-///     const MINUS_TWO_I0: I2F30 = -2;
-///     const MINUS_TWO_I1: I32F0 = -2;
-/// }
+/// const MINUS_TWO_I0: I2F30 = I2F30::const_from_int(-2);
+/// const MINUS_TWO_I1: I32F0 = I32F0::const_from_int(-2);
 ///
 /// mod test_pub {
-///     use fixed::{const_fixed_from_int, types::*};
+///     use fixed::types::*;
 ///
-///     const_fixed_from_int! {
-///         pub const PUB: I32F0 = 0;
-///     }
+///     pub const PUB: I32F0 = I32F0::const_from_int(0);
 /// }
 ///
 /// assert_eq!(ZERO_I0, 0);
@@ -864,38 +861,28 @@ macro_rules! const_fixed_from_int {
 ///
 /// Not enough integer bits for 1.
 /// ```rust,compile_fail
-/// use fixed::{const_fixed_from_int, types::*};
-/// const_fixed_from_int! {
-///     const _ONE: I0F32 = 1;
-/// }
+/// use fixed::types::*;
+/// const _ONE: I0F32 = I0F32::const_from_int(1);
 /// ```
 /// ```rust,compile_fail
-/// use fixed::{const_fixed_from_int, types::*};
-/// const_fixed_from_int! {
-///     const _ONE: I1F31 = 1;
-/// }
+/// use fixed::types::*;
+/// const _ONE: I1F31 = I1F31::const_from_int(1);
 /// ```
 /// ```rust,compile_fail
-/// use fixed::{const_fixed_from_int, types::*};
-/// const_fixed_from_int! {
-///     const _ONE: U0F32 = 1;
-/// }
+/// use fixed::types::*;
+/// const _ONE: U0F32 = U0F32::const_from_int(1);
 /// ```
 ///
 /// Not enough integer bits for -1.
 /// ```rust,compile_fail
-/// use fixed::{const_fixed_from_int, types::*};
-/// const_fixed_from_int! {
-///     const _MINUS_ONE: I0F32 = -1;
-/// }
+/// use fixed::types::*;
+/// const _MINUS_ONE: I0F32 = I0F32::const_from_int(-1);
 /// ```
 ///
 /// Not enough integer bits for -2.
 /// ```rust,compile_fail
-/// use fixed::{const_fixed_from_int, types::*};
-/// const_fixed_from_int! {
-///     const _MINUS_TWO: I1F31 = -2;
-/// }
+/// use fixed::types::*;
+/// const _MINUS_TWO: I1F31 = I1F31::const_from_int(-2);
 /// ```
 fn _compile_fail_tests() {}
 
