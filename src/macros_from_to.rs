@@ -832,7 +832,7 @@ assert_eq!(one_point_625.overflowing_to_num::<f32>(), (1.625f32, false));
         /// underlying integer type. Usable in constant context.
         ///
         /// This is equivalent to the [`unwrapped_from_num`] method with
-        #[doc = concat!("<code>[", $s_fixed, "]&lt;OtherFrac></code>")]
+        #[doc = concat!("<code>[", $s_fixed, "]&lt;SrcFrac></code>")]
         /// as its generic parameter, but can also be used in constant context.
         /// Unless required in constant context, use [`unwrapped_from_num`] or
         /// [`from_num`] instead.
@@ -870,8 +870,8 @@ assert_eq!(one_point_625.overflowing_to_num::<f32>(), (1.625f32, false));
         /// [`unwrapped_from_num`]: Self::unwrapped_from_num
         #[inline]
         #[must_use]
-        pub const fn const_from_fixed<OtherFrac: $LeEqU>(src: $Fixed<OtherFrac>) -> $Fixed<Frac> {
-            let shift_left = Frac::I32 - OtherFrac::I32;
+        pub const fn const_from_fixed<SrcFrac: $LeEqU>(src: $Fixed<SrcFrac>) -> $Fixed<Frac> {
+            let shift_left = Frac::I32 - SrcFrac::I32;
             let nbits = $Inner::BITS as i32;
             let src_bits = src.to_bits();
             let bits = if shift_left <= -nbits {
