@@ -14,7 +14,12 @@
 // <https://opensource.org/licenses/MIT>.
 
 macro_rules! fixed_from_to {
-    ($Fixed:ident[$s_fixed:expr]($Inner:ident[$s_inner:expr], $s_nbits:expr), $Signedness:tt) => {
+    (
+        $Fixed:ident[$s_fixed:expr](
+            $Inner:ident[$s_inner:expr], $LeEqU:tt, $s_nbits:expr
+        ),
+        $Signedness:tt
+    ) => {
         comment! {
             r#"Creates a fixed-point number from another number.
 
@@ -823,12 +828,77 @@ assert_eq!(one_point_625.overflowing_to_num::<f32>(), (1.625f32, false));
             }
         }
 
+        /// Creates a fixed-point number from a fixed-point number with the same
+        /// underlying integer type. Usable in constant context.
+        ///
+        /// This is equivalent to the [`unwrapped_from_num`] method with
+        #[doc = concat!("<code>[", $s_fixed, "]&lt;OtherFrac></code>")]
+        /// as its generic parameter, but can also be used in constant context.
+        /// Unless required in constant context, use [`unwrapped_from_num`] or
+        /// [`from_num`] instead.
+        ///
+        /// # Planned deprecation
+        ///
+        /// This method will be deprecated when the [`unwrapped_from_num`]
+        /// method is usable in constant context.
+        ///
+        /// # Panics
+        ///
+        /// Panics if the value does not fit.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use fixed::types::extra::{U2, U4};
+        #[doc = concat!("use fixed::", $s_fixed, ";")]
+        #[doc = concat!("type FixA = ", $s_fixed, "<U2>;")]
+        #[doc = concat!("type FixB = ", $s_fixed, "<U4>;")]
+        /// const A: FixA = FixA::unwrapped_from_str("3.5");
+        /// const B: FixB = FixB::const_from_fixed(A);
+        /// assert_eq!(B, 3.5);
+        /// ```
+        ///
+        /// The following would fail to compile because of overflow.
+        ///
+        /// ```rust,compile_fail
+        /// use fixed::types::extra::{U2, U4};
+        #[doc = concat!("use fixed::", $s_fixed, ";")]
+        #[doc = concat!("const _OVERFLOW: ", $s_fixed, "<U4> = ", $s_fixed, "::const_from_fixed(", $s_fixed, "::<U2>::MAX);")]
+        /// ```
+        ///
+        /// [`from_num`]: Self::from_num
+        /// [`unwrapped_from_num`]: Self::unwrapped_from_num
+        #[inline]
+        #[must_use]
+        pub const fn const_from_fixed<OtherFrac: $LeEqU>(src: $Fixed<OtherFrac>) -> $Fixed<Frac> {
+            let shift_left = Frac::I32 - OtherFrac::I32;
+            let nbits = $Inner::BITS as i32;
+            let src_bits = src.to_bits();
+            let bits = if shift_left <= -nbits {
+                src_bits >> (nbits / 2) >> (nbits / 2)
+            } else if shift_left <= 0 {
+                src_bits >> -shift_left
+            } else if shift_left >= nbits {
+                if src_bits != 0 {
+                    panic!("overflow");
+                }
+                0
+            } else {
+                let shifted = src_bits << shift_left;
+                if (shifted >> shift_left) != src_bits {
+                    panic!("overflow");
+                }
+                shifted
+            };
+            Self::from_bits(bits)
+        }
+
         /// Creates a fixed-point number from the underlying integer type
         #[doc = concat!("[`", $s_inner, "`].")]
         /// Usable in constant context.
         ///
         /// This is equivalent to the [`unwrapped_from_num`] method with
-        #[doc = concat!("[`", $s_inner, "`].")]
+        #[doc = concat!("[`", $s_inner, "`]")]
         /// as its generic parameter, but can also be used in constant context.
         /// Unless required in constant context, use [`unwrapped_from_num`] or
         /// [`from_num`] instead.
@@ -855,21 +925,15 @@ assert_eq!(one_point_625.overflowing_to_num::<f32>(), (1.625f32, false));
         ///
         /// ```rust,compile_fail
         #[doc = concat!("use fixed::{types::extra::U4, ", $s_fixed, "};")]
-        #[doc = concat!("type Fix = ", $s_fixed, "<U4>;")]
-        #[doc = concat!("const _OVERFLOW: Fix = Fix::const_from_int(", $s_inner, "::MAX);")]
+        #[doc = concat!("const _OVERFLOW: ", $s_fixed, "<U4> = ", $s_fixed, "::const_from_int(", $s_inner, "::MAX);")]
         /// ```
         ///
         /// [`from_num`]: Self::from_num
         /// [`unwrapped_from_num`]: Self::unwrapped_from_num
         #[inline]
         #[must_use]
-        pub const fn const_from_int(int: $Inner) -> $Fixed<Frac> {
-            // Divide shift into two parts for cases where Self cannot represent 1.
-            // one_a * one_b would be Self::from_bits(Self::ONE).
-            let frac_nbits = Self::FRAC_NBITS;
-            let one_a = Self::DELTA.to_bits() << (frac_nbits / 2);
-            let one_b = Self::DELTA.to_bits() << (frac_nbits - frac_nbits / 2);
-            Self::from_bits(int * one_a * one_b)
+        pub const fn const_from_int(src: $Inner) -> $Fixed<Frac> {
+            Self::const_from_fixed($Fixed::<U0>::from_bits(src))
         }
 
         comment! {

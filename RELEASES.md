@@ -12,9 +12,9 @@ Version 1.20.0 (unreleased)
     [`Fixed`][tf-1-20] trait.
   * The [`TRY_NEG_ONE`][tfs-tno-1-20] associated constant was added to the
     [`FixedSigned`][tfs-1-20] trait.
-  * The [`const_from_int`][f-cfi-1-20] method was added to all fixed-point
-    numbers to replace the [`const_fixed_from_int`][cffi-1-20] macro, which is
-    now deprecated.
+  * The [`const_from_fixed`][f-cff-1-20] and [`const_from_int`][f-cfi-1-20]
+    methods were added to all fixed-point numbers.
+  * The [`const_fixed_from_int`][cffi-1-20] macro is now deprecated.
   * The following associated constants were added to the [`F128`][f128-1-20]
     struct:
       * [`DIGITS`][f128-d-1-20]
@@ -26,6 +26,7 @@ Version 1.20.0 (unreleased)
 
 [cf-1-20]: https://docs.rs/fixed/~1.20/fixed/index.html
 [cffi-1-20]: https://docs.rs/fixed/~1.20/fixed/macro.const_fixed_from_int.html
+[f-cff-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.FixedI32.html#method.const_from_fixed
 [f-cfi-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.FixedI32.html#method.const_from_int
 [f128-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.F128.html
 [f128-d-1-20]: https://docs.rs/fixed/~1.20/fixed/struct.F128.html#associatedconstant.DIGITS

@@ -65,7 +65,7 @@ assert_eq!(Fix::FRAC_NBITS, 6);
             const FRAC_MSB: $Inner =
                 Self::FRAC_MASK ^ ((Self::FRAC_MASK as $UInner) >> 1) as $Inner;
 
-            fixed_from_to! { $Fixed[$s_fixed]($Inner[$s_inner], $s_nbits), $Signedness }
+            fixed_from_to! { $Fixed[$s_fixed]($Inner[$s_inner], $LeEqU, $s_nbits), $Signedness }
             fixed_round! { $Fixed[$s_fixed]($s_nbits), $Signedness }
 
             comment! {
