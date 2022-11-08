@@ -753,6 +753,7 @@ impl F128Bits {
 /// # Examples
 ///
 /// ```rust
+/// # #![allow(deprecated)]
 /// use fixed::{const_fixed_from_int, types::I16F16};
 /// const_fixed_from_int! {
 ///     // define a constant using an integer
@@ -768,6 +769,7 @@ impl F128Bits {
 /// <code>[i32]::[MAX][i32::MAX]</code> is not representable by [`I16F16`].
 ///
 /// ```rust,compile_fail
+/// # #![allow(deprecated)]
 /// use fixed::{const_fixed_from_int, types::I16F16};
 /// const_fixed_from_int! {
 ///     // fails because i32::MAX > I16F16::MAX
@@ -791,6 +793,7 @@ impl F128Bits {
 /// [`I16F16`]: crate::types::I16F16
 /// [`from_num`]: FixedI32::from_num
 #[macro_export]
+#[deprecated(since = "1.20.0", note = "use the `const_from_int` method instead")]
 macro_rules! const_fixed_from_int {
     ($($vis:vis const $NAME:ident: $Fixed:ty = $int:expr;)*) => { $(
         $vis const $NAME: $Fixed = <$Fixed>::from_bits({

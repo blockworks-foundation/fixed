@@ -823,6 +823,55 @@ assert_eq!(one_point_625.overflowing_to_num::<f32>(), (1.625f32, false));
             }
         }
 
+        /// Creates a fixed-point number from the underlying integer type
+        #[doc = concat!("[`", $s_inner, "`].")]
+        /// Usable in constant context.
+        ///
+        /// This is equivalent to the [`unwrapped_from_num`] method with
+        #[doc = concat!("[`", $s_inner, "`].")]
+        /// as its generic parameter, but can also be used in constant context.
+        /// Unless required in constant context, use [`unwrapped_from_num`] or
+        /// [`from_num`] instead.
+        ///
+        /// # Planned deprecation
+        ///
+        /// This method will be deprecated when the [`unwrapped_from_num`]
+        /// method is usable in constant context.
+        ///
+        /// # Panics
+        ///
+        /// Panics if the value does not fit.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        #[doc = concat!("use fixed::{types::extra::U4, ", $s_fixed, "};")]
+        #[doc = concat!("type Fix = ", $s_fixed, "<U4>;")]
+        /// const FIVE: Fix = Fix::const_from_int(5);
+        /// assert_eq!(FIVE, 5);
+        /// ```
+        ///
+        /// The following would fail to compile because of overflow.
+        ///
+        /// ```rust,compile_fail
+        #[doc = concat!("use fixed::{types::extra::U4, ", $s_fixed, "};")]
+        #[doc = concat!("type Fix = ", $s_fixed, "<U4>;")]
+        #[doc = concat!("const _OVERFLOW: Fix = Fix::const_from_int(", $s_inner, "::MAX);")]
+        /// ```
+        ///
+        /// [`from_num`]: Self::from_num
+        /// [`unwrapped_from_num`]: Self::unwrapped_from_num
+        #[inline]
+        #[must_use]
+        pub const fn const_from_int(int: $Inner) -> $Fixed<Frac> {
+            // Divide shift into two parts for cases where Self cannot represent 1.
+            // one_a * one_b would be Self::from_bits(Self::ONE).
+            let frac_nbits = Self::FRAC_NBITS;
+            let one_a = Self::DELTA.to_bits() << (frac_nbits / 2);
+            let one_b = Self::DELTA.to_bits() << (frac_nbits - frac_nbits / 2);
+            Self::from_bits(int * one_a * one_b)
+        }
+
         comment! {
             "Parses a string slice containing decimal digits to return a fixed-point number.
 
