@@ -338,7 +338,7 @@ assert_eq!(Fix::from_num(2.5).checked_ceil(), Some(Fix::from_num(3)));
         }
 
         comment! {
-            "Checked floor. Rounds to the next integer towards &minus;∞.",
+            "Checked floor. Rounds to the next integer towards &minus;∞. ",
             if_signed_unsigned!(
                 $Signedness,
                 "Returns [`None`] on overflow.
