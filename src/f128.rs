@@ -505,6 +505,81 @@ impl F128 {
         (self.to_bits() & SIGN_MASK) != 0
     }
 
+    /// Returns the maximum of two numbers, ignoring NaN.
+    ///
+    /// If one of the arguments is NaN, then the other argument is returned.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use fixed::F128;
+    ///
+    /// assert_eq!(F128::ZERO.max(F128::ONE), F128::ONE);
+    /// ```
+    #[inline]
+    pub const fn max(self, other: F128) -> F128 {
+        if self.is_nan() || matches!(partial_cmp(&self, &other), Some(Ordering::Less)) {
+            other
+        } else {
+            self
+        }
+    }
+
+    /// Returns the minimum of two numbers, ignoring NaN.
+    ///
+    /// If one of the arguments is NaN, then the other argument is returned.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use fixed::F128;
+    ///
+    /// assert_eq!(F128::ZERO.min(F128::ONE), F128::ZERO);
+    /// ```
+    #[inline]
+    pub const fn min(self, other: F128) -> F128 {
+        if self.is_nan() || matches!(partial_cmp(&self, &other), Some(Ordering::Greater)) {
+            other
+        } else {
+            self
+        }
+    }
+
+    /// Clamps the value within the specified bounds.
+    ///
+    /// Returns `min` if `self`&nbsp;<&nbsp;`min`, `max` if
+    /// `self`&nbsp;>&nbsp;`max`, or `self` otherwise.
+    ///
+    /// Note that this method returns NaN if the initial value is NaN.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `min`&nbsp;>&nbsp;`max`, `min` is NaN, or `max` is NaN.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fixed::F128;
+    /// assert_eq!(F128::MIN.clamp(F128::NEG_ONE, F128::ONE), F128::NEG_ONE);
+    /// assert_eq!(F128::ZERO.clamp(F128::NEG_ONE, F128::ONE), F128::ZERO);
+    /// assert_eq!(F128::MAX.clamp(F128::NEG_ONE, F128::ONE), F128::ONE);
+    /// assert!(F128::NAN.clamp(F128::NEG_ONE, F128::ONE).is_nan());
+    /// ```
+    #[inline]
+    pub const fn clamp(mut self, min: F128, max: F128) -> F128 {
+        match partial_cmp(&min, &max) {
+            Some(Ordering::Less) | Some(Ordering::Equal) => {}
+            _ => panic!("need min <= max"),
+        }
+        if matches!(partial_cmp(&self, &min), Some(Ordering::Less)) {
+            self = min;
+        }
+        if matches!(partial_cmp(&self, &max), Some(Ordering::Greater)) {
+            self = max;
+        }
+        self
+    }
+
     /// Returns the ordering between `self` and `other`.
     ///
     /// Unlike the [`PartialOrd`] implementation, this method always returns an
@@ -554,10 +629,10 @@ impl F128 {
 const fn cmp_bits(a: u128, b: u128) -> Ordering {
     if a < b {
         Ordering::Less
-    } else if a > b {
-        Ordering::Greater
-    } else {
+    } else if a == b {
         Ordering::Equal
+    } else {
+        Ordering::Greater
     }
 }
 
@@ -580,21 +655,26 @@ impl PartialEq for F128 {
 impl PartialOrd for F128 {
     #[inline]
     fn partial_cmp(&self, other: &F128) -> Option<Ordering> {
-        if self.is_nan() || other.is_nan() {
-            return None;
-        }
-        let a = self.to_bits();
-        let b = other.to_bits();
-        // handle zero
-        if ((a | b) & !SIGN_MASK) == 0 {
-            return Some(Ordering::Equal);
-        }
-        match (self.is_sign_negative(), other.is_sign_negative()) {
-            (false, false) => a.partial_cmp(&b),
-            (true, true) => b.partial_cmp(&a),
-            (false, true) => Some(Ordering::Greater),
-            (true, false) => Some(Ordering::Less),
-        }
+        partial_cmp(self, other)
+    }
+}
+
+#[inline]
+const fn partial_cmp(a: &F128, b: &F128) -> Option<Ordering> {
+    if a.is_nan() || b.is_nan() {
+        return None;
+    }
+    let a_bits = a.to_bits();
+    let b_bits = b.to_bits();
+    // handle zero
+    if ((a_bits | b_bits) & !SIGN_MASK) == 0 {
+        return Some(Ordering::Equal);
+    }
+    match (a.is_sign_negative(), b.is_sign_negative()) {
+        (false, false) => Some(cmp_bits(a_bits, b_bits)),
+        (true, true) => Some(cmp_bits(b_bits, a_bits)),
+        (false, true) => Some(Ordering::Greater),
+        (true, false) => Some(Ordering::Less),
     }
 }
 

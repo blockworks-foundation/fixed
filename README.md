@@ -102,6 +102,17 @@ The conversions supported cover the following cases.
 
 ## What’s new
 
+### Version 1.21.0 news (unreleased)
+
+  * The following methods were added to the [`F128`][f128-1-20] struct:
+      * [`min`][f128-min-1-21], [`max`][f128-max-1-21]
+      * [`clamp`][f128-c-1-21]
+
+[f128-1-21]: https://docs.rs/fixed/~1.21/fixed/struct.F128.html
+[f128-c-1-21]: https://docs.rs/fixed/~1.21/fixed/struct.F128.html#method.clamp
+[f128-max-1-21]: https://docs.rs/fixed/~1.21/fixed/struct.F128.html#method.max
+[f128-min-1-21]: https://docs.rs/fixed/~1.21/fixed/struct.F128.html#method.min
+
 ### Version 1.20.0 news (2022-11-08)
 
   * The [`TRY_ONE`][tf-to-1-20] associated constant was added to the
