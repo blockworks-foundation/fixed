@@ -729,11 +729,6 @@ impl F128Bits {
     pub(crate) fn from_bits(bits: u128) -> F128Bits {
         F128Bits(bits)
     }
-
-    #[inline]
-    pub(crate) fn is_nan(self) -> bool {
-        (self.to_bits() & !float_helper::F128Bits::SIGN_MASK) > float_helper::F128Bits::EXP_MASK
-    }
 }
 
 /// Defines constant fixed-point numbers from integer expressions.
