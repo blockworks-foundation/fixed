@@ -104,6 +104,11 @@ The conversions supported cover the following cases.
 
 ### Version 1.21.0 news (unreleased)
 
+  * Comparisons involving fixed-point numbers now have more relaxed constraints
+    on the fractional bits generic parameter: now `Frac` only needs to implement
+    [`Unsigned`][uns-1-21].
+  * Better code should now be generated when comparing a fixed-point number to
+    another fixed-point number.
   * The following methods were added to the [`F128`][f128-1-20] struct:
       * [`min`][f128-min-1-21], [`max`][f128-max-1-21]
       * [`clamp`][f128-c-1-21]
@@ -112,6 +117,7 @@ The conversions supported cover the following cases.
 [f128-c-1-21]: https://docs.rs/fixed/~1.21/fixed/struct.F128.html#method.clamp
 [f128-max-1-21]: https://docs.rs/fixed/~1.21/fixed/struct.F128.html#method.max
 [f128-min-1-21]: https://docs.rs/fixed/~1.21/fixed/struct.F128.html#method.min
+[uns-1-21]: https://docs.rs/fixed/~1.21/fixed/types/extra/trait.Unsigned.html
 
 ### Version 1.20.0 news (2022-11-08)
 
