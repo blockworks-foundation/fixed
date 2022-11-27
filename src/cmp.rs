@@ -434,11 +434,22 @@ mod tests {
     fn cmp_i0() {
         use crate::types::*;
         assert_eq!(I0F32::checked_from_num(0.5), None);
-        for &float in &[-0.5, -0.25, 0., 0.25, 0.49] {
+        for &float in &[
+            -0.5,
+            -0.5 + f32::EPSILON,
+            -0.25,
+            -f32::EPSILON,
+            0.0,
+            f32::EPSILON,
+            0.25,
+            0.5 - f32::EPSILON,
+        ] {
             let fixed = I0F32::from_num(float);
             let half = U0F32::from_num(0.5);
             assert_eq!(fixed < half, float < 0.5, "{} < {}", fixed, half);
+            assert_eq!(fixed <= half, float <= 0.5, "{} <= {}", fixed, half);
             assert_eq!(fixed == half, float == 0.5, "{} == {}", fixed, half);
+            assert_eq!(fixed >= half, float >= 0.5, "{} >= {}", fixed, half);
             assert_eq!(fixed > half, float > 0.5, "{} > {}", fixed, half);
             assert_eq!(
                 fixed.partial_cmp(&half),
@@ -448,7 +459,9 @@ mod tests {
                 half
             );
             assert_eq!(half < fixed, fixed > half);
+            assert_eq!(half <= fixed, fixed >= half);
             assert_eq!(half == fixed, fixed == half);
+            assert_eq!(half >= fixed, fixed <= half);
             assert_eq!(half > fixed, fixed < half);
             assert_eq!(
                 half.partial_cmp(&fixed),
@@ -457,7 +470,9 @@ mod tests {
 
             let half = I1F31::from_num(0.5);
             assert_eq!(fixed < half, float < 0.5, "{} < {}", fixed, half);
+            assert_eq!(fixed <= half, float <= 0.5, "{} <= {}", fixed, half);
             assert_eq!(fixed == half, float == 0.5, "{} == {}", fixed, half);
+            assert_eq!(fixed >= half, float >= 0.5, "{} >= {}", fixed, half);
             assert_eq!(fixed > half, float > 0.5, "{} > {}", fixed, half);
             assert_eq!(
                 fixed.partial_cmp(&half),
@@ -467,7 +482,9 @@ mod tests {
                 half
             );
             assert_eq!(half < fixed, fixed > half);
+            assert_eq!(half <= fixed, fixed >= half);
             assert_eq!(half == fixed, fixed == half);
+            assert_eq!(half >= fixed, fixed <= half);
             assert_eq!(half > fixed, fixed < half);
             assert_eq!(
                 half.partial_cmp(&fixed),
@@ -476,7 +493,9 @@ mod tests {
 
             let half = 0.5f32;
             assert_eq!(fixed < half, float < 0.5, "{} < {}", fixed, half);
+            assert_eq!(fixed <= half, float <= 0.5, "{} <= {}", fixed, half);
             assert_eq!(fixed == half, float == 0.5, "{} == {}", fixed, half);
+            assert_eq!(fixed >= half, float >= 0.5, "{} >= {}", fixed, half);
             assert_eq!(fixed > half, float > 0.5, "{} > {}", fixed, half);
             assert_eq!(
                 fixed.partial_cmp(&half),
@@ -486,16 +505,20 @@ mod tests {
                 half
             );
             assert_eq!(half < fixed, fixed > half);
+            assert_eq!(half <= fixed, fixed >= half);
             assert_eq!(half == fixed, fixed == half);
+            assert_eq!(half >= fixed, fixed <= half);
             assert_eq!(half > fixed, fixed < half);
             assert_eq!(
                 half.partial_cmp(&fixed),
                 fixed.partial_cmp(&half).map(Ordering::reverse)
             );
 
-            let m1 = I1F31::from_num(-1.0);
+            let m1 = I32F0::from_num(-1.0);
             assert_eq!(fixed < m1, float < -1.0, "{} < {}", fixed, m1);
+            assert_eq!(fixed <= m1, float <= -1.0, "{} <= {}", fixed, m1);
             assert_eq!(fixed == m1, float == -1.0, "{} == {}", fixed, m1);
+            assert_eq!(fixed >= m1, float >= -1.0, "{} >= {}", fixed, m1);
             assert_eq!(fixed > m1, float > -1.0, "{} > {}", fixed, m1);
             assert_eq!(
                 fixed.partial_cmp(&m1),
@@ -505,7 +528,32 @@ mod tests {
                 m1
             );
             assert_eq!(m1 < fixed, fixed > m1);
+            assert_eq!(m1 <= fixed, fixed >= m1);
             assert_eq!(m1 == fixed, fixed == m1);
+            assert_eq!(m1 >= fixed, fixed <= m1);
+            assert_eq!(m1 > fixed, fixed < m1);
+            assert_eq!(
+                m1.partial_cmp(&fixed),
+                fixed.partial_cmp(&m1).map(Ordering::reverse)
+            );
+
+            let m1 = I1F31::from_num(-1.0);
+            assert_eq!(fixed < m1, float < -1.0, "{} < {}", fixed, m1);
+            assert_eq!(fixed <= m1, float <= -1.0, "{} <= {}", fixed, m1);
+            assert_eq!(fixed == m1, float == -1.0, "{} == {}", fixed, m1);
+            assert_eq!(fixed >= m1, float >= -1.0, "{} >= {}", fixed, m1);
+            assert_eq!(fixed > m1, float > -1.0, "{} > {}", fixed, m1);
+            assert_eq!(
+                fixed.partial_cmp(&m1),
+                float.partial_cmp(&-1.0),
+                "{}.partial_cmp(&{})",
+                fixed,
+                m1
+            );
+            assert_eq!(m1 < fixed, fixed > m1);
+            assert_eq!(m1 <= fixed, fixed >= m1);
+            assert_eq!(m1 == fixed, fixed == m1);
+            assert_eq!(m1 >= fixed, fixed <= m1);
             assert_eq!(m1 > fixed, fixed < m1);
             assert_eq!(
                 m1.partial_cmp(&fixed),
@@ -514,7 +562,9 @@ mod tests {
 
             let m1 = -1.0f32;
             assert_eq!(fixed < m1, float < -1.0, "{} < {}", fixed, m1);
+            assert_eq!(fixed <= m1, float <= -1.0, "{} <= {}", fixed, m1);
             assert_eq!(fixed == m1, float == -1.0, "{} == {}", fixed, m1);
+            assert_eq!(fixed >= m1, float >= -1.0, "{} >= {}", fixed, m1);
             assert_eq!(fixed > m1, float > -1.0, "{} > {}", fixed, m1);
             assert_eq!(
                 fixed.partial_cmp(&m1),
@@ -524,7 +574,9 @@ mod tests {
                 m1
             );
             assert_eq!(m1 < fixed, fixed > m1);
+            assert_eq!(m1 <= fixed, fixed >= m1);
             assert_eq!(m1 == fixed, fixed == m1);
+            assert_eq!(m1 >= fixed, fixed <= m1);
             assert_eq!(m1 > fixed, fixed < m1);
             assert_eq!(
                 m1.partial_cmp(&fixed),
@@ -533,7 +585,9 @@ mod tests {
 
             let mhalf = I1F31::from_num(-0.5);
             assert_eq!(fixed < mhalf, float < -0.5, "{} < {}", fixed, mhalf);
+            assert_eq!(fixed <= mhalf, float <= -0.5, "{} <= {}", fixed, mhalf);
             assert_eq!(fixed == mhalf, float == -0.5, "{} == {}", fixed, mhalf);
+            assert_eq!(fixed >= mhalf, float >= -0.5, "{} >= {}", fixed, mhalf);
             assert_eq!(fixed > mhalf, float > -0.5, "{} > {}", fixed, mhalf);
             assert_eq!(
                 fixed.partial_cmp(&mhalf),
@@ -543,7 +597,9 @@ mod tests {
                 mhalf
             );
             assert_eq!(mhalf < fixed, fixed > mhalf);
+            assert_eq!(mhalf <= fixed, fixed >= mhalf);
             assert_eq!(mhalf == fixed, fixed == mhalf);
+            assert_eq!(mhalf >= fixed, fixed <= mhalf);
             assert_eq!(mhalf > fixed, fixed < mhalf);
             assert_eq!(
                 mhalf.partial_cmp(&fixed),
@@ -552,7 +608,9 @@ mod tests {
 
             let mhalf = -0.5f32;
             assert_eq!(fixed < mhalf, float < -0.5, "{} < {}", fixed, mhalf);
+            assert_eq!(fixed <= mhalf, float <= -0.5, "{} <= {}", fixed, mhalf);
             assert_eq!(fixed == mhalf, float == -0.5, "{} == {}", fixed, mhalf);
+            assert_eq!(fixed >= mhalf, float >= -0.5, "{} >= {}", fixed, mhalf);
             assert_eq!(fixed > mhalf, float > -0.5, "{} > {}", fixed, mhalf);
             assert_eq!(
                 fixed.partial_cmp(&mhalf),
@@ -562,7 +620,9 @@ mod tests {
                 mhalf
             );
             assert_eq!(mhalf < fixed, fixed > mhalf);
+            assert_eq!(mhalf <= fixed, fixed >= mhalf);
             assert_eq!(mhalf == fixed, fixed == mhalf);
+            assert_eq!(mhalf >= fixed, fixed <= mhalf);
             assert_eq!(mhalf > fixed, fixed < mhalf);
             assert_eq!(
                 mhalf.partial_cmp(&fixed),
