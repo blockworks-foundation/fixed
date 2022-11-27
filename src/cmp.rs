@@ -19,7 +19,7 @@ use crate::{
     float_helper,
     helpers::{FloatKind, Widest},
     int_helper::{self, IntFixed},
-    types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8},
+    types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8, Unsigned},
     F128Bits, FixedI128, FixedI16, FixedI32, FixedI64, FixedI8, FixedU128, FixedU16, FixedU32,
     FixedU64, FixedU8, F128,
 };
@@ -27,72 +27,84 @@ use core::cmp::Ordering;
 use half::{bf16, f16};
 
 macro_rules! fixed_cmp_int {
-    ($Fix:ident($LeEqU:ident), $Int:ident) => {
-        impl<Frac: $LeEqU> PartialEq<$Int> for $Fix<Frac> {
+    ($Fixed:ident, $Int:ident) => {
+        impl<Frac: Unsigned> PartialEq<$Int> for $Fixed<Frac> {
             #[inline]
             fn eq(&self, rhs: &$Int) -> bool {
-                self.eq(&IntFixed(*rhs).fixed())
+                let fixed_rhs = IntFixed(*rhs).fixed();
+                PartialEq::eq(self, &fixed_rhs)
             }
         }
 
-        impl<Frac: $LeEqU> PartialEq<$Fix<Frac>> for $Int {
+        impl<Frac: Unsigned> PartialEq<$Fixed<Frac>> for $Int {
             #[inline]
-            fn eq(&self, rhs: &$Fix<Frac>) -> bool {
-                IntFixed(*self).fixed().eq(rhs)
+            fn eq(&self, rhs: &$Fixed<Frac>) -> bool {
+                let fixed_lhs = IntFixed(*self).fixed();
+                PartialEq::eq(&fixed_lhs, rhs)
             }
         }
 
-        impl<Frac: $LeEqU> PartialOrd<$Int> for $Fix<Frac> {
+        impl<Frac: Unsigned> PartialOrd<$Int> for $Fixed<Frac> {
             #[inline]
             fn partial_cmp(&self, rhs: &$Int) -> Option<Ordering> {
-                self.partial_cmp(&IntFixed(*rhs).fixed())
+                let fixed_rhs = IntFixed(*rhs).fixed();
+                PartialOrd::partial_cmp(self, &fixed_rhs)
             }
 
             #[inline]
             fn lt(&self, rhs: &$Int) -> bool {
-                self.lt(&IntFixed(*rhs).fixed())
+                let fixed_rhs = IntFixed(*rhs).fixed();
+                PartialOrd::lt(self, &fixed_rhs)
             }
 
             #[inline]
             fn le(&self, rhs: &$Int) -> bool {
-                !rhs.lt(self)
+                let fixed_rhs = IntFixed(*rhs).fixed();
+                PartialOrd::le(self, &fixed_rhs)
             }
 
             #[inline]
             fn gt(&self, rhs: &$Int) -> bool {
-                rhs.lt(self)
+                let fixed_rhs = IntFixed(*rhs).fixed();
+                PartialOrd::gt(self, &fixed_rhs)
             }
 
             #[inline]
             fn ge(&self, rhs: &$Int) -> bool {
-                !self.lt(rhs)
+                let fixed_rhs = IntFixed(*rhs).fixed();
+                PartialOrd::ge(self, &fixed_rhs)
             }
         }
 
-        impl<Frac: $LeEqU> PartialOrd<$Fix<Frac>> for $Int {
+        impl<Frac: Unsigned> PartialOrd<$Fixed<Frac>> for $Int {
             #[inline]
-            fn partial_cmp(&self, rhs: &$Fix<Frac>) -> Option<Ordering> {
-                IntFixed(*self).fixed().partial_cmp(rhs)
+            fn partial_cmp(&self, rhs: &$Fixed<Frac>) -> Option<Ordering> {
+                let fixed_lhs = IntFixed(*self).fixed();
+                PartialOrd::partial_cmp(&fixed_lhs, rhs)
             }
 
             #[inline]
-            fn lt(&self, rhs: &$Fix<Frac>) -> bool {
-                IntFixed(*self).fixed().lt(rhs)
+            fn lt(&self, rhs: &$Fixed<Frac>) -> bool {
+                let fixed_lhs = IntFixed(*self).fixed();
+                PartialOrd::lt(&fixed_lhs, rhs)
             }
 
             #[inline]
-            fn le(&self, rhs: &$Fix<Frac>) -> bool {
-                !rhs.lt(self)
+            fn le(&self, rhs: &$Fixed<Frac>) -> bool {
+                let fixed_lhs = IntFixed(*self).fixed();
+                PartialOrd::le(&fixed_lhs, rhs)
             }
 
             #[inline]
-            fn gt(&self, rhs: &$Fix<Frac>) -> bool {
-                rhs.lt(self)
+            fn gt(&self, rhs: &$Fixed<Frac>) -> bool {
+                let fixed_lhs = IntFixed(*self).fixed();
+                PartialOrd::gt(&fixed_lhs, rhs)
             }
 
             #[inline]
-            fn ge(&self, rhs: &$Fix<Frac>) -> bool {
-                !self.lt(rhs)
+            fn ge(&self, rhs: &$Fixed<Frac>) -> bool {
+                let fixed_lhs = IntFixed(*self).fixed();
+                PartialOrd::ge(&fixed_lhs, rhs)
             }
         }
     };
@@ -261,18 +273,18 @@ macro_rules! fixed_cmp_float {
 
 macro_rules! fixed_cmp_all {
     ($Fix:ident($LeEqU:ident, $Inner:ident)) => {
-        fixed_cmp_int! { $Fix($LeEqU), i8 }
-        fixed_cmp_int! { $Fix($LeEqU), i16 }
-        fixed_cmp_int! { $Fix($LeEqU), i32 }
-        fixed_cmp_int! { $Fix($LeEqU), i64 }
-        fixed_cmp_int! { $Fix($LeEqU), i128 }
-        fixed_cmp_int! { $Fix($LeEqU), isize }
-        fixed_cmp_int! { $Fix($LeEqU), u8 }
-        fixed_cmp_int! { $Fix($LeEqU), u16 }
-        fixed_cmp_int! { $Fix($LeEqU), u32 }
-        fixed_cmp_int! { $Fix($LeEqU), u64 }
-        fixed_cmp_int! { $Fix($LeEqU), u128 }
-        fixed_cmp_int! { $Fix($LeEqU), usize }
+        fixed_cmp_int! { $Fix, i8 }
+        fixed_cmp_int! { $Fix, i16 }
+        fixed_cmp_int! { $Fix, i32 }
+        fixed_cmp_int! { $Fix, i64 }
+        fixed_cmp_int! { $Fix, i128 }
+        fixed_cmp_int! { $Fix, isize }
+        fixed_cmp_int! { $Fix, u8 }
+        fixed_cmp_int! { $Fix, u16 }
+        fixed_cmp_int! { $Fix, u32 }
+        fixed_cmp_int! { $Fix, u64 }
+        fixed_cmp_int! { $Fix, u128 }
+        fixed_cmp_int! { $Fix, usize }
         fixed_cmp_float! { $Fix($LeEqU, $Inner), f16 }
         fixed_cmp_float! { $Fix($LeEqU, $Inner), bf16 }
         fixed_cmp_float! { $Fix($LeEqU, $Inner), f32 }
