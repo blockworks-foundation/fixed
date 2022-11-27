@@ -26,105 +26,6 @@ use crate::{
 use core::cmp::Ordering;
 use half::{bf16, f16};
 
-macro_rules! fixed_cmp_fixed {
-    (
-        $Lhs:ident($LhsLeEqU:ident, $LhsInner:ident),
-        $Rhs:ident($RhsLeEqU:ident, $RhsInner:ident)
-    ) => {
-        impl<FracLhs: $LhsLeEqU, FracRhs: $RhsLeEqU> PartialEq<$Rhs<FracRhs>> for $Lhs<FracLhs> {
-            #[inline]
-            fn eq(&self, rhs: &$Rhs<FracRhs>) -> bool {
-                let conv = int_helper::$RhsInner::to_fixed_helper(
-                    rhs.to_bits(),
-                    <$Rhs<FracRhs>>::FRAC_NBITS as i32,
-                    Self::FRAC_NBITS,
-                    Self::INT_NBITS,
-                );
-                let (rhs_is_neg, rhs_bits) = match conv.bits {
-                    Widest::Unsigned(bits) => (false, bits as $LhsInner),
-                    Widest::Negative(bits) => (true, bits as $LhsInner),
-                };
-                conv.dir == Ordering::Equal
-                    && !conv.overflow
-                    && rhs_is_neg == int_helper::$LhsInner::is_negative(rhs_bits)
-                    && rhs_bits == self.to_bits()
-            }
-        }
-
-        impl<FracLhs: $LhsLeEqU, FracRhs: $RhsLeEqU> PartialOrd<$Rhs<FracRhs>> for $Lhs<FracLhs> {
-            #[inline]
-            fn partial_cmp(&self, rhs: &$Rhs<FracRhs>) -> Option<Ordering> {
-                let lhs_is_neg = int_helper::$LhsInner::is_negative(self.to_bits());
-                let rhs_is_neg = int_helper::$RhsInner::is_negative(rhs.to_bits());
-                match (lhs_is_neg, rhs_is_neg) {
-                    (false, true) => return Some(Ordering::Greater),
-                    (true, false) => return Some(Ordering::Less),
-                    _ => {}
-                }
-                let conv = int_helper::$RhsInner::to_fixed_helper(
-                    rhs.to_bits(),
-                    <$Rhs<FracRhs>>::FRAC_NBITS as i32,
-                    Self::FRAC_NBITS,
-                    Self::INT_NBITS,
-                );
-                let rhs_bits = match conv.bits {
-                    Widest::Unsigned(bits) => bits as $LhsInner,
-                    Widest::Negative(bits) => bits as $LhsInner,
-                };
-                if conv.overflow || int_helper::$LhsInner::is_negative(rhs_bits) != rhs_is_neg {
-                    return if rhs_is_neg {
-                        Some(Ordering::Greater)
-                    } else {
-                        Some(Ordering::Less)
-                    };
-                }
-                Some(self.to_bits().cmp(&rhs_bits).then(conv.dir))
-            }
-
-            #[inline]
-            fn lt(&self, rhs: &$Rhs<FracRhs>) -> bool {
-                let lhs_is_neg = int_helper::$LhsInner::is_negative(self.to_bits());
-                let rhs_is_neg = int_helper::$RhsInner::is_negative(rhs.to_bits());
-                match (lhs_is_neg, rhs_is_neg) {
-                    (false, true) => return false,
-                    (true, false) => return true,
-                    _ => {}
-                }
-                let conv = int_helper::$RhsInner::to_fixed_helper(
-                    rhs.to_bits(),
-                    <$Rhs<FracRhs>>::FRAC_NBITS as i32,
-                    Self::FRAC_NBITS,
-                    Self::INT_NBITS,
-                );
-                let rhs_bits = match conv.bits {
-                    Widest::Unsigned(bits) => bits as $LhsInner,
-                    Widest::Negative(bits) => bits as $LhsInner,
-                };
-                if conv.overflow || int_helper::$LhsInner::is_negative(rhs_bits) != rhs_is_neg {
-                    return !rhs_is_neg;
-                }
-                let lhs_bits = self.to_bits();
-                lhs_bits < rhs_bits || (lhs_bits == rhs_bits && conv.dir == Ordering::Less)
-            }
-
-            #[inline]
-            fn le(&self, rhs: &$Rhs<FracRhs>) -> bool {
-                !rhs.lt(self)
-            }
-
-            #[inline]
-            fn gt(&self, rhs: &$Rhs<FracRhs>) -> bool {
-                rhs.lt(self)
-            }
-
-            #[inline]
-            fn ge(&self, rhs: &$Rhs<FracRhs>) -> bool {
-                !self.lt(rhs)
-            }
-        }
-    };
-}
-
 macro_rules! fixed_cmp_int {
     ($Fix:ident($LeEqU:ident), $Int:ident) => {
         impl<Frac: $LeEqU> PartialEq<$Int> for $Fix<Frac> {
@@ -360,25 +261,6 @@ macro_rules! fixed_cmp_float {
 
 macro_rules! fixed_cmp_all {
     ($Fix:ident($LeEqU:ident, $Inner:ident)) => {
-        impl<Frac: $LeEqU> Eq for $Fix<Frac> {}
-
-        impl<Frac: $LeEqU> Ord for $Fix<Frac> {
-            #[inline]
-            fn cmp(&self, rhs: &$Fix<Frac>) -> Ordering {
-                self.to_bits().cmp(&rhs.to_bits())
-            }
-        }
-
-        fixed_cmp_fixed! { $Fix($LeEqU, $Inner), FixedI8(LeEqU8, i8) }
-        fixed_cmp_fixed! { $Fix($LeEqU, $Inner), FixedI16(LeEqU16, i16) }
-        fixed_cmp_fixed! { $Fix($LeEqU, $Inner), FixedI32(LeEqU32, i32) }
-        fixed_cmp_fixed! { $Fix($LeEqU, $Inner), FixedI64(LeEqU64, i64) }
-        fixed_cmp_fixed! { $Fix($LeEqU, $Inner), FixedI128(LeEqU128, i128) }
-        fixed_cmp_fixed! { $Fix($LeEqU, $Inner), FixedU8(LeEqU8, u8) }
-        fixed_cmp_fixed! { $Fix($LeEqU, $Inner), FixedU16(LeEqU16, u16) }
-        fixed_cmp_fixed! { $Fix($LeEqU, $Inner), FixedU32(LeEqU32, u32) }
-        fixed_cmp_fixed! { $Fix($LeEqU, $Inner), FixedU64(LeEqU64, u64) }
-        fixed_cmp_fixed! { $Fix($LeEqU, $Inner), FixedU128(LeEqU128, u128) }
         fixed_cmp_int! { $Fix($LeEqU), i8 }
         fixed_cmp_int! { $Fix($LeEqU), i16 }
         fixed_cmp_int! { $Fix($LeEqU), i32 }
