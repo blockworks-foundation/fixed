@@ -1644,6 +1644,7 @@ where
     /// # Panics
     ///
     /// Panics if the fixed-point number is ≤&nbsp;0.
+    #[doc(alias("ilog2"))]
     fn int_log2(self) -> i32;
 
     /// Integer base-10 logarithm, rounded down.
@@ -1654,6 +1655,7 @@ where
     /// # Panics
     ///
     /// Panics if the fixed-point number is ≤&nbsp;0.
+    #[doc(alias("ilog10"))]
     fn int_log10(self) -> i32;
 
     /// Integer logarithm to the specified base, rounded down.
@@ -1664,6 +1666,7 @@ where
     /// # Panics
     ///
     /// Panics if the fixed-point number is ≤&nbsp;0 or if the base is <&nbsp;2.
+    #[doc(alias("ilog"))]
     fn int_log(self, base: u32) -> i32;
 
     /// Checked integer base-2 logarithm, rounded down. Returns the
@@ -1673,6 +1676,7 @@ where
     /// <code>FixedI32::[checked\_int\_log2][FixedI32::checked_int_log2]</code>
     /// and
     /// <code>FixedU32::[checked\_int\_log2][FixedU32::checked_int_log2]</code>.
+    #[doc(alias("checked_ilog2"))]
     fn checked_int_log2(self) -> Option<i32>;
 
     /// Checked integer base-10 logarithm, rounded down. Returns the
@@ -1682,6 +1686,7 @@ where
     /// <code>FixedI32::[checked\_int\_log10][FixedI32::checked_int_log10]</code>
     /// and
     /// <code>FixedU32::[checked\_int\_log10][FixedU32::checked_int_log10]</code>.
+    #[doc(alias("checked_ilog10"))]
     fn checked_int_log10(self) -> Option<i32>;
 
     /// Checked integer logarithm to the specified base, rounded down. Returns
@@ -1692,6 +1697,7 @@ where
     /// <code>FixedI32::[checked\_int\_log][FixedI32::checked_int_log]</code>
     /// and
     /// <code>FixedU32::[checked\_int\_log][FixedU32::checked_int_log]</code>.
+    #[doc(alias("checked_ilog"))]
     fn checked_int_log(self, base: u32) -> Option<i32>;
 
     /// Reverses the order of the bits of the fixed-point number.
