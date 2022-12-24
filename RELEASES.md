@@ -5,7 +5,7 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Version 1.21.0 (unreleased)
+Version 1.21.0 (2022-12-24)
 ===========================
 
   * Comparisons involving fixed-point numbers now have more relaxed constraints
@@ -13,7 +13,7 @@ Version 1.21.0 (unreleased)
     [`Unsigned`][uns-1-21].
   * Better code should now be generated when comparing a fixed-point number to
     another fixed-point number.
-  * The following methods were added to the [`F128`][f128-1-20] struct:
+  * The following methods were added to the [`F128`][f128-1-21] struct:
       * [`min`][f128-min-1-21], [`max`][f128-max-1-21]
       * [`clamp`][f128-c-1-21]
 
