@@ -1098,11 +1098,7 @@ mod tests {
             let error = (ans.map(f64::from).unwrap_or(two_pow) - approx).abs();
             assert!(
                 error <= 0.5,
-                "i {} ans {:?}  approx {} error {}",
-                i,
-                ans,
-                approx,
-                error
+                "i {i} ans {ans:?}  approx {approx} error {error}"
             );
         }
     }
@@ -1117,11 +1113,7 @@ mod tests {
             let error = (ans.map(f64::from).unwrap_or(two_pow) - approx).abs();
             assert!(
                 error <= 0.5,
-                "i {} ans {:?}  approx {} error {}",
-                i,
-                ans,
-                approx,
-                error
+                "i {i} ans {ans:?}  approx {approx} error {error}"
             );
         }
     }
@@ -1146,11 +1138,7 @@ mod tests {
                 let error = (ans.map(f64::from).unwrap_or(two_pow) - approx).abs();
                 assert!(
                     error <= 0.5,
-                    "i {} ans {:?}  approx {} error {}",
-                    i,
-                    ans,
-                    approx,
-                    error
+                    "i {i} ans {ans:?}  approx {approx} error {error}"
                 );
             }
         }
@@ -1176,11 +1164,7 @@ mod tests {
                 let error = (ans.map(|x| x as f64).unwrap_or(two_pow) - approx).abs();
                 assert!(
                     error <= 0.5,
-                    "i {} ans {:?}  approx {} error {}",
-                    i,
-                    ans,
-                    approx,
-                    error
+                    "i {i} ans {ans:?}  approx {approx} error {error}"
                 );
             }
         }
@@ -2364,9 +2348,9 @@ mod tests {
             assert_eq!(I15F17::from_str(&fix_pos_str).unwrap(), fix_pos);
             assert_eq!(I15F17::from_str(&fix_neg_str).unwrap(), fix_neg);
 
-            let fix_str3 = format!("{:.3}", fix);
-            let fix_pos_str3 = format!("{:.3}", fix_pos);
-            let fix_neg_str3 = format!("{:.3}", fix_neg);
+            let fix_str3 = format!("{fix:.3}");
+            let fix_pos_str3 = format!("{fix_pos:.3}");
+            let fix_neg_str3 = format!("{fix_neg:.3}");
             assert_eq!(fix_str3, fix_pos_str3);
             if u != 0 {
                 assert_eq!(&fix_neg_str3[..1], "-");
@@ -2380,9 +2364,9 @@ mod tests {
             let from_fix_neg_str3 = I15F17::from_str(&fix_neg_str3).unwrap();
             assert!(from_fix_neg_str3.dist(fix_neg) <= max_diff);
 
-            let fix_str9 = format!("{:.9}", fix);
-            let fix_pos_str9 = format!("{:.9}", fix_pos);
-            let fix_neg_str9 = format!("{:.9}", fix_neg);
+            let fix_str9 = format!("{fix:.9}");
+            let fix_pos_str9 = format!("{fix_pos:.9}");
+            let fix_neg_str9 = format!("{fix_neg:.9}");
             assert_eq!(fix_str9, fix_pos_str9);
             if u != 0 {
                 assert_eq!(&fix_neg_str9[..1], "-");

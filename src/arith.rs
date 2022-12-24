@@ -1038,7 +1038,7 @@ mod tests {
         match (I16F16::from_num(a).checked_rem_int(b), a.checked_rem(b)) {
             (Some(a), Some(b)) => assert_eq!(a, b),
             (None, None) => {}
-            (a, b) => panic!("mismatch {:?}, {:?}", a, b),
+            (a, b) => panic!("mismatch {a:?}, {b:?}"),
         }
         match (
             I16F16::from_num(a).checked_rem_euclid_int(b),
@@ -1046,7 +1046,7 @@ mod tests {
         ) {
             (Some(a), Some(b)) => assert_eq!(a, b),
             (None, None) => {}
-            (a, b) => panic!("mismatch {:?}, {:?}", a, b),
+            (a, b) => panic!("mismatch {a:?}, {b:?}"),
         }
     }
 

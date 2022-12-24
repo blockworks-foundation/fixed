@@ -571,19 +571,19 @@ mod tests {
     #[test]
     fn format() {
         let pos = I16F16::from_num(12.3);
-        assert_eq!(format!("{:+}", pos), "+12.3");
-        assert_eq!(format!("{:+08}", pos), "+00012.3");
-        assert_eq!(format!("{:+#08}", pos), "+00012.3");
-        assert_eq!(format!("{:+08X}", pos), "+0C.4CCD");
-        assert_eq!(format!("{:+08.1X}", pos), "+0000C.5");
-        assert_eq!(format!("{:+#08X}", pos), "+0xC.4CCD");
-        assert_eq!(format!("{:+#08.1X}", pos), "+0x00C.5");
+        assert_eq!(format!("{pos:+}"), "+12.3");
+        assert_eq!(format!("{pos:+08}"), "+00012.3");
+        assert_eq!(format!("{pos:+#08}"), "+00012.3");
+        assert_eq!(format!("{pos:+08X}"), "+0C.4CCD");
+        assert_eq!(format!("{pos:+08.1X}"), "+0000C.5");
+        assert_eq!(format!("{pos:+#08X}"), "+0xC.4CCD");
+        assert_eq!(format!("{pos:+#08.1X}"), "+0x00C.5");
 
-        assert_eq!(format!("{:#<8}", pos), "12.3####");
-        assert_eq!(format!("{:#^8}", pos), "##12.3##");
-        assert_eq!(format!("{:#^9}", pos), "##12.3###");
-        assert_eq!(format!("{:#>8}", pos), "####12.3");
-        assert_eq!(format!("{:#^08}", pos), "000012.3");
+        assert_eq!(format!("{pos:#<8}"), "12.3####");
+        assert_eq!(format!("{pos:#^8}"), "##12.3##");
+        assert_eq!(format!("{pos:#^9}"), "##12.3###");
+        assert_eq!(format!("{pos:#>8}"), "####12.3");
+        assert_eq!(format!("{pos:#^08}"), "000012.3");
     }
 
     fn trim_frac_zeros(mut x: &str) -> &str {
@@ -626,20 +626,20 @@ mod tests {
             let mut check_n = format!("-{:x}.{:02x}", n.abs() >> 7, (n.abs() & 0x7f) << 1);
             up_frac_digits(&mut check_n, 1000);
             let trimmed_n = trim_frac_zeros(&check_n);
-            assert_eq!(format!("{:.1000x}", f_p), check_p);
-            assert_eq!(format!("{:x}", f_p), trimmed_p);
-            assert_eq!(format!("{:.1000x}", f_n), check_n);
-            assert_eq!(format!("{:x}", f_n), trimmed_n);
+            assert_eq!(format!("{f_p:.1000x}"), check_p);
+            assert_eq!(format!("{f_p:x}"), trimmed_p);
+            assert_eq!(format!("{f_n:.1000x}"), check_n);
+            assert_eq!(format!("{f_n:x}"), trimmed_n);
         }
     }
 
     #[test]
     fn debug_hex() {
         let v = I16F16::MAX;
-        assert_eq!(format!("{:?}", v), "32767.99998");
-        assert_eq!(format!("{:x?}", v), "7fff.ffff");
-        assert_eq!(format!("{:X?}", v), "7FFF.FFFF");
-        assert_eq!(format!("{:010X?}", v), "07FFF.FFFF");
+        assert_eq!(format!("{v:?}"), "32767.99998");
+        assert_eq!(format!("{v:x?}"), "7fff.ffff");
+        assert_eq!(format!("{v:X?}"), "7FFF.FFFF");
+        assert_eq!(format!("{v:010X?}"), "07FFF.FFFF");
     }
 
     #[test]
@@ -649,7 +649,7 @@ mod tests {
             let bits = (!0u32 >> 8) ^ i;
             let fix = U25F7::from_bits(bits);
             let flt = (bits as f32) / 7f32.exp2();
-            assert_eq!(format!("{}", fix), format!("{}", flt));
+            assert_eq!(format!("{fix}"), format!("{flt}"));
             assert_eq!(U25F7::from_num(flt), fix);
             assert_eq!(fix.to_num::<f32>(), flt);
         }
@@ -725,11 +725,11 @@ mod tests {
             // integer part to have exactly 23 bits for the fraction
             let float = f32::from(i + 1000) / 1000.;
             let fix = U9F23::from_num(float);
-            let check = format!("1.{:03}", i);
-            assert_eq!(format!("{}", fix), trim_frac_zeros(&check));
-            assert_eq!(format!("{}", fix), format!("{}", float));
+            let check = format!("1.{i:03}");
+            assert_eq!(format!("{fix}"), trim_frac_zeros(&check));
+            assert_eq!(format!("{fix}"), format!("{float}"));
             for prec in 0..10 {
-                assert_eq!(format!("{:.*}", prec, fix), format!("{:.*}", prec, float));
+                assert_eq!(format!("{fix:.prec$}"), format!("{float:.prec$}"));
             }
         }
     }
@@ -745,63 +745,63 @@ mod tests {
     #[test]
     fn rounding() {
         let i = U8F8::from_bits(0xFF80);
-        assert_eq!(format!("{}", i), "255.5");
-        assert_eq!(format!("{:?}", i), "255.5");
-        assert_eq!(format!("{:.0}", i), "256");
-        assert_eq!(format!("{:b}", i), "11111111.1");
-        assert_eq!(format!("{:.0b}", i), "100000000");
-        assert_eq!(format!("{:o}", i), "377.4");
-        assert_eq!(format!("{:.0o}", i), "400");
-        assert_eq!(format!("{:X}", i), "FF.8");
-        assert_eq!(format!("{:.0X}", i), "100");
+        assert_eq!(format!("{i}"), "255.5");
+        assert_eq!(format!("{i:?}"), "255.5");
+        assert_eq!(format!("{i:.0}"), "256");
+        assert_eq!(format!("{i:b}"), "11111111.1");
+        assert_eq!(format!("{i:.0b}"), "100000000");
+        assert_eq!(format!("{i:o}"), "377.4");
+        assert_eq!(format!("{i:.0o}"), "400");
+        assert_eq!(format!("{i:X}"), "FF.8");
+        assert_eq!(format!("{i:.0X}"), "100");
 
         let i = U8F8::from_bits(0xFE80);
-        assert_eq!(format!("{}", i), "254.5");
-        assert_eq!(format!("{:?}", i), "254.5");
-        assert_eq!(format!("{:.0}", i), "254");
-        assert_eq!(format!("{:b}", i), "11111110.1");
-        assert_eq!(format!("{:.0b}", i), "11111110");
-        assert_eq!(format!("{:o}", i), "376.4");
-        assert_eq!(format!("{:.0o}", i), "376");
-        assert_eq!(format!("{:X}", i), "FE.8");
-        assert_eq!(format!("{:.0X}", i), "FE");
+        assert_eq!(format!("{i}"), "254.5");
+        assert_eq!(format!("{i:?}"), "254.5");
+        assert_eq!(format!("{i:.0}"), "254");
+        assert_eq!(format!("{i:b}"), "11111110.1");
+        assert_eq!(format!("{i:.0b}"), "11111110");
+        assert_eq!(format!("{i:o}"), "376.4");
+        assert_eq!(format!("{i:.0o}"), "376");
+        assert_eq!(format!("{i:X}"), "FE.8");
+        assert_eq!(format!("{i:.0X}"), "FE");
 
         let i = U8F8::from_bits(0xDDDD);
-        assert_eq!(format!("{}", i), "221.863");
-        assert_eq!(format!("{:?}", i), "221.863");
-        assert_eq!(format!("{:.0}", i), "222");
-        assert_eq!(format!("{:.1}", i), "221.9");
-        assert_eq!(format!("{:.2}", i), "221.86");
-        assert_eq!(format!("{:.3}", i), "221.863");
-        assert_eq!(format!("{:.4}", i), "221.8633");
-        assert_eq!(format!("{:.5}", i), "221.86328");
-        assert_eq!(format!("{:.6}", i), "221.863281");
-        assert_eq!(format!("{:.7}", i), "221.8632812");
-        assert_eq!(format!("{:.8}", i), "221.86328125");
-        assert_eq!(format!("{:.9}", i), "221.863281250");
-        assert_eq!(format!("{:b}", i), "11011101.11011101");
-        assert_eq!(format!("{:.0b}", i), "11011110");
-        assert_eq!(format!("{:.1b}", i), "11011110.0");
-        assert_eq!(format!("{:.2b}", i), "11011101.11");
-        assert_eq!(format!("{:.3b}", i), "11011101.111");
-        assert_eq!(format!("{:.4b}", i), "11011101.1110");
-        assert_eq!(format!("{:.5b}", i), "11011101.11100");
-        assert_eq!(format!("{:.6b}", i), "11011101.110111");
-        assert_eq!(format!("{:.7b}", i), "11011101.1101110");
-        assert_eq!(format!("{:.8b}", i), "11011101.11011101");
-        assert_eq!(format!("{:.9b}", i), "11011101.110111010");
-        assert_eq!(format!("{:o}", i), "335.672");
-        assert_eq!(format!("{:.0o}", i), "336");
-        assert_eq!(format!("{:.1o}", i), "335.7");
-        assert_eq!(format!("{:.2o}", i), "335.67");
-        assert_eq!(format!("{:.3o}", i), "335.672");
-        assert_eq!(format!("{:.4o}", i), "335.6720");
-        assert_eq!(format!("{:X}", i), "DD.DD");
-        assert_eq!(format!("{:.0X}", i), "DE");
-        assert_eq!(format!("{:.0X}", i), "DE");
-        assert_eq!(format!("{:.1X}", i), "DD.E");
-        assert_eq!(format!("{:.2X}", i), "DD.DD");
-        assert_eq!(format!("{:.3X}", i), "DD.DD0");
+        assert_eq!(format!("{i}"), "221.863");
+        assert_eq!(format!("{i:?}"), "221.863");
+        assert_eq!(format!("{i:.0}"), "222");
+        assert_eq!(format!("{i:.1}"), "221.9");
+        assert_eq!(format!("{i:.2}"), "221.86");
+        assert_eq!(format!("{i:.3}"), "221.863");
+        assert_eq!(format!("{i:.4}"), "221.8633");
+        assert_eq!(format!("{i:.5}"), "221.86328");
+        assert_eq!(format!("{i:.6}"), "221.863281");
+        assert_eq!(format!("{i:.7}"), "221.8632812");
+        assert_eq!(format!("{i:.8}"), "221.86328125");
+        assert_eq!(format!("{i:.9}"), "221.863281250");
+        assert_eq!(format!("{i:b}"), "11011101.11011101");
+        assert_eq!(format!("{i:.0b}"), "11011110");
+        assert_eq!(format!("{i:.1b}"), "11011110.0");
+        assert_eq!(format!("{i:.2b}"), "11011101.11");
+        assert_eq!(format!("{i:.3b}"), "11011101.111");
+        assert_eq!(format!("{i:.4b}"), "11011101.1110");
+        assert_eq!(format!("{i:.5b}"), "11011101.11100");
+        assert_eq!(format!("{i:.6b}"), "11011101.110111");
+        assert_eq!(format!("{i:.7b}"), "11011101.1101110");
+        assert_eq!(format!("{i:.8b}"), "11011101.11011101");
+        assert_eq!(format!("{i:.9b}"), "11011101.110111010");
+        assert_eq!(format!("{i:o}"), "335.672");
+        assert_eq!(format!("{i:.0o}"), "336");
+        assert_eq!(format!("{i:.1o}"), "335.7");
+        assert_eq!(format!("{i:.2o}"), "335.67");
+        assert_eq!(format!("{i:.3o}"), "335.672");
+        assert_eq!(format!("{i:.4o}"), "335.6720");
+        assert_eq!(format!("{i:X}"), "DD.DD");
+        assert_eq!(format!("{i:.0X}"), "DE");
+        assert_eq!(format!("{i:.0X}"), "DE");
+        assert_eq!(format!("{i:.1X}"), "DD.E");
+        assert_eq!(format!("{i:.2X}"), "DD.DD");
+        assert_eq!(format!("{i:.3X}"), "DD.DD0");
     }
 
     #[test]
@@ -812,15 +812,15 @@ mod tests {
             assert_eq!(ifix.to_string(), i.to_string());
             assert_eq!(ufix.to_string(), u.to_string());
             if i >= 0 {
-                assert_eq!(format!("{:#X}", ifix), format!("{:#X}", i));
-                assert_eq!(format!("{:#b}", ifix), format!("{:#b}", i));
+                assert_eq!(format!("{ifix:#X}"), format!("{i:#X}"));
+                assert_eq!(format!("{ifix:#b}"), format!("{i:#b}"));
             } else {
                 let abs_i = i.wrapping_neg() as u8;
-                assert_eq!(format!("{:#X}", ifix), format!("-{:#X}", abs_i));
-                assert_eq!(format!("{:#b}", ifix), format!("-{:#b}", abs_i));
+                assert_eq!(format!("{ifix:#X}"), format!("-{abs_i:#X}"));
+                assert_eq!(format!("{ifix:#b}"), format!("-{abs_i:#b}"));
             }
-            assert_eq!(format!("{:#x}", ufix), format!("{:#x}", u));
-            assert_eq!(format!("{:#o}", ufix), format!("{:#o}", u));
+            assert_eq!(format!("{ufix:#x}"), format!("{u:#x}"));
+            assert_eq!(format!("{ufix:#o}"), format!("{u:#o}"));
         }
     }
 
@@ -836,7 +836,7 @@ mod tests {
             let (sifix, sufix) = (ifix.to_string(), ufix.to_string());
             let pifix = sifix.find('.').map(|p| sifix.len() - 1 - p).unwrap_or(0);
             let pufix = sufix.find('.').map(|p| sufix.len() - 1 - p).unwrap_or(0);
-            let (siflo, suflo) = (format!("{:.*}", pifix, iflo), format!("{:.*}", pufix, uflo));
+            let (siflo, suflo) = (format!("{iflo:.pifix$}"), format!("{uflo:.pufix$}"));
             assert_eq!(sifix, siflo);
             assert_eq!(sufix, suflo);
 
@@ -885,12 +885,12 @@ mod tests {
                 assert_eq!(&fix_neg_str[1..], fix_pos_str);
             }
 
-            let fix_str3 = format!("{:.3}", fix);
-            let fix_pos_str3 = format!("{:.3}", fix_pos);
-            let fix_neg_str3 = format!("{:.3}", fix_neg);
-            assert_eq!(fix_str3, format!("{:.3}", flo));
+            let fix_str3 = format!("{fix:.3}");
+            let fix_pos_str3 = format!("{fix_pos:.3}");
+            let fix_neg_str3 = format!("{fix_neg:.3}");
+            assert_eq!(fix_str3, format!("{flo:.3}"));
             assert_eq!(fix_str3, fix_pos_str3);
-            assert_eq!(fix_neg_str3, format!("{:.3}", flo_neg));
+            assert_eq!(fix_neg_str3, format!("{flo_neg:.3}"));
             if u != 0 {
                 assert_eq!(&fix_neg_str3[..1], "-");
                 assert_eq!(&fix_neg_str3[1..], fix_pos_str3);

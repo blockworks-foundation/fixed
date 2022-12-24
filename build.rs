@@ -46,10 +46,10 @@ impl Environment {
         contents: &str,
         nightly_features: Option<&str>,
     ) {
-        let try_dir = self.out_dir.join(format!("try_{}", name));
-        let filename = format!("try_{}.rs", name);
+        let try_dir = self.out_dir.join(format!("try_{name}"));
+        let filename = format!("try_{name}.rs");
         create_dir_or_panic(&try_dir);
-        println!("$ cd {:?}", try_dir);
+        println!("$ cd {try_dir:?}");
 
         #[derive(PartialEq)]
         enum Iteration {
@@ -63,7 +63,7 @@ impl Environment {
                 Iteration::Stable => contents,
                 Iteration::Unstable => match nightly_features {
                     Some(features) => {
-                        s = format!("#![feature({})]\n{}", features, contents);
+                        s = format!("#![feature({features})]\n{contents}");
                         &s
                     }
                     None => continue,
@@ -73,16 +73,16 @@ impl Environment {
             let mut cmd = Command::new(&self.rustc);
             cmd.current_dir(&try_dir)
                 .args([&filename, "--emit=dep-info,metadata"]);
-            println!("$ {:?}", cmd);
+            println!("$ {cmd:?}");
             let status = cmd
                 .status()
-                .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
+                .unwrap_or_else(|_| panic!("Unable to execute: {cmd:?}"));
             if status.success() {
                 if optional.0 {
-                    println!("cargo:rustc-cfg={}", name);
+                    println!("cargo:rustc-cfg={name}");
                 }
                 if *i == Iteration::Unstable {
-                    println!("cargo:rustc-cfg=nightly_{}", name);
+                    println!("cargo:rustc-cfg=nightly_{name}");
                 }
                 found = true;
                 break;
@@ -91,43 +91,42 @@ impl Environment {
         remove_dir_or_panic(&try_dir);
         assert!(
             found || optional.0,
-            "essential feature not supported by compiler: {}",
-            name
+            "essential feature not supported by compiler: {name}"
         );
     }
 }
 
 fn cargo_env(name: &str) -> OsString {
     env::var_os(name)
-        .unwrap_or_else(|| panic!("environment variable not found: {}, please use cargo", name))
+        .unwrap_or_else(|| panic!("environment variable not found: {name}, please use cargo"))
 }
 
 fn remove_dir(dir: &Path) -> IoResult<()> {
     if !dir.exists() {
         return Ok(());
     }
-    assert!(dir.is_dir(), "Not a directory: {:?}", dir);
-    println!("$ rm -r {:?}", dir);
+    assert!(dir.is_dir(), "Not a directory: {dir:?}");
+    println!("$ rm -r {dir:?}");
     fs::remove_dir_all(dir)
 }
 
 fn remove_dir_or_panic(dir: &Path) {
-    remove_dir(dir).unwrap_or_else(|_| panic!("Unable to remove directory: {:?}", dir));
+    remove_dir(dir).unwrap_or_else(|_| panic!("Unable to remove directory: {dir:?}"));
 }
 
 fn create_dir(dir: &Path) -> IoResult<()> {
-    println!("$ mkdir -p {:?}", dir);
+    println!("$ mkdir -p {dir:?}");
     fs::create_dir_all(dir)
 }
 
 fn create_dir_or_panic(dir: &Path) {
-    create_dir(dir).unwrap_or_else(|_| panic!("Unable to create directory: {:?}", dir));
+    create_dir(dir).unwrap_or_else(|_| panic!("Unable to create directory: {dir:?}"));
 }
 
 fn create_file_or_panic(filename: &Path, contents: &str) {
     println!("$ printf '%s' {:?}... > {:?}", &contents[0..20], filename);
     let mut file =
-        File::create(filename).unwrap_or_else(|_| panic!("Unable to create file: {:?}", filename));
+        File::create(filename).unwrap_or_else(|_| panic!("Unable to create file: {filename:?}"));
     file.write_all(contents.as_bytes())
-        .unwrap_or_else(|_| panic!("Unable to write to file: {:?}", filename));
+        .unwrap_or_else(|_| panic!("Unable to write to file: {filename:?}"));
 }

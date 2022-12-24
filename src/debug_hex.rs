@@ -115,12 +115,12 @@ fn get_flag_masks() -> (u32, u32) {
     }
 
     let store_flags = StoreFlags(Cell::new(0));
-    if write!(Discard, "{:x?}", store_flags).is_err() {
+    if write!(Discard, "{store_flags:x?}").is_err() {
         store_cache(u32::MAX, u32::MAX);
         return (0, 0);
     }
     let lower_flags = store_flags.0.get();
-    if write!(Discard, "{:X?}", store_flags).is_err() {
+    if write!(Discard, "{store_flags:X?}").is_err() {
         store_cache(u32::MAX, u32::MAX);
         return (0, 0);
     }
