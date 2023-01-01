@@ -386,21 +386,6 @@ fixed_cmp_all! { FixedU32(LeEqU32, u32) }
 fixed_cmp_all! { FixedU64(LeEqU64, u64) }
 fixed_cmp_all! { FixedU128(LeEqU128, u128) }
 
-macro_rules! fixed_cmp {
-    ($Fixed:ident($Inner:ty, $Len:ty, $bits_count:expr)) => {};
-}
-
-fixed_cmp! { FixedU8(u8, LeEqU8, 8) }
-fixed_cmp! { FixedU16(u16, LeEqU16, 16) }
-fixed_cmp! { FixedU32(u32, LeEqU32, 32) }
-fixed_cmp! { FixedU64(u64, LeEqU64, 64) }
-fixed_cmp! { FixedU128(u128, LeEqU128, 128) }
-fixed_cmp! { FixedI8(i8, LeEqU8, 8) }
-fixed_cmp! { FixedI16(i16, LeEqU16, 16) }
-fixed_cmp! { FixedI32(i32, LeEqU32, 32) }
-fixed_cmp! { FixedI64(i64, LeEqU64, 64) }
-fixed_cmp! { FixedI128(i128, LeEqU128, 128) }
-
 #[cfg(test)]
 mod tests {
     use crate::*;
