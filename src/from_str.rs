@@ -57,6 +57,29 @@ macro_rules! signed_helpers {
                 let abs = if neg { abs.wrapping_neg() } else { abs } as $Single;
                 Ok((abs, overflow))
             }
+
+            pub const fn lit(s: &str, frac_nbits: u32) -> Option<$Single> {
+                let mut bytes = Bytes::new(s.as_bytes());
+                if bytes.is_empty() {
+                    return None;
+                }
+                let neg = if bytes.get(0) == b'-' {
+                    bytes = bytes.split(1).1;
+                    true
+                } else {
+                    false
+                };
+                let abs = match crate::from_str::$Uns::lit_no_sign(bytes, frac_nbits) {
+                    Some(s) => s,
+                    None => return None,
+                };
+                let bound = if !neg { $Single::MAX } else { $Single::MIN };
+                if abs > bound.unsigned_abs() {
+                    return None;
+                }
+                let val = if neg { abs.wrapping_neg() } else { abs } as $Single;
+                Some(val)
+            }
         }
     };
 }
@@ -340,6 +363,44 @@ macro_rules! unsigned_helpers_common {
             }
             let abs = if neg { abs.wrapping_neg() } else { abs };
             Ok((abs, overflow))
+        }
+
+        #[inline]
+        pub const fn lit(s: &str, frac_nbits: u32) -> Option<$Uns> {
+            lit_no_sign(Bytes::new(s.as_bytes()), frac_nbits)
+        }
+
+        pub const fn lit_no_sign(mut bytes: Bytes, frac_nbits: u32) -> Option<$Uns> {
+            if bytes.is_empty() {
+                return None;
+            }
+            let radix = if bytes.len() >= 2 && bytes.get(0) == b'0' {
+                match bytes.get(1) {
+                    b'b' => 2,
+                    b'o' => 8,
+                    b'x' => 16,
+                    _ => 10,
+                }
+            } else {
+                10
+            };
+            if radix != 10 {
+                bytes = bytes.split(2).1;
+                while !bytes.is_empty() && bytes.get(0) == b'_' {
+                    bytes = bytes.split(1).1;
+                }
+            }
+            if bytes.is_empty() {
+                return None;
+            }
+            let next_byte = bytes.get(0);
+            if next_byte == b'-' || next_byte == b'+' {
+                return None;
+            }
+            match from_str(bytes, radix, Sep::Skip, frac_nbits) {
+                Ok((val, false)) => Some(val),
+                Ok((_, true)) | Err(_) => None,
+            }
         }
 
         helpers_common! { $Uns }

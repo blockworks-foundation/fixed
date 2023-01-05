@@ -5,6 +5,13 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.22.0 (unreleased)
+===========================
+
+  * The [`lit`][f-l-1-22] method was added to all fixed-point numbers.
+
+[f-l-1-22]: https://docs.rs/fixed/~1.22/fixed/struct.FixedI32.html#method.lit
+
 Version 1.21.0 (2022-12-24)
 ===========================
 

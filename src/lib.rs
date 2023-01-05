@@ -164,14 +164,16 @@ have less fractional bits, so we use [`from_num`] instead.
 
 ## Writing fixed-point constants and values literally
 
-The parsing methods are available as `const` functions.
+The [`lit`] method, which is available as a `const` function, can be used to
+parse literals. It supports underscores as separators, and prefixes `"0b"`,
+`"0o"` and `"0x"` for binary/octal/hexadecimal numbers.
 
 ```rust
 use fixed::types::I16F16;
 
-const TWELVE_POINT_75: I16F16 = I16F16::unwrapped_from_str("12.75");
+const TWELVE_POINT_75: I16F16 = I16F16::lit("12.75");
 // 1.1 binary is 1.5 decimal
-const ONE_POINT_5: I16F16 = I16F16::unwrapped_from_str_binary("1.1");
+const ONE_POINT_5: I16F16 = I16F16::lit("0b_1.1");
 // 12.75 + 1.5 = 14.25
 let sum = TWELVE_POINT_75 + ONE_POINT_5;
 assert_eq!(sum, 14.25);
@@ -314,6 +316,7 @@ shall be dual licensed as above, without any additional terms or conditions.
 [`from_str_binary`]: FixedI32::from_str_binary
 [`from_str_hex`]: FixedI32::from_str_hex
 [`from_str_octal`]: FixedI32::from_str_octal
+[`lit`]: FixedI32::lit
 [`to_num`]: FixedI32::to_num
 */
 #![cfg_attr(not(feature = "std"), no_std)]
