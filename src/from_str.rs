@@ -26,17 +26,17 @@ use core::{
 #[cfg(feature = "std")]
 use std::error::Error;
 
+// expanded on all signed integers
 macro_rules! signed_helpers {
     ($Single:ident, $Uns:ident) => {
         pub mod $Single {
             helpers_common! { $Single }
 
             pub const fn from_str(
-                bytes: &[u8],
+                bytes: Bytes,
                 radix: u32,
                 frac_nbits: u32,
             ) -> Result<($Single, bool), ParseFixedError> {
-                let bytes = Bytes::new(bytes);
                 let (neg, abs, mut overflow) = match crate::from_str::$Uns::get_int_frac(
                     bytes,
                     radix,
@@ -111,6 +111,7 @@ macro_rules! signed_helpers {
 // So for u64, BIN = 64, DEC ≤ 27
 // So for u128, BIN = 128, DEC ≤ 54
 
+// expanded on all signed integers
 macro_rules! unsigned_helpers {
     (u128) => {
         pub mod u128 {
@@ -312,16 +313,16 @@ macro_rules! unsigned_helpers {
     };
 }
 
+// expanded on u128 and on all narrower unsigned integers
 macro_rules! unsigned_helpers_common {
     ($Uns:ident, $Half:ident, $attempt_half:expr) => {
         use crate::from_str::{frac_is_half, parse_bounds, unchecked_hex_digit, Parse, Round};
 
         pub const fn from_str(
-            bytes: &[u8],
+            bytes: Bytes,
             radix: u32,
             frac_nbits: u32,
         ) -> Result<($Uns, bool), ParseFixedError> {
-            let bytes = Bytes::new(bytes);
             let (neg, abs, mut overflow) =
                 match get_int_frac(bytes, radix, $Uns::BITS - frac_nbits, frac_nbits) {
                     Ok((neg, abs, overflow)) => (neg, abs, overflow),
@@ -703,6 +704,7 @@ macro_rules! unsigned_helpers_common {
     };
 }
 
+// expanded on all signed and unsigned integers
 macro_rules! helpers_common {
     ($Single:ident) => {
         use crate::{
@@ -767,7 +769,8 @@ macro_rules! helpers_common {
             radix: u32,
             frac_nbits: u32,
         ) -> Result<($Single, bool), ParseFixedError> {
-            from_str(s.as_bytes(), radix, frac_nbits)
+            let bytes = Bytes::new(s.as_bytes());
+            from_str(bytes, radix, frac_nbits)
         }
     };
 }
