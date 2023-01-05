@@ -37,11 +37,13 @@ macro_rules! signed_helpers {
             pub const fn from_str(
                 bytes: Bytes,
                 radix: u32,
+                sep: Sep,
                 frac_nbits: u32,
             ) -> Result<($Single, bool), ParseFixedError> {
                 let (neg, abs, mut overflow) = match crate::from_str::$Uns::get_int_frac(
                     bytes,
                     radix,
+                    sep,
                     $Single::BITS - frac_nbits,
                     frac_nbits,
                 ) {
@@ -325,10 +327,11 @@ macro_rules! unsigned_helpers_common {
         pub const fn from_str(
             bytes: Bytes,
             radix: u32,
+            sep: Sep,
             frac_nbits: u32,
         ) -> Result<($Uns, bool), ParseFixedError> {
             let (neg, abs, mut overflow) =
-                match get_int_frac(bytes, radix, $Uns::BITS - frac_nbits, frac_nbits) {
+                match get_int_frac(bytes, radix, sep, $Uns::BITS - frac_nbits, frac_nbits) {
                     Ok((neg, abs, overflow)) => (neg, abs, overflow),
                     Err(e) => return Err(e),
                 };
@@ -664,10 +667,11 @@ macro_rules! unsigned_helpers_common {
         pub const fn get_int_frac(
             bytes: Bytes,
             radix: u32,
+            sep: Sep,
             int_nbits: u32,
             frac_nbits: u32,
         ) -> Result<(bool, $Uns, bool), ParseFixedError> {
-            let Parse { neg, int, frac } = match parse_bounds(bytes, radix) {
+            let Parse { neg, int, frac } = match parse_bounds(bytes, radix, sep) {
                 Ok(o) => o,
                 Err(e) => return Err(e),
             };
@@ -753,7 +757,7 @@ macro_rules! helpers_common {
     ($Single:ident) => {
         use crate::{
             bytes::Bytes,
-            from_str::{ParseErrorKind, ParseFixedError},
+            from_str::{ParseErrorKind, ParseFixedError, Sep},
         };
 
         #[inline]
@@ -814,7 +818,7 @@ macro_rules! helpers_common {
             frac_nbits: u32,
         ) -> Result<($Single, bool), ParseFixedError> {
             let bytes = Bytes::new(s.as_bytes());
-            from_str(bytes, radix, frac_nbits)
+            from_str(bytes, radix, Sep::Error, frac_nbits)
         }
     };
 }
@@ -837,6 +841,12 @@ struct Parse<'a> {
     neg: bool,
     int: BytesUnds<'a>,
     frac: BytesUnds<'a>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum Sep {
+    Skip,
+    Error,
 }
 
 /**
@@ -901,13 +911,19 @@ impl Error for ParseFixedError {
     }
 }
 
-// also trims zeros at start of int and at end of frac
-const fn parse_bounds(bytes: Bytes, radix: u32) -> Result<Parse<'_>, ParseFixedError> {
+// Trims zeros at start of int and at end of frac.
+// Leading underscores for either int or frac are never accepted, even for Sep::Skip.
+// Trailing underscores are not trimmed for int, but are trimmed for frac.
+const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, ParseFixedError> {
     let mut sign: Option<bool> = None;
     let mut trimmed_int_start: Option<usize> = None;
     let mut point: Option<usize> = None;
     let mut trimmed_frac_end: Option<usize> = None;
-    let mut has_any_digit = false;
+    let mut has_int_digit = false;
+    let mut has_frac_digit = false;
+    let mut int_seps = 0;
+    let mut pending_frac_seps = 0;
+    let mut frac_seps = 0;
 
     let mut index = 0;
     while index < bytes.len() {
@@ -916,7 +932,7 @@ const fn parse_bounds(bytes: Bytes, radix: u32) -> Result<Parse<'_>, ParseFixedE
         let index = index - 1;
         match (byte, radix) {
             (b'+', _) => {
-                if sign.is_some() || point.is_some() || has_any_digit {
+                if sign.is_some() || point.is_some() || has_int_digit || has_frac_digit {
                     return Err(ParseFixedError {
                         kind: ParseErrorKind::InvalidDigit,
                     });
@@ -925,7 +941,7 @@ const fn parse_bounds(bytes: Bytes, radix: u32) -> Result<Parse<'_>, ParseFixedE
                 continue;
             }
             (b'-', _) => {
-                if sign.is_some() || point.is_some() || has_any_digit {
+                if sign.is_some() || point.is_some() || has_int_digit || has_frac_digit {
                     return Err(ParseFixedError {
                         kind: ParseErrorKind::InvalidDigit,
                     });
@@ -943,19 +959,42 @@ const fn parse_bounds(bytes: Bytes, radix: u32) -> Result<Parse<'_>, ParseFixedE
                 trimmed_frac_end = Some(index + 1);
                 continue;
             }
+            (b'_', _) => {
+                if matches!(sep, Sep::Error)
+                    || (point.is_none() && !has_int_digit)
+                    || (point.is_some() && !has_frac_digit)
+                {
+                    return Err(ParseFixedError {
+                        kind: ParseErrorKind::InvalidDigit,
+                    });
+                }
+                if point.is_none() {
+                    if trimmed_int_start.is_some() {
+                        int_seps += 1;
+                    }
+                } else {
+                    pending_frac_seps += 1;
+                }
+            }
             (b'0'..=b'1', 2)
             | (b'0'..=b'7', 8)
             | (b'0'..=b'9', 10)
             | (b'0'..=b'9', 16)
             | (b'a'..=b'f', 16)
             | (b'A'..=b'F', 16) => {
-                if trimmed_int_start.is_none() && point.is_none() && byte != b'0' {
-                    trimmed_int_start = Some(index);
+                if point.is_none() {
+                    has_int_digit = true;
+                    if trimmed_int_start.is_none() && byte != b'0' {
+                        trimmed_int_start = Some(index);
+                    }
+                } else {
+                    has_frac_digit = true;
+                    if byte != b'0' {
+                        frac_seps += pending_frac_seps;
+                        pending_frac_seps = 0;
+                        trimmed_frac_end = Some(index + 1);
+                    }
                 }
-                if trimmed_frac_end.is_some() && byte != b'0' {
-                    trimmed_frac_end = Some(index + 1);
-                }
-                has_any_digit = true;
             }
             _ => {
                 return Err(ParseFixedError {
@@ -964,7 +1003,7 @@ const fn parse_bounds(bytes: Bytes, radix: u32) -> Result<Parse<'_>, ParseFixedE
             }
         }
     }
-    if !has_any_digit {
+    if !has_int_digit && !has_frac_digit {
         return Err(ParseFixedError {
             kind: ParseErrorKind::NoDigits,
         });
@@ -977,11 +1016,11 @@ const fn parse_bounds(bytes: Bytes, radix: u32) -> Result<Parse<'_>, ParseFixedE
         (Some(start), Some(point)) => {
             let (up_to_point, _) = bytes.split(point);
             let (_, from_start) = up_to_point.split(start);
-            BytesUnds::new(from_start, 0)
+            BytesUnds::new(from_start, int_seps)
         }
         (Some(start), None) => {
             let (_, from_start) = bytes.split(start);
-            BytesUnds::new(from_start, 0)
+            BytesUnds::new(from_start, int_seps)
         }
         (None, _) => BytesUnds::new(Bytes::new(&[]), 0),
     };
@@ -989,7 +1028,7 @@ const fn parse_bounds(bytes: Bytes, radix: u32) -> Result<Parse<'_>, ParseFixedE
         (Some(point), Some(end)) => {
             let (up_to_end, _) = bytes.split(end);
             let (_, from_after_point) = up_to_end.split(point + 1);
-            BytesUnds::new(from_after_point, 0)
+            BytesUnds::new(from_after_point, frac_seps)
         }
         _ => BytesUnds::new(Bytes::new(&[]), 0),
     };
@@ -1041,7 +1080,7 @@ impl_from_str! { FixedU128, LeEqU128 }
 mod tests {
     use crate::{
         bytes::Bytes,
-        from_str::{self, parse_bounds, Parse, ParseErrorKind, ParseFixedError, Round},
+        from_str::{self, parse_bounds, Parse, ParseErrorKind, ParseFixedError, Round, Sep},
         types::*,
     };
     use std::{
@@ -1247,34 +1286,87 @@ mod tests {
         assert_eq!(narrow, Some(977_343_669_134));
     }
 
-    fn check_parse_bounds_ok(bytes: &[u8], radix: u32, check: (bool, &[u8], &[u8])) {
+    fn check_parse_bounds_ok(
+        bytes: &[u8],
+        radix: u32,
+        sep: Sep,
+        check: (bool, &[u8], usize, &[u8], usize),
+    ) {
         let bytes = Bytes::new(bytes);
-        let Parse { neg, int, frac } = parse_bounds(bytes, radix).unwrap();
-        let int = int.bytes_inc_seps().slice();
-        let frac = frac.bytes_inc_seps().slice();
-        assert_eq!((neg, int, frac), check);
+        let Parse { neg, int, frac } = parse_bounds(bytes, radix, sep).unwrap();
+        let int_slice = int.bytes_inc_seps().slice();
+        let int_seps = int_slice.len() - int.len();
+        let frac_slice = frac.bytes_inc_seps().slice();
+        let frac_seps = frac_slice.len() - frac.len();
+        assert_eq!((neg, int_slice, int_seps, frac_slice, frac_seps), check);
     }
 
-    fn check_parse_bounds_err(bytes: &[u8], radix: u32, check: ParseErrorKind) {
+    fn check_parse_bounds_err(bytes: &[u8], radix: u32, sep: Sep, check: ParseErrorKind) {
         let bytes = Bytes::new(bytes);
-        let ParseFixedError { kind } = parse_bounds(bytes, radix).unwrap_err();
+        let ParseFixedError { kind } = parse_bounds(bytes, radix, sep).unwrap_err();
         assert_eq!(kind, check);
     }
 
     #[test]
     fn check_parse_bounds() {
-        check_parse_bounds_ok(b"-12.34", 10, (true, &b"12"[..], &b"34"[..]));
-        check_parse_bounds_ok(b"012.", 10, (false, &b"12"[..], &b""[..]));
-        check_parse_bounds_ok(b"+.340", 10, (false, &b""[..], &b"34"[..]));
-        check_parse_bounds_ok(b"0", 10, (false, &b""[..], &b""[..]));
-        check_parse_bounds_ok(b"-.C1A0", 16, (true, &b""[..], &b"C1A"[..]));
+        let sep = Sep::Error;
 
-        check_parse_bounds_err(b"0 ", 10, ParseErrorKind::InvalidDigit);
-        check_parse_bounds_err(b"+-", 10, ParseErrorKind::InvalidDigit);
-        check_parse_bounds_err(b"+.", 10, ParseErrorKind::NoDigits);
-        check_parse_bounds_err(b".1.", 10, ParseErrorKind::TooManyPoints);
-        check_parse_bounds_err(b"1+2", 10, ParseErrorKind::InvalidDigit);
-        check_parse_bounds_err(b"1-2", 10, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_ok(b"-12.34", 10, sep, (true, &b"12"[..], 0, &b"34"[..], 0));
+        check_parse_bounds_ok(b"012.", 10, sep, (false, &b"12"[..], 0, &b""[..], 0));
+        check_parse_bounds_ok(b"+.340", 10, sep, (false, &b""[..], 0, &b"34"[..], 0));
+        check_parse_bounds_ok(b"0", 10, sep, (false, &b""[..], 0, &b""[..], 0));
+        check_parse_bounds_ok(b"-.C1A0", 16, sep, (true, &b""[..], 0, &b"C1A"[..], 0));
+
+        check_parse_bounds_err(b"0 ", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"+-", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"+.", 10, sep, ParseErrorKind::NoDigits);
+        check_parse_bounds_err(b".1.", 10, sep, ParseErrorKind::TooManyPoints);
+        check_parse_bounds_err(b"1+2", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"1-2", 10, sep, ParseErrorKind::InvalidDigit);
+
+        check_parse_bounds_err(b"-_12.34", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"-1_2.34", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"-12_.34", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"-12._34", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"-12.3_4", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"-12.34_", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(
+            b"-1__2___.3____4_____",
+            10,
+            sep,
+            ParseErrorKind::InvalidDigit,
+        );
+    }
+
+    #[test]
+    fn check_parse_bounds_underscore() {
+        let sep = Sep::Skip;
+
+        check_parse_bounds_ok(b"-12.34", 10, sep, (true, &b"12"[..], 0, &b"34"[..], 0));
+        check_parse_bounds_ok(b"012.", 10, sep, (false, &b"12"[..], 0, &b""[..], 0));
+        check_parse_bounds_ok(b"+.340", 10, sep, (false, &b""[..], 0, &b"34"[..], 0));
+        check_parse_bounds_ok(b"0", 10, sep, (false, &b""[..], 0, &b""[..], 0));
+        check_parse_bounds_ok(b"-.C1A0", 16, sep, (true, &b""[..], 0, &b"C1A"[..], 0));
+
+        check_parse_bounds_err(b"0 ", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"+-", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"+.", 10, sep, ParseErrorKind::NoDigits);
+        check_parse_bounds_err(b".1.", 10, sep, ParseErrorKind::TooManyPoints);
+        check_parse_bounds_err(b"1+2", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_err(b"1-2", 10, sep, ParseErrorKind::InvalidDigit);
+
+        check_parse_bounds_err(b"-_12.34", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_ok(b"-1_2.34", 10, sep, (true, &b"1_2"[..], 1, &b"34"[..], 0));
+        check_parse_bounds_ok(b"-12_.34", 10, sep, (true, &b"12_"[..], 1, &b"34"[..], 0));
+        check_parse_bounds_err(b"-12._34", 10, sep, ParseErrorKind::InvalidDigit);
+        check_parse_bounds_ok(b"-12.3_4", 10, sep, (true, &b"12"[..], 0, &b"3_4"[..], 1));
+        check_parse_bounds_ok(b"-12.34_", 10, sep, (true, &b"12"[..], 0, &b"34"[..], 0));
+        check_parse_bounds_ok(
+            b"-0_1__2___.3____4_____0",
+            10,
+            sep,
+            (true, &b"1__2___"[..], 5, &b"3____4"[..], 4),
+        );
     }
 
     macro_rules! assert_ok {
