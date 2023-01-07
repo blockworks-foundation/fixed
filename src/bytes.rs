@@ -13,7 +13,8 @@
 // <https://www.apache.org/licenses/LICENSE-2.0> and
 // <https://opensource.org/licenses/MIT>.
 
-use core::{marker::PhantomData, slice};
+use core::marker::PhantomData;
+use core::slice;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Bytes<'a> {
@@ -81,6 +82,16 @@ impl<'a> Bytes<'a> {
                 phantom: PhantomData,
             },
         )
+    }
+
+    #[inline]
+    pub const fn split_first(self) -> Option<(u8, Bytes<'a>)> {
+        if self.is_empty() {
+            None
+        } else {
+            let (first, rest) = self.split(1);
+            Some((first.get(0), rest))
+        }
     }
 }
 
@@ -164,5 +175,15 @@ impl<'a, const SEP: u8> BytesSeps<'a, SEP> {
                 seps: end_seps,
             },
         )
+    }
+
+    #[inline]
+    pub const fn split_first(self) -> Option<(u8, BytesSeps<'a, SEP>)> {
+        if self.is_empty() {
+            None
+        } else {
+            let (first, rest) = self.split(1);
+            Some((first.bytes_inc_seps().get(0), rest))
+        }
     }
 }
