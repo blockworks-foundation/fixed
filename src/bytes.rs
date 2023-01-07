@@ -89,136 +89,135 @@ impl<'a> Bytes<'a> {
     }
 }
 
-// Kept trimmed of SEP: no SEP bytes at beginning or end of slice
+// Kept trimmed: no underscores at beginning or end of slice
 #[derive(Clone, Copy, Debug)]
-pub struct BytesSeps<'a, const SEP: u8> {
+pub struct DigitsUnds<'a> {
     ptr: *const u8,
-    not_seps: usize,
-    seps: usize,
+    digits: usize,
+    unds: usize,
     phantom: PhantomData<&'a [u8]>,
 }
 
-impl<'a, const SEP: u8> BytesSeps<'a, SEP> {
+impl<'a> DigitsUnds<'a> {
     #[inline]
-    pub const fn new(bytes: Bytes<'a>) -> BytesSeps<'a, SEP> {
+    pub const fn new(bytes: Bytes<'a>) -> DigitsUnds<'a> {
         let mut ptr = bytes.ptr;
-        let mut not_seps = 0;
-        let mut seps = 0;
-        let mut pending_seps = 0;
+        let mut digits = 0;
+        let mut unds = 0;
+        let mut pending_unds = 0;
         let mut rem_bytes = bytes;
         while let Some((byte, rem)) = rem_bytes.split_first() {
             rem_bytes = rem;
 
-            if byte == SEP {
-                pending_seps += 1;
-                continue;
+            if byte == b'_' {
+                pending_unds += 1;
             } else {
-                if not_seps == 0 {
-                    ptr = ptr.wrapping_add(pending_seps);
+                if digits == 0 {
+                    ptr = ptr.wrapping_add(pending_unds);
                 } else {
-                    seps += pending_seps;
+                    unds += pending_unds;
                 }
-                not_seps += 1;
-                pending_seps = 0;
+                digits += 1;
+                pending_unds = 0;
             }
         }
-        BytesSeps {
+        DigitsUnds {
             ptr,
-            not_seps,
-            seps,
+            digits,
+            unds,
             phantom: PhantomData,
         }
     }
 
     #[inline]
-    pub const fn bytes_inc_seps(self) -> Bytes<'a> {
+    pub const fn bytes(self) -> Bytes<'a> {
         Bytes {
             ptr: self.ptr,
-            len: self.not_seps + self.seps,
+            len: self.digits + self.unds,
             phantom: PhantomData,
         }
     }
 
     #[inline]
-    pub const fn len(self) -> usize {
-        self.not_seps
+    pub const fn n_digits(self) -> usize {
+        self.digits
     }
 
     #[inline]
     pub const fn is_empty(self) -> bool {
-        self.not_seps == 0
+        self.digits == 0
     }
 
     #[inline]
-    pub const fn split(self, i: usize) -> (BytesSeps<'a, SEP>, BytesSeps<'a, SEP>) {
-        let slice_len = self.not_seps + self.seps;
-        let end_not_seps = match self.not_seps.checked_sub(i) {
+    pub const fn split(self, digit_index: usize) -> (DigitsUnds<'a>, DigitsUnds<'a>) {
+        let len = self.digits + self.unds;
+        let last_digits = match self.digits.checked_sub(digit_index) {
             Some(s) => s,
             None => panic!("index out of bounds"),
         };
-        if end_not_seps == 0 {
+        if last_digits == 0 {
             return (
                 self,
-                BytesSeps {
-                    ptr: self.ptr.wrapping_add(slice_len),
-                    not_seps: 0,
-                    seps: 0,
+                DigitsUnds {
+                    ptr: self.ptr.wrapping_add(len),
+                    digits: 0,
+                    unds: 0,
                     phantom: PhantomData,
                 },
             );
         }
 
-        let mut remaining_not_seps = i;
-        let mut seps = 0;
+        let mut remaining_digits = digit_index;
+        let mut unds = 0;
         let mut index = 0;
-        while remaining_not_seps > 0 {
+        while remaining_digits > 0 {
             let ptr = self.ptr.wrapping_add(index);
-            // SAFETY: there must be at least i not_seps, so ptr is in range
+            // SAFETY: there must be at least i digit, so ptr is in range
             let byte = unsafe { *ptr };
-            if byte != SEP {
-                remaining_not_seps -= 1;
+            if byte != b'_' {
+                remaining_digits -= 1;
             } else {
-                seps += 1;
+                unds += 1;
             }
             index += 1;
         }
-        let begin = BytesSeps {
+        let first = DigitsUnds {
             ptr: self.ptr,
-            not_seps: i,
-            seps,
+            digits: digit_index,
+            unds,
             phantom: PhantomData,
         };
 
-        // we need to reduce seps by numbers of SEP bytes between begin and end
-        seps = self.seps - seps;
+        // we need to reduce seps by numbers of SEP bytes between first part and last part
+        let mut remaining_unds = self.unds - unds;
         loop {
             let ptr = self.ptr.wrapping_add(index);
-            // SAFETY: there must be at least 1 more not_seps, otherwise we
-            // would have returned earlier in `end_not_seps == 0` condition.
+            // SAFETY: there must be at least 1 more digit, otherwise we
+            // would have returned earlier in `last_digits == 0` condition.
             let byte = unsafe { *ptr };
-            if byte != SEP {
+            if byte != b'_' {
                 return (
-                    begin,
-                    BytesSeps {
+                    first,
+                    DigitsUnds {
                         ptr,
-                        not_seps: end_not_seps,
-                        seps,
+                        digits: last_digits,
+                        unds: remaining_unds,
                         phantom: PhantomData,
                     },
                 );
             }
-            seps -= 1;
+            remaining_unds -= 1;
             index += 1;
         }
     }
 
     #[inline]
-    pub const fn split_first(self) -> Option<(u8, BytesSeps<'a, SEP>)> {
+    pub const fn split_first(self) -> Option<(u8, DigitsUnds<'a>)> {
         if self.is_empty() {
             None
         } else {
             let (first, rest) = self.split(1);
-            Some((first.bytes_inc_seps().get(0), rest))
+            Some((first.bytes().get(0), rest))
         }
     }
 }
