@@ -422,16 +422,10 @@ macro_rules! unsigned_helpers_common {
                 (bytes, false)
             };
             let mut acc = 0;
-            let bytes = bytes.bytes_inc_seps();
-            let mut i = 0;
-            while i < bytes.len() {
-                let byte = bytes.get(i);
-                i += 1;
-                let i = i - 1;
-                let _ = i;
-                if byte == b'_' {
-                    continue;
-                }
+            let mut rem_bytes = bytes;
+            while let Some((byte, rem)) = rem_bytes.split_first() {
+                rem_bytes = rem;
+
                 acc = (acc << 1) + from_byte(byte - b'0');
             }
             (acc, overflow)
@@ -442,15 +436,13 @@ macro_rules! unsigned_helpers_common {
             let dump_bits = $Uns::BITS - nbits;
             let mut rem_bits = nbits;
             let mut acc = 0;
-            let bytes = bytes.bytes_inc_seps();
-            let mut i = 0;
-            while i < bytes.len() {
-                let byte = bytes.get(i);
-                i += 1;
-                let i = i - 1;
-                if byte == b'_' {
-                    continue;
-                }
+            let mut next_i = 0;
+            let mut rem_bytes = bytes;
+            while let Some((byte, rem)) = rem_bytes.split_first() {
+                let i = next_i;
+                next_i += 1;
+                rem_bytes = rem;
+
                 let val = byte - b'0';
                 if rem_bits < 1 {
                     if val != 0 {
@@ -482,11 +474,11 @@ macro_rules! unsigned_helpers_common {
             } else {
                 (bytes, false)
             };
-            // We never should get an underscore as the first byte because:
-            //   * parse_bounds trims leading underscores
-            //   * BytesSeps::split places middle underscores as trailing first
-            //     part, not leading second part
-            let mut acc = from_byte(bytes.bytes_inc_seps().get(0) - b'0');
+            let (first_byte, mut rem_bytes) = match bytes.split_first() {
+                Some(s) => s,
+                None => unreachable!(),
+            };
+            let mut acc = from_byte(first_byte - b'0');
             if bytes.len() == max_len {
                 let first_max_bits = $Uns::BITS - (max_len as u32 - 1) * 3;
                 let first_max = (from_byte(1) << first_max_bits) - 1;
@@ -494,16 +486,9 @@ macro_rules! unsigned_helpers_common {
                     overflow = true;
                 }
             }
-            let bytes = bytes.bytes_inc_seps();
-            let mut i = 1;
-            while i < bytes.len() {
-                let byte = bytes.get(i);
-                i += 1;
-                let i = i - 1;
-                let _ = i;
-                if byte == b'_' {
-                    continue;
-                }
+            while let Some((byte, rem)) = rem_bytes.split_first() {
+                rem_bytes = rem;
+
                 acc = (acc << 3) + from_byte(byte - b'0');
             }
             (acc, overflow)
@@ -514,15 +499,13 @@ macro_rules! unsigned_helpers_common {
             let dump_bits = $Uns::BITS - nbits;
             let mut rem_bits = nbits;
             let mut acc = 0;
-            let bytes = bytes.bytes_inc_seps();
-            let mut i = 0;
-            while i < bytes.len() {
-                let byte = bytes.get(i);
-                i += 1;
-                let i = i - 1;
-                if byte == b'_' {
-                    continue;
-                }
+            let mut next_i = 0;
+            let mut rem_bytes = bytes;
+            while let Some((byte, rem)) = rem_bytes.split_first() {
+                let i = next_i;
+                next_i += 1;
+                rem_bytes = rem;
+
                 let val = byte - b'0';
                 if rem_bits < 3 {
                     acc = (acc << rem_bits) + from_byte(val >> (3 - rem_bits));
@@ -556,11 +539,11 @@ macro_rules! unsigned_helpers_common {
             } else {
                 (bytes, false)
             };
-            // We never should get an underscore as the first byte because:
-            //   * parse_bounds trims leading underscores
-            //   * BytesSeps::split places middle underscores as trailing first
-            //     part, not leading second part
-            let mut acc = from_byte(unchecked_hex_digit(bytes.bytes_inc_seps().get(0)));
+            let (first_byte, mut rem_bytes) = match bytes.split_first() {
+                Some(s) => s,
+                None => unreachable!(),
+            };
+            let mut acc = from_byte(unchecked_hex_digit(first_byte));
             if bytes.len() == max_len {
                 let first_max_bits = $Uns::BITS - (max_len as u32 - 1) * 4;
                 let first_max = (from_byte(1) << first_max_bits) - 1;
@@ -568,16 +551,9 @@ macro_rules! unsigned_helpers_common {
                     overflow = true;
                 }
             }
-            let bytes = bytes.bytes_inc_seps();
-            let mut i = 1;
-            while i < bytes.len() {
-                let byte = bytes.get(i);
-                i += 1;
-                let i = i - 1;
-                let _ = i;
-                if byte == b'_' {
-                    continue;
-                }
+            while let Some((byte, rem)) = rem_bytes.split_first() {
+                rem_bytes = rem;
+
                 acc = (acc << 4) + from_byte(unchecked_hex_digit(byte));
             }
             (acc, overflow)
@@ -588,15 +564,13 @@ macro_rules! unsigned_helpers_common {
             let dump_bits = $Uns::BITS - nbits;
             let mut rem_bits = nbits;
             let mut acc = 0;
-            let bytes = bytes.bytes_inc_seps();
-            let mut i = 0;
-            while i < bytes.len() {
-                let byte = bytes.get(i);
-                i += 1;
-                let i = i - 1;
-                if byte == b'_' {
-                    continue;
-                }
+            let mut next_i = 0;
+            let mut rem_bytes = bytes;
+            while let Some((byte, rem)) = rem_bytes.split_first() {
+                let i = next_i;
+                next_i += 1;
+                rem_bytes = rem;
+
                 let val = unchecked_hex_digit(byte);
                 if rem_bits < 4 {
                     acc = (acc << rem_bits) + from_byte(val >> (4 - rem_bits));
@@ -631,16 +605,10 @@ macro_rules! unsigned_helpers_common {
                 (bytes, false)
             };
             let mut acc = 0;
-            let bytes = bytes.bytes_inc_seps();
-            let mut i = 0;
-            while i < bytes.len() {
-                let byte = bytes.get(i);
-                i += 1;
-                let i = i - 1;
-                let _ = i;
-                if byte == b'_' {
-                    continue;
-                }
+            let mut rem_bytes = bytes;
+            while let Some((byte, rem)) = rem_bytes.split_first() {
+                rem_bytes = rem;
+
                 let (prod, mul_overflow) = mul10_overflow(acc);
                 let (add, add_overflow) = prod.overflowing_add(from_byte(byte - b'0'));
                 acc = add;
@@ -678,16 +646,10 @@ macro_rules! unsigned_helpers_common {
                 ((floor << dump_bits) + (one << (dump_bits - 1)), false)
             };
             let mut tie = true;
-            let bytes = bytes.bytes_inc_seps();
-            let mut i = 0;
-            while i < bytes.len() {
-                let byte = bytes.get(i);
-                i += 1;
-                let i = i - 1;
-                let _ = i;
-                if byte == b'_' {
-                    continue;
-                }
+            let mut rem_bytes = bytes;
+            while let Some((byte, rem)) = rem_bytes.split_first() {
+                rem_bytes = rem;
+
                 if !add_5 && boundary == 0 {
                     // since zeros are trimmed in bytes, there must be some byte > 0 eventually
                     tie = false;
@@ -986,11 +948,13 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
     let mut pending_frac_seps = 0;
     let mut frac_seps = 0;
 
-    let mut index = 0;
-    while index < bytes.len() {
-        let byte = bytes.get(index);
-        index += 1;
-        let index = index - 1;
+    let mut next_index = 0;
+    let mut rem_bytes = bytes;
+    while let Some((byte, rem)) = rem_bytes.split_first() {
+        let index = next_index;
+        next_index += 1;
+        rem_bytes = rem;
+
         match (byte, radix) {
             (b'+', _) => {
                 if sign.is_some() || point.is_some() || has_int_digit || has_frac_digit {
