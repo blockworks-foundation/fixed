@@ -23,12 +23,6 @@ pub struct Bytes<'a> {
     phantom: PhantomData<&'a [u8]>,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct BytesSeps<'a, const SEP: u8> {
-    bytes: Bytes<'a>,
-    seps: usize,
-}
-
 impl<'a> Bytes<'a> {
     #[inline]
     pub const fn new(bytes: &'a [u8]) -> Bytes<'a> {
@@ -95,86 +89,127 @@ impl<'a> Bytes<'a> {
     }
 }
 
+// Kept trimmed of SEP: no SEP bytes at beginning or end of slice
+#[derive(Clone, Copy, Debug)]
+pub struct BytesSeps<'a, const SEP: u8> {
+    ptr: *const u8,
+    not_seps: usize,
+    seps: usize,
+    phantom: PhantomData<&'a [u8]>,
+}
+
 impl<'a, const SEP: u8> BytesSeps<'a, SEP> {
-    // Only checked in debug mode
     #[inline]
-    pub const fn new(bytes: Bytes<'a>, seps: usize) -> BytesSeps<'a, SEP> {
-        #[cfg(debug_assertions)]
-        {
-            let mut count = 0;
-            let mut i = 0;
-            while i < bytes.len() {
-                let byte = bytes.get(i);
-                i += 1;
-                if byte == SEP {
-                    count += 1;
+    pub const fn new(bytes: Bytes<'a>) -> BytesSeps<'a, SEP> {
+        let mut ptr = bytes.ptr;
+        let mut not_seps = 0;
+        let mut seps = 0;
+        let mut pending_seps = 0;
+        let mut rem_bytes = bytes;
+        while let Some((byte, rem)) = rem_bytes.split_first() {
+            rem_bytes = rem;
+
+            if byte == SEP {
+                pending_seps += 1;
+                continue;
+            } else {
+                if not_seps == 0 {
+                    ptr = ptr.wrapping_add(pending_seps);
+                } else {
+                    seps += pending_seps;
                 }
+                not_seps += 1;
+                pending_seps = 0;
             }
-            assert!(count == seps);
         }
-        BytesSeps { bytes, seps }
-    }
-
-    // Length of slice minus seps
-    #[inline]
-    pub const fn len(self) -> usize {
-        self.bytes.len() - self.seps
-    }
-
-    // Only seps is still empty
-    #[inline]
-    pub const fn is_empty(self) -> bool {
-        self.len() == 0
+        BytesSeps {
+            ptr,
+            not_seps,
+            seps,
+            phantom: PhantomData,
+        }
     }
 
     #[inline]
     pub const fn bytes_inc_seps(self) -> Bytes<'a> {
-        self.bytes
+        Bytes {
+            ptr: self.ptr,
+            len: self.not_seps + self.seps,
+            phantom: PhantomData,
+        }
     }
 
-    // Split the first i bytes which are not SEP, together with any SEP bytes
-    // touching them, into the first part, with the remaining bytes in the
-    // second part. Any SEP bytes right after the ith non-SEP byte are included
-    // in the first part, not the second.
-    //
-    // For example, with SEP = b'_'
-    // split_sep((b"a__b__c__", 6), 2) -> ((b"a__b__", 4), (b"c__", 2))
+    #[inline]
+    pub const fn len(self) -> usize {
+        self.not_seps
+    }
+
+    #[inline]
+    pub const fn is_empty(self) -> bool {
+        self.not_seps == 0
+    }
+
     #[inline]
     pub const fn split(self, i: usize) -> (BytesSeps<'a, SEP>, BytesSeps<'a, SEP>) {
-        let mut split_i = 0;
-        let mut rem = i;
-        while rem > 0 {
-            assert!(split_i < self.bytes.len, "index out of bounds");
-            let ptr = self.bytes.ptr.wrapping_add(split_i);
-            // SAFETY: points to a valid slice, and bounds checked
+        let slice_len = self.not_seps + self.seps;
+        let end_not_seps = match self.not_seps.checked_sub(i) {
+            Some(s) => s,
+            None => panic!("index out of bounds"),
+        };
+        if end_not_seps == 0 {
+            return (
+                self,
+                BytesSeps {
+                    ptr: self.ptr.wrapping_add(slice_len),
+                    not_seps: 0,
+                    seps: 0,
+                    phantom: PhantomData,
+                },
+            );
+        }
+
+        let mut remaining_not_seps = i;
+        let mut seps = 0;
+        let mut index = 0;
+        while remaining_not_seps > 0 {
+            let ptr = self.ptr.wrapping_add(index);
+            // SAFETY: there must be at least i not_seps, so ptr is in range
             let byte = unsafe { *ptr };
             if byte != SEP {
-                rem -= 1;
+                remaining_not_seps -= 1;
+            } else {
+                seps += 1;
             }
-            split_i += 1;
+            index += 1;
         }
-        while split_i < self.bytes.len {
-            let ptr = self.bytes.ptr.wrapping_add(split_i);
-            // SAFETY: points to a valid slice, and bounds checked
+        let begin = BytesSeps {
+            ptr: self.ptr,
+            not_seps: i,
+            seps,
+            phantom: PhantomData,
+        };
+
+        // we need to reduce seps by numbers of SEP bytes between begin and end
+        seps = self.seps - seps;
+        loop {
+            let ptr = self.ptr.wrapping_add(index);
+            // SAFETY: there must be at least 1 more not_seps, otherwise we
+            // would have returned earlier in `end_not_seps == 0` condition.
             let byte = unsafe { *ptr };
             if byte != SEP {
-                break;
+                return (
+                    begin,
+                    BytesSeps {
+                        ptr,
+                        not_seps: end_not_seps,
+                        seps,
+                        phantom: PhantomData,
+                    },
+                );
             }
-            split_i += 1;
+            seps -= 1;
+            index += 1;
         }
-        let (begin, end) = self.bytes.split(split_i);
-        let begin_seps = split_i - i;
-        let end_seps = self.seps - begin_seps;
-        (
-            BytesSeps {
-                bytes: begin,
-                seps: begin_seps,
-            },
-            BytesSeps {
-                bytes: end,
-                seps: end_seps,
-            },
-        )
     }
 
     #[inline]

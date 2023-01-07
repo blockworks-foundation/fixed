@@ -944,9 +944,6 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
     let mut trimmed_frac_end: Option<usize> = None;
     let mut has_int_digit = false;
     let mut has_frac_digit = false;
-    let mut int_seps = 0;
-    let mut pending_frac_seps = 0;
-    let mut frac_seps = 0;
 
     let mut next_index = 0;
     let mut rem_bytes = bytes;
@@ -993,13 +990,6 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
                         kind: ParseErrorKind::InvalidDigit,
                     });
                 }
-                if point.is_none() {
-                    if trimmed_int_start.is_some() {
-                        int_seps += 1;
-                    }
-                } else {
-                    pending_frac_seps += 1;
-                }
             }
             (b'0'..=b'1', 2)
             | (b'0'..=b'7', 8)
@@ -1015,8 +1005,6 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
                 } else {
                     has_frac_digit = true;
                     if byte != b'0' {
-                        frac_seps += pending_frac_seps;
-                        pending_frac_seps = 0;
                         trimmed_frac_end = Some(index + 1);
                     }
                 }
@@ -1041,21 +1029,21 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
         (Some(start), Some(point)) => {
             let (up_to_point, _) = bytes.split(point);
             let (_, from_start) = up_to_point.split(start);
-            BytesUnds::new(from_start, int_seps)
+            BytesUnds::new(from_start)
         }
         (Some(start), None) => {
             let (_, from_start) = bytes.split(start);
-            BytesUnds::new(from_start, int_seps)
+            BytesUnds::new(from_start)
         }
-        (None, _) => BytesUnds::new(Bytes::new(&[]), 0),
+        (None, _) => BytesUnds::new(Bytes::new(&[])),
     };
     let frac = match (point, trimmed_frac_end) {
         (Some(point), Some(end)) => {
             let (up_to_end, _) = bytes.split(end);
             let (_, from_after_point) = up_to_end.split(point + 1);
-            BytesUnds::new(from_after_point, frac_seps)
+            BytesUnds::new(from_after_point)
         }
-        _ => BytesUnds::new(Bytes::new(&[]), 0),
+        _ => BytesUnds::new(Bytes::new(&[])),
     };
     Ok(Parse { neg, int, frac })
 }
@@ -1382,7 +1370,7 @@ mod tests {
 
         check_parse_bounds_err(b"-_12.34", 10, sep, ParseErrorKind::InvalidDigit);
         check_parse_bounds_ok(b"-1_2.34", 10, sep, (true, &b"1_2"[..], 1, &b"34"[..], 0));
-        check_parse_bounds_ok(b"-12_.34", 10, sep, (true, &b"12_"[..], 1, &b"34"[..], 0));
+        check_parse_bounds_ok(b"-12_.34", 10, sep, (true, &b"12"[..], 0, &b"34"[..], 0));
         check_parse_bounds_err(b"-12._34", 10, sep, ParseErrorKind::InvalidDigit);
         check_parse_bounds_ok(b"-12.3_4", 10, sep, (true, &b"12"[..], 0, &b"3_4"[..], 1));
         check_parse_bounds_ok(b"-12.34_", 10, sep, (true, &b"12"[..], 0, &b"34"[..], 0));
@@ -1390,7 +1378,7 @@ mod tests {
             b"-0_1__2___.3____4_____0",
             10,
             sep,
-            (true, &b"1__2___"[..], 5, &b"3____4"[..], 4),
+            (true, &b"1__2"[..], 2, &b"3____4"[..], 4),
         );
     }
 
