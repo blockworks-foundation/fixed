@@ -96,7 +96,11 @@ fn load_cache() -> Option<(u32, u32)> {
 }
 
 #[cfg(target_has_atomic = "32")]
-fn store_cache(lower: u32, upper: u32) {
+fn store_cache(mut lower: u32, mut upper: u32) {
+    if lower == 0 || upper == 0 {
+        lower = u32::MAX;
+        upper = u32::MAX;
+    }
     LOWER_FLAGS.store(lower, Ordering::Relaxed);
     UPPER_FLAGS.store(upper, Ordering::Relaxed);
 }
