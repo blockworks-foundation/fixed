@@ -26,11 +26,152 @@ use core::{
 #[cfg(feature = "std")]
 use std::error::Error;
 
-// expanded on all signed integers
-macro_rules! signed_helpers {
+// NOTE ON dec_to_bin
+//
+// dec_to_bin: Decode fractional decimal digits into nbits fractional bits.
+//
+// For an output with BIN = 8 bits, we can take DEC = 3 decimal digits.
+//
+//     0 ≤ val ≤ 999, 0 ≤ nbits ≤ 8
+//
+// In general,
+//
+//     0 ≤ val ≤ 10^DEC - 1, 0 ≤ nbits ≤ BIN
+//
+// We can either floor the result or round to the nearest, with ties rounded to
+// even. If rounding results in more than nbits bits, returns None.
+//
+// Examples: (for DEC = 3, BIN = 8)
+//
+//    dec_to_bin(999, 8, Round::Floor) -> floor(999 × 256 / 1000) -> 255 -> Some(255)
+//    dec_to_bin(999, 8, Round::Nearest) -> floor(999 × 256 / 1000 + 0.5) -> 256 -> None
+//    dec_to_bin(999, 5, Round::Floor) -> floor(999 × 32 / 1000) -> 31 -> Some(31)
+//    dec_to_bin(999, 5, Round::Nearest) -> floor(999 × 32 / 1000 + 0.5) -> 32 -> None
+//    dec_to_bin(499, 0, Round::Floor) -> floor(499 / 1000) -> 0 -> Some(0)
+//    dec_to_bin(499, 0, Round::Nearest) -> floor(499 / 1000 + 0.5) -> 0 -> Some(0)
+//    dec_to_bin(500, 0, Round::Nearest) -> floor(500 / 1000 + 0.5) -> 1 -> None
+//
+// For flooring:
+//
+//     floor(val × 2^nbits / 10^3) = floor(val × 2^(nbits - 3) / 5^3)
+//
+// For rounding:
+//
+//     floor(val × 2^nbits / 10^3 + 0.5) = floor((val × 2^(nbits - 2) + 5^3) / (2 × 5^3))
+//
+// Using integer arithmetic, this is equal to:
+//
+//     ((val << 6 >> (8 - nbits)) + if rounding { 125 } else { 0 }) / 250
+//
+// Note that val << 6 cannot overflow u16, as val < 1000 and 1000 × 2^6 < 2^16.
+//
+// In general:
+//
+//     ((val << (BIN - DEC + 1) >> (8 - nbits)) + if rounding { 5^DEC } else { 0 }) / (2 × 5^DEC)
+//
+// And we ensure that 10^DEC × 2^(BIN - DEC + 1) < 2^(2 × BIN), which simplifies to
+//
+//     5^DEC × 2 < 2^BIN
+//
+// From this it also follows that val << (BIN - DEC + 1) never overflows a (2 × BIN)-bit number.
+//
+// So for u8, BIN = 8, DEC ≤ 3
+// So for u16, BIN = 16, DEC ≤ 6
+// So for u32, BIN = 32, DEC ≤ 13
+// So for u64, BIN = 64, DEC ≤ 27
+// So for u128, BIN = 128, DEC ≤ 54
+//
+// END NOTE ON dec_to_bin
+
+// Expanded on all signed and unsigned integers.
+// This should be expanded in a module named like the integer.
+//
+//   * Defines:
+//       - pub const fn from_str_radix
+//       - pub const fn saturating_from_str_radix
+//       - pub const fn wrapping_from_str_radix
+//       - pub const fn overflowing_from_str_radix
+macro_rules! all {
+    ($Single:ident) => {
+        use crate::{
+            bytes::Bytes,
+            from_str::{ParseErrorKind, ParseFixedError, Sep},
+        };
+
+        #[inline]
+        pub const fn from_str_radix(
+            s: &str,
+            radix: u32,
+            frac_nbits: u32,
+        ) -> Result<$Single, ParseFixedError> {
+            match overflowing_from_str_radix(s, radix, frac_nbits) {
+                Ok((val, false)) => Ok(val),
+                Ok((_, true)) => Err(ParseFixedError {
+                    kind: ParseErrorKind::Overflow,
+                }),
+                Err(e) => Err(e),
+            }
+        }
+
+        #[inline]
+        pub const fn saturating_from_str_radix(
+            s: &str,
+            radix: u32,
+            frac_nbits: u32,
+        ) -> Result<$Single, ParseFixedError> {
+            match overflowing_from_str_radix(s, radix, frac_nbits) {
+                Ok((val, false)) => Ok(val),
+                Ok((_, true)) => {
+                    let bytes = s.as_bytes();
+                    let starts_with_minus = match bytes.first() {
+                        Some(s) => *s == b'-',
+                        None => false,
+                    };
+                    if starts_with_minus {
+                        Ok($Single::MIN)
+                    } else {
+                        Ok($Single::MAX)
+                    }
+                }
+                Err(e) => Err(e),
+            }
+        }
+
+        #[inline]
+        pub const fn wrapping_from_str_radix(
+            s: &str,
+            radix: u32,
+            frac_nbits: u32,
+        ) -> Result<$Single, ParseFixedError> {
+            match overflowing_from_str_radix(s, radix, frac_nbits) {
+                Ok((val, _)) => Ok(val),
+                Err(e) => Err(e),
+            }
+        }
+
+        #[inline]
+        pub const fn overflowing_from_str_radix(
+            s: &str,
+            radix: u32,
+            frac_nbits: u32,
+        ) -> Result<($Single, bool), ParseFixedError> {
+            let bytes = Bytes::new(s.as_bytes());
+            from_str(bytes, radix, Sep::Error, frac_nbits)
+        }
+    };
+}
+
+// Expanded on all signed integers.
+//
+//   * Creates a module named like the integer.
+//   * Expands `all` macro.
+//   * Defines:
+//       - pub const fn from_str
+//       - pub const fn lit
+macro_rules! signed {
     ($Single:ident, $Uns:ident) => {
         pub mod $Single {
-            helpers_common! { $Single }
+            all! { $Single }
 
             pub const fn from_str(
                 bytes: Bytes,
@@ -82,268 +223,39 @@ macro_rules! signed_helpers {
     };
 }
 
-// dec_to_bin: Decode fractional decimal digits into nbits fractional bits.
-//
-// For an output with BIN = 8 bits, we can take DEC = 3 decimal digits.
-//
-//     0 ≤ val ≤ 999, 0 ≤ nbits ≤ 8
-//
-// In general,
-//
-//     0 ≤ val ≤ 10^DEC - 1, 0 ≤ nbits ≤ BIN
-//
-// We can either floor the result or round to the nearest, with ties
-// rounded to even. If rounding results in more than nbits bits,
-// returns None.
-//
-// Examples: (for DEC = 3, BIN = 8)
-//
-//    dec_to_bin(999, 8, Round::Floor) -> floor(999 × 256 / 1000) -> 255 -> Some(255)
-//    dec_to_bin(999, 8, Round::Nearest) -> floor(999 × 256 / 1000 + 0.5) -> 256 -> None
-//    dec_to_bin(999, 5, Round::Floor) -> floor(999 × 32 / 1000) -> 31 -> Some(31)
-//    dec_to_bin(999, 5, Round::Nearest) -> floor(999 × 32 / 1000 + 0.5) -> 32 -> None
-//    dec_to_bin(499, 0, Round::Floor) -> floor(499 / 1000) -> 0 -> Some(0)
-//    dec_to_bin(499, 0, Round::Nearest) -> floor(499 / 1000 + 0.5) -> 0 -> Some(0)
-//    dec_to_bin(500, 0, Round::Nearest) -> floor(500 / 1000 + 0.5) -> 1 -> None
-//
-// For flooring:
-//
-//     floor(val × 2^nbits / 10^3) = floor(val × 2^(nbits - 3) / 5^3)
-//
-// For rounding:
-//
-//     floor(val × 2^nbits / 10^3 + 0.5) = floor((val × 2^(nbits - 2) + 5^3) / (2 × 5^3))
-//
-// Using integer arithmetic, this is equal to:
-//
-//     ((val << 6 >> (8 - nbits)) + if rounding { 125 } else { 0 }) / 250
-//
-// Note that val << 6 cannot overflow u16, as val < 1000 and 1000 × 2^6 < 2^16.
-//
-// In general:
-//
-//     ((val << (BIN - DEC + 1) >> (8 - nbits)) + if rounding { 5^DEC } else { 0 }) / (2 × 5^DEC)
-//
-// And we ensure that 10^DEC × 2^(BIN - DEC + 1) < 2^(2 × BIN), which simplifies to
-//
-//     5^DEC × 2 < 2^BIN
-//
-// From this it also follows that val << (BIN - DEC + 1) never overflows a (2 × BIN)-bit number.
-//
-// So for u8, BIN = 8, DEC  3
-// So for u16, BIN = 16, DEC ≤ 6
-// So for u32, BIN = 32, DEC ≤ 13
-// So for u64, BIN = 64, DEC ≤ 27
-// So for u128, BIN = 128, DEC ≤ 54
+signed! { i8, u8 }
+signed! { i16, u16 }
+signed! { i32, u32 }
+signed! { i64, u64 }
+signed! { i128, u128 }
 
-// expanded on all signed integers
-macro_rules! unsigned_helpers {
-    (u128) => {
-        pub mod u128 {
-            unsigned_helpers_common! { u128, u64, true }
-
-            use crate::int256::{self, U256};
-            use core::num::NonZeroU128;
-
-            #[inline]
-            const fn mul10_overflow(x: u128) -> (u128, u8) {
-                const LO_MASK: u128 = !(!0 << 64);
-                let hi = (x >> 64) * 10;
-                let lo = (x & LO_MASK) * 10;
-                // Workaround for https://github.com/rust-lang/rust/issues/63384
-                // let (wrapped, overflow) = (hi << 64).overflowing_add(lo);
-                // ((hi >> 64) as u8 + u8::from(overflow), wrapped)
-                let (hi_lo, hi_hi) = (hi as u64, (hi >> 64) as u64);
-                let (lo_lo, lo_hi) = (lo as u64, (lo >> 64) as u64);
-                let (wrapped, overflow) = hi_lo.overflowing_add(lo_hi);
-                (
-                    ((wrapped as u128) << 64) | (lo_lo as u128),
-                    (hi_hi as u8) + (overflow as u8),
-                )
-            }
-
-            const fn mul_hi_lo(lhs: u128, rhs: u128) -> (u128, u128) {
-                const LO: u128 = !(!0 << 64);
-                let (lhs_hi, lhs_lo) = (lhs >> 64, lhs & LO);
-                let (rhs_hi, rhs_lo) = (rhs >> 64, rhs & LO);
-                let lhs_lo_rhs_lo = lhs_lo.wrapping_mul(rhs_lo);
-                let lhs_hi_rhs_lo = lhs_hi.wrapping_mul(rhs_lo);
-                let lhs_lo_rhs_hi = lhs_lo.wrapping_mul(rhs_hi);
-                let lhs_hi_rhs_hi = lhs_hi.wrapping_mul(rhs_hi);
-
-                let col01 = lhs_lo_rhs_lo;
-                let (col01_hi, col01_lo) = (col01 >> 64, col01 & LO);
-                let partial_col12 = lhs_hi_rhs_lo + col01_hi;
-                let (col12, carry_col3) = partial_col12.overflowing_add(lhs_lo_rhs_hi);
-                let (col12_hi, col12_lo) = (col12 >> 64, col12 & LO);
-                let ans01 = (col12_lo << 64) + col01_lo;
-                let ans23 = lhs_hi_rhs_hi + col12_hi + if carry_col3 { 1u128 << 64 } else { 0 };
-                (ans23, ans01)
-            }
-
-            const fn div_tie(
-                dividend_hi: u128,
-                dividend_lo: u128,
-                divisor: NonZeroU128,
-            ) -> (u128, bool) {
-                let dividend = U256 {
-                    lo: dividend_lo,
-                    hi: dividend_hi,
-                };
-                let (quot, rem) = int256::div_rem_u256_u128(dividend, divisor);
-                (quot.lo, rem == 0)
-            }
-
-            pub const fn dec_to_bin(
-                (hi, lo): (u128, u128),
-                nbits: u32,
-                round: Round,
-            ) -> Option<u128> {
-                debug_assert!(hi < 10u128.pow(27));
-                debug_assert!(lo < 10u128.pow(27));
-                debug_assert!(nbits <= 128);
-                let fives = 5u128.pow(54);
-                let denom = fives * 2;
-                let denom = match NonZeroU128::new(denom) {
-                    None => unreachable!(),
-                    Some(nz) => nz,
-                };
-                // we need to combine (10^27*hi + lo) << (128 - 54 + 1)
-                let (hi_hi, hi_lo) = mul_hi_lo(hi, 10u128.pow(27));
-                let (val_lo, overflow) = hi_lo.overflowing_add(lo);
-                let val_hi = if overflow { hi_hi + 1 } else { hi_hi };
-                let (mut numer_lo, mut numer_hi) = (val_lo, val_hi);
-                if nbits < (54 - 1) {
-                    let shr = (54 - 1) - nbits;
-                    numer_lo = (numer_lo >> shr) | (numer_hi << (128 - shr));
-                    numer_hi >>= shr;
-                } else if nbits > (54 - 1) {
-                    let shl = nbits - (54 - 1);
-                    numer_hi = (numer_hi << shl) | (numer_lo >> (128 - shl));
-                    numer_lo <<= shl;
-                }
-                match round {
-                    Round::Nearest => {
-                        // Round up, then round back down if we had a tie and the result is odd.
-                        let (wrapped, overflow) = numer_lo.overflowing_add(fives);
-                        numer_lo = wrapped;
-                        if overflow {
-                            numer_hi += 1;
-                        }
-                        let check_overflow = if nbits == 128 {
-                            numer_hi
-                        } else if nbits == 0 {
-                            numer_lo
-                        } else {
-                            (numer_lo >> nbits) | (numer_hi << (128 - nbits))
-                        };
-                        // If unrounded division == 1 exactly, we actually have a tie at upper
-                        // bound, which is rounded up to 1.0. This is even in all cases except
-                        // when nbits == 0, in which case we must round it back down to 0.
-                        if check_overflow >= denom.get() {
-                            // 0.5 exactly is 10^$dec / 2 = 5^dec * 2^dec / 2 = fives << ($dec - 1)
-                            let half_hi = fives >> (128 - (54 - 1));
-                            let half_lo = fives << (54 - 1);
-                            return if nbits == 0 && val_hi == half_hi && val_lo == half_lo {
-                                Some(0)
-                            } else {
-                                None
-                            };
-                        }
-                    }
-                    Round::Floor => {}
-                }
-                let (mut div, tie) = div_tie(numer_hi, numer_lo, denom);
-                if tie && is_odd(div) {
-                    div -= 1;
-                }
-                Some(div)
-            }
-
-            pub const fn parse_is_short(digits: DigitsUnds) -> ((u128, u128), bool) {
-                if let Some(rem) = 27usize.checked_sub(digits.n_digits()) {
-                    let hi = dec_str_int_to_bin(digits).0 * 10u128.pow(rem as u32);
-                    ((hi, 0), true)
-                } else {
-                    let (begin, end) = digits.split(27);
-                    let hi = dec_str_int_to_bin(begin).0;
-
-                    let (is_short, slice, pad) =
-                        if let Some(rem) = 54usize.checked_sub(digits.n_digits()) {
-                            (true, end, 10u128.pow(rem as u32))
-                        } else {
-                            let (mid, _) = end.split(27);
-                            (false, mid, 1)
-                        };
-                    let lo = dec_str_int_to_bin(slice).0 * pad;
-                    ((hi, lo), is_short)
-                }
-            }
-        }
-    };
-
-    ($Single:ident, $Half:ident, $attempt_half:expr; $Double:ident, $dec:expr, $bin:expr) => {
-        pub mod $Single {
-            unsigned_helpers_common! { $Single, $Half, $attempt_half }
-
-            #[inline]
-            const fn mul10_overflow(x: $Single) -> ($Single, u8) {
-                let prod = (x as $Double) * 10;
-                (prod as $Single, (prod >> <$Single>::BITS) as u8)
-            }
-
-            pub const fn dec_to_bin(val: $Double, nbits: u32, round: Round) -> Option<$Single> {
-                debug_assert!(val < $Double::pow(10, $dec));
-                debug_assert!(nbits <= $bin);
-                let fives = $Double::pow(5, $dec);
-                let denom = fives * 2;
-                let mut numer = val << ($bin - $dec + 1) >> ($bin - nbits);
-                match round {
-                    Round::Nearest => {
-                        // Round up, then round back down if we had a tie and the result is odd.
-                        numer += fives;
-                        // If unrounded division == 1 exactly, we actually have a tie at upper
-                        // bound, which is rounded up to 1.0. This is even in all cases except
-                        // when nbits == 0, in which case we must round it back down to 0.
-                        if numer >> nbits >= denom {
-                            // 0.5 exactly is 10^$dec / 2 = 5^dec * 2^dec / 2 = fives << ($dec - 1)
-                            return if nbits == 0 && val == fives << ($dec - 1) {
-                                Some(0)
-                            } else {
-                                None
-                            };
-                        }
-                    }
-                    Round::Floor => {}
-                }
-                let (mut div, tie) = (numer / denom, numer % denom == 0);
-                if tie && crate::from_str::$Double::is_odd(div) {
-                    div -= 1;
-                }
-                Some(div as $Single)
-            }
-
-            pub const fn parse_is_short(digits: DigitsUnds) -> ($Double, bool) {
-                let (is_short, slice, pad) =
-                    if let Some(rem) = usize::checked_sub($dec, digits.n_digits()) {
-                        (true, digits, $Double::pow(10, rem as u32))
-                    } else {
-                        let (short, _) = digits.split($dec);
-                        (false, short, 1)
-                    };
-                let val = crate::from_str::$Double::dec_str_int_to_bin(slice).0 * pad;
-                (val, is_short)
-            }
-        }
-    };
-}
-
-// expanded on u128 and on all narrower unsigned integers
-macro_rules! unsigned_helpers_common {
+// Expanded on all unsigned integers.
+//
+//   * Expands `all` macro.
+//   * Defines:
+//       - pub const fn from_str
+//       - pub const fn lit
+//       - pub const fn lit_no_sign
+//       - pub const fn get_int_frac
+//       - pub const fn get_int
+//       - pub const fn get_frac
+//       - pub const fn bin_str_int_to_bin
+//       - pub const fn bin_str_frac_to_bin
+//       - pub const fn oct_str_int_to_bin
+//       - pub const fn oct_str_frac_to_bin
+//       - pub const fn hex_str_int_to_bin
+//       - pub const fn hex_str_frac_to_bin
+//       - pub const fn dec_str_int_to_bin
+//       - pub const fn dec_str_frac_to_bin
+//       - const fn from_byte
+//       - pub const fn is_odd
+macro_rules! unsigned {
     ($Uns:ident, $Half:ident, $attempt_half:expr) => {
         use crate::from_str::{
             frac_is_half, parse_bounds, unchecked_hex_digit, DigitsUnds, Parse, Round,
         };
+
+        all! { $Uns }
 
         pub const fn from_str(
             bytes: Bytes,
@@ -401,14 +313,90 @@ macro_rules! unsigned_helpers_common {
             }
         }
 
-        helpers_common! { $Uns }
-
-        const fn from_byte(b: u8) -> $Uns {
-            b as $Uns
+        pub const fn get_int_frac(
+            bytes: Bytes,
+            radix: u32,
+            sep: Sep,
+            int_nbits: u32,
+            frac_nbits: u32,
+        ) -> Result<(bool, $Uns, bool), ParseFixedError> {
+            let Parse { neg, int, frac } = match parse_bounds(bytes, radix, sep) {
+                Ok(o) => o,
+                Err(e) => return Err(e),
+            };
+            let (int_val, mut overflow) = get_int(int, radix, int_nbits);
+            let (frac_val, frac_overflow) = match get_frac(frac, radix, frac_nbits) {
+                Some(val) => (val, false),
+                None => (0, true),
+            };
+            let mut val = int_val | frac_val;
+            // frac_overflow does not catch the case where:
+            //  1. int is odd
+            //  2. frac_nbits is 0
+            //  3. frac_bytes is exactly half, e.g. "5" for decimal
+            // In this case, get_frac returns 0.5 rounded to even 0.0,
+            // as it does not have a way to know that int is odd.
+            if frac_overflow || (is_odd(int_val) && frac_nbits == 0 && frac_is_half(frac, radix)) {
+                let (new_val, new_overflow) = if int_nbits == 0 {
+                    (val, true)
+                } else {
+                    val.overflowing_add(1 << frac_nbits)
+                };
+                if new_overflow {
+                    overflow = true;
+                }
+                val = new_val;
+            }
+            Ok((neg, val, overflow))
         }
 
-        pub const fn is_odd(val: $Uns) -> bool {
-            val & 1 != 0
+        pub const fn get_int(int: DigitsUnds, radix: u32, nbits: u32) -> ($Uns, bool) {
+            const HALF: u32 = $Uns::BITS / 2;
+            if $attempt_half && nbits <= HALF {
+                let (half, overflow) = crate::from_str::$Half::get_int(int, radix, nbits);
+                return ((half as $Uns) << HALF, overflow);
+            }
+
+            if int.is_empty() {
+                return (0, false);
+            }
+            let (mut parsed_int, mut overflow): ($Uns, bool) = match radix {
+                2 => bin_str_int_to_bin(int),
+                8 => oct_str_int_to_bin(int),
+                16 => hex_str_int_to_bin(int),
+                10 => dec_str_int_to_bin(int),
+                _ => unreachable!(),
+            };
+            let remove_bits = $Uns::BITS - nbits;
+            if nbits == 0 {
+                overflow = true;
+                parsed_int = 0;
+            } else if remove_bits > 0 {
+                if (parsed_int >> nbits) != 0 {
+                    overflow = true;
+                }
+                parsed_int <<= remove_bits;
+            }
+            (parsed_int, overflow)
+        }
+
+        pub const fn get_frac(frac: DigitsUnds, radix: u32, nbits: u32) -> Option<$Uns> {
+            if $attempt_half && nbits <= $Uns::BITS / 2 {
+                return match crate::from_str::$Half::get_frac(frac, radix, nbits) {
+                    Some(half) => Some(half as $Uns),
+                    None => None,
+                };
+            }
+            if frac.is_empty() {
+                return Some(0);
+            }
+            match radix {
+                2 => bin_str_frac_to_bin(frac, nbits),
+                8 => oct_str_frac_to_bin(frac, nbits),
+                16 => hex_str_frac_to_bin(frac, nbits),
+                10 => dec_str_frac_to_bin(frac, nbits),
+                _ => unreachable!(),
+            }
         }
 
         pub const fn bin_str_int_to_bin(digits: DigitsUnds) -> ($Uns, bool) {
@@ -686,163 +674,217 @@ macro_rules! unsigned_helpers_common {
             }
         }
 
-        pub const fn get_int_frac(
-            bytes: Bytes,
-            radix: u32,
-            sep: Sep,
-            int_nbits: u32,
-            frac_nbits: u32,
-        ) -> Result<(bool, $Uns, bool), ParseFixedError> {
-            let Parse { neg, int, frac } = match parse_bounds(bytes, radix, sep) {
-                Ok(o) => o,
-                Err(e) => return Err(e),
-            };
-            let (int_val, mut overflow) = get_int(int, radix, int_nbits);
-            let (frac_val, frac_overflow) = match get_frac(frac, radix, frac_nbits) {
-                Some(val) => (val, false),
-                None => (0, true),
-            };
-            let mut val = int_val | frac_val;
-            // frac_overflow does not catch the case where:
-            //  1. int is odd
-            //  2. frac_nbits is 0
-            //  3. frac_bytes is exactly half, e.g. "5" for decimal
-            // In this case, get_frac returns 0.5 rounded to even 0.0,
-            // as it does not have a way to know that int is odd.
-            if frac_overflow || (is_odd(int_val) && frac_nbits == 0 && frac_is_half(frac, radix)) {
-                let (new_val, new_overflow) = if int_nbits == 0 {
-                    (val, true)
-                } else {
-                    val.overflowing_add(1 << frac_nbits)
-                };
-                if new_overflow {
-                    overflow = true;
-                }
-                val = new_val;
-            }
-            Ok((neg, val, overflow))
+        const fn from_byte(b: u8) -> $Uns {
+            b as $Uns
         }
 
-        pub const fn get_int(int: DigitsUnds, radix: u32, nbits: u32) -> ($Uns, bool) {
-            const HALF: u32 = $Uns::BITS / 2;
-            if $attempt_half && nbits <= HALF {
-                let (half, overflow) = crate::from_str::$Half::get_int(int, radix, nbits);
-                return ((half as $Uns) << HALF, overflow);
-            }
-
-            if int.is_empty() {
-                return (0, false);
-            }
-            let (mut parsed_int, mut overflow): ($Uns, bool) = match radix {
-                2 => bin_str_int_to_bin(int),
-                8 => oct_str_int_to_bin(int),
-                16 => hex_str_int_to_bin(int),
-                10 => dec_str_int_to_bin(int),
-                _ => unreachable!(),
-            };
-            let remove_bits = $Uns::BITS - nbits;
-            if nbits == 0 {
-                overflow = true;
-                parsed_int = 0;
-            } else if remove_bits > 0 {
-                if (parsed_int >> nbits) != 0 {
-                    overflow = true;
-                }
-                parsed_int <<= remove_bits;
-            }
-            (parsed_int, overflow)
+        pub const fn is_odd(val: $Uns) -> bool {
+            val & 1 != 0
         }
+    };
+}
 
-        pub const fn get_frac(frac: DigitsUnds, radix: u32, nbits: u32) -> Option<$Uns> {
-            if $attempt_half && nbits <= $Uns::BITS / 2 {
-                return match crate::from_str::$Half::get_frac(frac, radix, nbits) {
-                    Some(half) => Some(half as $Uns),
-                    None => None,
-                };
+// Expanded on all unsigned integers except u128.
+//
+//   * Creates a module named like the integer.
+//   * Expands `unsigned` macro.
+//   * Defines:
+//       - const fn mul10_overflow
+//       - pub const fn dec_to_bin
+//       - pub const fn parse_is_short
+macro_rules! unsigned_not_u128 {
+    ($Single:ident, $Half:ident, $attempt_half:expr; $Double:ident, $dec:expr, $bin:expr) => {
+        pub mod $Single {
+            unsigned! { $Single, $Half, $attempt_half }
+
+            #[inline]
+            const fn mul10_overflow(x: $Single) -> ($Single, u8) {
+                let prod = (x as $Double) * 10;
+                (prod as $Single, (prod >> <$Single>::BITS) as u8)
             }
-            if frac.is_empty() {
-                return Some(0);
+
+            pub const fn dec_to_bin(val: $Double, nbits: u32, round: Round) -> Option<$Single> {
+                debug_assert!(val < $Double::pow(10, $dec));
+                debug_assert!(nbits <= $bin);
+                let fives = $Double::pow(5, $dec);
+                let denom = fives * 2;
+                let mut numer = val << ($bin - $dec + 1) >> ($bin - nbits);
+                match round {
+                    Round::Nearest => {
+                        // Round up, then round back down if we had a tie and the result is odd.
+                        numer += fives;
+                        // If unrounded division == 1 exactly, we actually have a tie at upper
+                        // bound, which is rounded up to 1.0. This is even in all cases except
+                        // when nbits == 0, in which case we must round it back down to 0.
+                        if numer >> nbits >= denom {
+                            // 0.5 exactly is 10^$dec / 2 = 5^dec * 2^dec / 2 = fives << ($dec - 1)
+                            return if nbits == 0 && val == fives << ($dec - 1) {
+                                Some(0)
+                            } else {
+                                None
+                            };
+                        }
+                    }
+                    Round::Floor => {}
+                }
+                let (mut div, tie) = (numer / denom, numer % denom == 0);
+                if tie && crate::from_str::$Double::is_odd(div) {
+                    div -= 1;
+                }
+                Some(div as $Single)
             }
-            match radix {
-                2 => bin_str_frac_to_bin(frac, nbits),
-                8 => oct_str_frac_to_bin(frac, nbits),
-                16 => hex_str_frac_to_bin(frac, nbits),
-                10 => dec_str_frac_to_bin(frac, nbits),
-                _ => unreachable!(),
+
+            pub const fn parse_is_short(digits: DigitsUnds) -> ($Double, bool) {
+                let (is_short, slice, pad) =
+                    if let Some(rem) = usize::checked_sub($dec, digits.n_digits()) {
+                        (true, digits, $Double::pow(10, rem as u32))
+                    } else {
+                        let (short, _) = digits.split($dec);
+                        (false, short, 1)
+                    };
+                let val = crate::from_str::$Double::dec_str_int_to_bin(slice).0 * pad;
+                (val, is_short)
             }
         }
     };
 }
 
-// expanded on all signed and unsigned integers
-macro_rules! helpers_common {
-    ($Single:ident) => {
-        use crate::{
-            bytes::Bytes,
-            from_str::{ParseErrorKind, ParseFixedError, Sep},
+unsigned_not_u128! { u8, u8, false; u16, 3, 8 }
+unsigned_not_u128! { u16, u8, true; u32, 6, 16 }
+unsigned_not_u128! { u32, u16, true; u64, 13, 32 }
+unsigned_not_u128! { u64, u32, true; u128, 27, 64 }
+
+pub mod u128 {
+    unsigned! { u128, u64, true }
+
+    use crate::int256::{self, U256};
+    use core::num::NonZeroU128;
+
+    #[inline]
+    const fn mul10_overflow(x: u128) -> (u128, u8) {
+        const LO_MASK: u128 = !(!0 << 64);
+        let hi = (x >> 64) * 10;
+        let lo = (x & LO_MASK) * 10;
+        // Generates better code than:
+        //     let (wrapped, overflow) = (hi << 64).overflowing_add(lo);
+        //     ((hi >> 64) as u8 + u8::from(overflow), wrapped)
+        let (hi_lo, hi_hi) = (hi as u64, (hi >> 64) as u64);
+        let (lo_lo, lo_hi) = (lo as u64, (lo >> 64) as u64);
+        let (wrapped, overflow) = hi_lo.overflowing_add(lo_hi);
+        (
+            ((wrapped as u128) << 64) | (lo_lo as u128),
+            (hi_hi as u8) + (overflow as u8),
+        )
+    }
+
+    pub const fn dec_to_bin((hi, lo): (u128, u128), nbits: u32, round: Round) -> Option<u128> {
+        debug_assert!(hi < 10u128.pow(27));
+        debug_assert!(lo < 10u128.pow(27));
+        debug_assert!(nbits <= 128);
+        let fives = 5u128.pow(54);
+        let denom = fives * 2;
+        let denom = match NonZeroU128::new(denom) {
+            None => unreachable!(),
+            Some(nz) => nz,
         };
-
-        #[inline]
-        pub const fn from_str_radix(
-            s: &str,
-            radix: u32,
-            frac_nbits: u32,
-        ) -> Result<$Single, ParseFixedError> {
-            match overflowing_from_str_radix(s, radix, frac_nbits) {
-                Ok((val, false)) => Ok(val),
-                Ok((_, true)) => Err(ParseFixedError {
-                    kind: ParseErrorKind::Overflow,
-                }),
-                Err(e) => Err(e),
-            }
+        // we need to combine (10^27*hi + lo) << (128 - 54 + 1)
+        let (hi_hi, hi_lo) = mul_hi_lo(hi, 10u128.pow(27));
+        let (val_lo, overflow) = hi_lo.overflowing_add(lo);
+        let val_hi = if overflow { hi_hi + 1 } else { hi_hi };
+        let (mut numer_lo, mut numer_hi) = (val_lo, val_hi);
+        if nbits < (54 - 1) {
+            let shr = (54 - 1) - nbits;
+            numer_lo = (numer_lo >> shr) | (numer_hi << (128 - shr));
+            numer_hi >>= shr;
+        } else if nbits > (54 - 1) {
+            let shl = nbits - (54 - 1);
+            numer_hi = (numer_hi << shl) | (numer_lo >> (128 - shl));
+            numer_lo <<= shl;
         }
-
-        #[inline]
-        pub const fn saturating_from_str_radix(
-            s: &str,
-            radix: u32,
-            frac_nbits: u32,
-        ) -> Result<$Single, ParseFixedError> {
-            match overflowing_from_str_radix(s, radix, frac_nbits) {
-                Ok((val, false)) => Ok(val),
-                Ok((_, true)) => {
-                    let bytes = s.as_bytes();
-                    let starts_with_minus = match bytes.first() {
-                        Some(s) => *s == b'-',
-                        None => false,
-                    };
-                    if starts_with_minus {
-                        Ok($Single::MIN)
-                    } else {
-                        Ok($Single::MAX)
-                    }
+        match round {
+            Round::Nearest => {
+                // Round up, then round back down if we had a tie and the result is odd.
+                let (wrapped, overflow) = numer_lo.overflowing_add(fives);
+                numer_lo = wrapped;
+                if overflow {
+                    numer_hi += 1;
                 }
-                Err(e) => Err(e),
+                let check_overflow = if nbits == 128 {
+                    numer_hi
+                } else if nbits == 0 {
+                    numer_lo
+                } else {
+                    (numer_lo >> nbits) | (numer_hi << (128 - nbits))
+                };
+                // If unrounded division == 1 exactly, we actually have a tie at upper
+                // bound, which is rounded up to 1.0. This is even in all cases except
+                // when nbits == 0, in which case we must round it back down to 0.
+                if check_overflow >= denom.get() {
+                    // 0.5 exactly is 10^$dec / 2 = 5^dec * 2^dec / 2 = fives << ($dec - 1)
+                    let half_hi = fives >> (128 - (54 - 1));
+                    let half_lo = fives << (54 - 1);
+                    return if nbits == 0 && val_hi == half_hi && val_lo == half_lo {
+                        Some(0)
+                    } else {
+                        None
+                    };
+                }
             }
+            Round::Floor => {}
         }
+        let (mut div, tie) = div_tie(numer_hi, numer_lo, denom);
+        if tie && is_odd(div) {
+            div -= 1;
+        }
+        Some(div)
+    }
 
-        #[inline]
-        pub const fn wrapping_from_str_radix(
-            s: &str,
-            radix: u32,
-            frac_nbits: u32,
-        ) -> Result<$Single, ParseFixedError> {
-            match overflowing_from_str_radix(s, radix, frac_nbits) {
-                Ok((val, _)) => Ok(val),
-                Err(e) => Err(e),
-            }
-        }
+    pub const fn parse_is_short(digits: DigitsUnds) -> ((u128, u128), bool) {
+        if let Some(rem) = 27usize.checked_sub(digits.n_digits()) {
+            let hi = dec_str_int_to_bin(digits).0 * 10u128.pow(rem as u32);
+            ((hi, 0), true)
+        } else {
+            let (begin, end) = digits.split(27);
+            let hi = dec_str_int_to_bin(begin).0;
 
-        #[inline]
-        pub const fn overflowing_from_str_radix(
-            s: &str,
-            radix: u32,
-            frac_nbits: u32,
-        ) -> Result<($Single, bool), ParseFixedError> {
-            let bytes = Bytes::new(s.as_bytes());
-            from_str(bytes, radix, Sep::Error, frac_nbits)
+            let (is_short, slice, pad) = if let Some(rem) = 54usize.checked_sub(digits.n_digits()) {
+                (true, end, 10u128.pow(rem as u32))
+            } else {
+                let (mid, _) = end.split(27);
+                (false, mid, 1)
+            };
+            let lo = dec_str_int_to_bin(slice).0 * pad;
+            ((hi, lo), is_short)
         }
-    };
+    }
+
+    const fn mul_hi_lo(lhs: u128, rhs: u128) -> (u128, u128) {
+        const LO: u128 = !(!0 << 64);
+        let (lhs_hi, lhs_lo) = (lhs >> 64, lhs & LO);
+        let (rhs_hi, rhs_lo) = (rhs >> 64, rhs & LO);
+        let lhs_lo_rhs_lo = lhs_lo.wrapping_mul(rhs_lo);
+        let lhs_hi_rhs_lo = lhs_hi.wrapping_mul(rhs_lo);
+        let lhs_lo_rhs_hi = lhs_lo.wrapping_mul(rhs_hi);
+        let lhs_hi_rhs_hi = lhs_hi.wrapping_mul(rhs_hi);
+
+        let col01 = lhs_lo_rhs_lo;
+        let (col01_hi, col01_lo) = (col01 >> 64, col01 & LO);
+        let partial_col12 = lhs_hi_rhs_lo + col01_hi;
+        let (col12, carry_col3) = partial_col12.overflowing_add(lhs_lo_rhs_hi);
+        let (col12_hi, col12_lo) = (col12 >> 64, col12 & LO);
+        let ans01 = (col12_lo << 64) + col01_lo;
+        let ans23 = lhs_hi_rhs_hi + col12_hi + if carry_col3 { 1u128 << 64 } else { 0 };
+        (ans23, ans01)
+    }
+
+    const fn div_tie(dividend_hi: u128, dividend_lo: u128, divisor: NonZeroU128) -> (u128, bool) {
+        let dividend = U256 {
+            lo: dividend_lo,
+            hi: dividend_hi,
+        };
+        let (quot, rem) = int256::div_rem_u256_u128(dividend, divisor);
+        (quot.lo, rem == 0)
+    }
 }
 
 const fn unchecked_hex_digit(byte: u8) -> u8 {
@@ -898,13 +940,6 @@ enum ParseErrorKind {
     NoDigits,
     TooManyPoints,
     Overflow,
-}
-
-impl From<ParseErrorKind> for ParseFixedError {
-    #[inline]
-    fn from(kind: ParseErrorKind) -> ParseFixedError {
-        ParseFixedError { kind }
-    }
 }
 
 impl ParseFixedError {
@@ -1051,17 +1086,6 @@ const fn frac_is_half(digits: DigitsUnds, radix: u32) -> bool {
     // since zeros are trimmed, there must be exatly one byte
     digits.n_digits() == 1 && digits.bytes().get(0) - b'0' == (radix as u8) / 2
 }
-
-signed_helpers! { i8, u8 }
-signed_helpers! { i16, u16 }
-signed_helpers! { i32, u32 }
-signed_helpers! { i64, u64 }
-signed_helpers! { i128, u128 }
-unsigned_helpers! { u8, u8, false; u16, 3, 8 }
-unsigned_helpers! { u16, u8, true; u32, 6, 16 }
-unsigned_helpers! { u32, u16, true; u64, 13, 32 }
-unsigned_helpers! { u64, u32, true; u128, 27, 64 }
-unsigned_helpers! { u128 }
 
 macro_rules! impl_from_str {
     ($Fixed:ident, $LeEqU:ident) => {
