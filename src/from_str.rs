@@ -788,9 +788,9 @@ pub mod u128 {
             Some(nz) => nz,
         };
         // we need to combine (10^27*hi + lo) << (128 - 54 + 1)
-        let (hi_hi, hi_lo) = mul_hi_lo(hi, 10u128.pow(27));
-        let (val_lo, overflow) = hi_lo.overflowing_add(lo);
-        let val_hi = if overflow { hi_hi + 1 } else { hi_hi };
+        let hi_e27 = int256::wide_mul_u128(hi, 10u128.pow(27));
+        let (val_lo, overflow) = hi_e27.lo.overflowing_add(lo);
+        let val_hi = hi_e27.hi + (overflow as u128);
         let (mut numer_lo, mut numer_hi) = (val_lo, val_hi);
         if nbits < (54 - 1) {
             let shr = (54 - 1) - nbits;
@@ -856,25 +856,6 @@ pub mod u128 {
             let lo = dec_str_int_to_bin(slice).0 * pad;
             ((hi, lo), is_short)
         }
-    }
-
-    const fn mul_hi_lo(lhs: u128, rhs: u128) -> (u128, u128) {
-        const LO: u128 = !(!0 << 64);
-        let (lhs_hi, lhs_lo) = (lhs >> 64, lhs & LO);
-        let (rhs_hi, rhs_lo) = (rhs >> 64, rhs & LO);
-        let lhs_lo_rhs_lo = lhs_lo.wrapping_mul(rhs_lo);
-        let lhs_hi_rhs_lo = lhs_hi.wrapping_mul(rhs_lo);
-        let lhs_lo_rhs_hi = lhs_lo.wrapping_mul(rhs_hi);
-        let lhs_hi_rhs_hi = lhs_hi.wrapping_mul(rhs_hi);
-
-        let col01 = lhs_lo_rhs_lo;
-        let (col01_hi, col01_lo) = (col01 >> 64, col01 & LO);
-        let partial_col12 = lhs_hi_rhs_lo + col01_hi;
-        let (col12, carry_col3) = partial_col12.overflowing_add(lhs_lo_rhs_hi);
-        let (col12_hi, col12_lo) = (col12 >> 64, col12 & LO);
-        let ans01 = (col12_lo << 64) + col01_lo;
-        let ans23 = lhs_hi_rhs_hi + col12_hi + if carry_col3 { 1u128 << 64 } else { 0 };
-        (ans23, ans01)
     }
 
     const fn div_tie(dividend_hi: u128, dividend_lo: u128, divisor: NonZeroU128) -> (u128, bool) {
