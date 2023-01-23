@@ -104,8 +104,10 @@ The conversions supported cover the following cases.
 
 ### Version 1.22.0 news (unreleased)
 
-  * String parsing now supports an optional exponent.
-  * The [`lit`][f-l-1-22] method was added to all fixed-point numbers.
+  * String parsing now supports an optional exponent for all supported radices.
+  * The [`lit`][f-l-1-22] method was added to all fixed-point numbers. This is
+    useful to write fixed-point numbers literally in code and also works in
+    constant context.
 
 [f-l-1-22]: https://docs.rs/fixed/~1.22/fixed/struct.FixedI32.html#method.lit
 
@@ -188,17 +190,20 @@ have less fractional bits, so we use [`from_num`] instead.
 ## Writing fixed-point constants and values literally
 
 The [`lit`] method, which is available as a `const` function, can be used to
-parse literals. It supports underscores as separators, and prefixes `"0b"`,
-`"0o"` and `"0x"` for binary/octal/hexadecimal numbers. It also supports an
-optional exponent with separator `'e'` or `'E'` for decimal, binary and octal
-numbers, or with separator `'@'` for hexadecimal or any radix.
+parse literals. It supports
+  * underscores as separators;
+  * prefixes “`0b`”, “`0o`” and “`0x`” for binary, octal and hexadecimal
+    numbers;
+  * an optional decimal exponent with separator “`e`” or “`E`” for decimal,
+    binary and octal numbers, or with separator “`@`” for all supported radices
+    including hexadecimal.
 
 ```rust
 use fixed::types::I16F16;
 
 // 0.1275e2 is 12.75
 const TWELVE_POINT_75: I16F16 = I16F16::lit("0.127_5e2");
-// 1.8 hexadecimal is 1.5 decimal, and 18@-1 is 0.18
+// 1.8 hexadecimal is 1.5 decimal, and 18@-1 is 1.8
 const ONE_POINT_5: I16F16 = I16F16::lit("0x_18@-1");
 // 12.75 + 1.5 = 14.25
 let sum = TWELVE_POINT_75 + ONE_POINT_5;
@@ -207,20 +212,22 @@ assert_eq!(sum, 14.25);
 
 The [*fixed-macro* crate] is an alternative which provides a convenient macro to
 write down fixed-point constants literally in the code. It supports underscores
-as separators, scientific notation, and binary/octal/hexadecimal integers, but
-it does not support binary/octal/hexadecimal fractions as they cannot be parsed
-by the Rust compiler.
+as separators, binary/octal/hexadecimal integers, and an optional exponent for
+decimal numbers, but it does not support fractions or exponents for
+binary/octal/hexadecimal as they cannot be parsed by the Rust compiler.
 
 ```rust
 use fixed::types::I16F16;
 use fixed_macro::fixed;
+use fixed_macro::types::I16F16;
 
 // 0.1275e2 is 12.75
-const NUM1: I16F16 = fixed!(0.127_5e2: I16F16);
+const TWELVE_POINT_75: I16F16 = fixed!(0.127_5e2: I16F16);
 // 11 binary is 3 decimal
-let num2 = NUM1 + fixed!(0b11: I16F16);
+const THREE: I16F16 = I16F16!(0b_11);
 // 12.75 + 3 = 15.75
-assert_eq!(num2, 15.75);
+let sum = TWELVE_POINT_75 + THREE;
+assert_eq!(sum, 15.75);
 ```
 
 ## Using the *fixed* crate

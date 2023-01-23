@@ -948,18 +948,19 @@ numeric literals in Rust code.
 ",
             if_signed_else_empty_str! {
                 $Signedness;
-                r#"The string can start with `"-"` for a negative number.
+                "The string can start with “`-`” for a negative number.
 
-"#,
+",
             },
-            r#"Strings starting with `"0b"` are parsed as binary, strings starting with `"0o"`
-are parsed as octal, and strings starting with `"0x"` are parsed as hexadecimal.
+            r#"Strings starting with “`0b`” are parsed as binary, strings
+starting with “`0o`” are parsed as octal, and strings starting with “`0x`” are
+parsed as hexadecimal.
 
 Exponents are supported as well. For decimal, binary and octal numbers, the
-separator `'e'` or `'E'` can be used to start an exponent, which is then
-followed by an optional sign `'+'` or `'-'`, and then by a decimal number which
-is the exponent. For hexadecimal numbers, since `'e'` and `'E'` are hexadecimal
-digits, the separator `'@'` has to be used instead. The separator `'@'` is
+separator “`e`” or “`E`” can be used to start an exponent, which is then
+followed by an optional sign “`+`” or “`-`”, and then by a decimal integer which
+is the exponent. For hexadecimal numbers, since “`e`” and “`E`” are hexadecimal
+digits, the separator “`@`” has to be used instead. The separator “`@`” is
 accepted for all radices.
 
 # Panics
@@ -971,11 +972,11 @@ Panics if the number is not valid or overflows.
 ```rust
 use fixed::{types::extra::U4, "#, $s_fixed, "};
 type Fix = ", $s_fixed, r#"<U4>;
+
 assert_eq!(Fix::lit("1.75"), 1.75);
 assert_eq!(Fix::lit("1_.7_5_"), 1.75);
-assert_eq!(Fix::lit("0b_1.1_1"), 1.75);
-assert_eq!(Fix::lit("0o_1.6"), 1.75);
-assert_eq!(Fix::lit("0x1.C"), 1.75);
+assert_eq!(Fix::lit("17.5e-1"), 1.75);
+assert_eq!(Fix::lit("0_.017_5_e+0_2"), 1.75);
 "#,
             if_signed_else_empty_str! {
                 $Signedness;
@@ -983,10 +984,13 @@ assert_eq!(Fix::lit("0x1.C"), 1.75);
 "#,
             },
             r#"
-assert_eq!(Fix::lit("17.5e-1"), 1.75);
-assert_eq!(Fix::lit("0_.017_5_e+0_2"), 1.75);
+assert_eq!(Fix::lit("0b_1.1_1"), 1.75);
 assert_eq!(Fix::lit("0b_111e-2"), 1.75);
+
+assert_eq!(Fix::lit("0o_1.6"), 1.75);
 assert_eq!(Fix::lit("0o_.16E1"), 1.75);
+
+assert_eq!(Fix::lit("0x1.C"), 1.75);
 assert_eq!(Fix::lit("0x0.1C@1"), 1.75);
 ```
 
@@ -1107,8 +1111,8 @@ assert_eq!(neg, Ok(-check));
         comment! {
             "Parses a string slice containing hexadecimal digits to return a fixed-point number.
 
-Since `'E'` is a valid hexadecimal digit, it cannot be used as a separator to
-start an exponent; the `'@'` character can be used instead. The `'@'` character
+Since “`E`” is a valid hexadecimal digit, it cannot be used as a separator to
+start an exponent; the “`@`” character can be used instead. The “`@`” character
 can be used as an exponent separator for other radices as well.
 
 Rounding is to the nearest, with ties rounded to even.
