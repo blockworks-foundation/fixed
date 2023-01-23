@@ -281,7 +281,7 @@ impl<'a> DigitsUnds<'a> {
             zeros += 1;
             rem = rest;
         }
-        return (zeros, rem);
+        (zeros, rem)
     }
 
     const fn split_trailing_zeros(self) -> (DigitsUnds<'a>, usize) {
@@ -291,7 +291,7 @@ impl<'a> DigitsUnds<'a> {
             zeros += 1;
             rem = rest;
         }
-        return (rem, zeros);
+        (rem, zeros)
     }
 }
 
@@ -492,29 +492,23 @@ impl<'a> DigitsExp<'a> {
                 },
             ));
         }
-        match self.part1.split_first() {
-            Some((first, rest)) => {
-                return Some((
-                    first,
-                    DigitsExp {
-                        part1: rest,
-                        ..self
-                    },
-                ));
-            }
-            None => {}
+        if let Some((first, rest)) = self.part1.split_first() {
+            return Some((
+                first,
+                DigitsExp {
+                    part1: rest,
+                    ..self
+                },
+            ));
         }
-        match self.part2.split_first() {
-            Some((first, rest)) => {
-                return Some((
-                    first,
-                    DigitsExp {
-                        part2: rest,
-                        ..self
-                    },
-                ));
-            }
-            None => {}
+        if let Some((first, rest)) = self.part2.split_first() {
+            return Some((
+                first,
+                DigitsExp {
+                    part2: rest,
+                    ..self
+                },
+            ));
         }
         if self.trailing_zeros > 0 {
             return Some((
