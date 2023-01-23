@@ -14,7 +14,7 @@
 // <https://opensource.org/licenses/MIT>.
 
 use crate::{
-    bytes::{Bytes, DigitsUnds},
+    bytes::{Bytes, DigitsExp, DigitsUnds},
     types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8},
     FixedI128, FixedI16, FixedI32, FixedI64, FixedI8, FixedU128, FixedU16, FixedU32, FixedU64,
     FixedU8,
@@ -252,7 +252,7 @@ signed! { i128, u128 }
 macro_rules! unsigned {
     ($Uns:ident $(, $Half:ident)?) => {
         use crate::from_str::{
-            frac_is_half, parse_bounds, unchecked_hex_digit, DigitsUnds, Parse, Round,
+            frac_is_half, parse_bounds, unchecked_hex_digit, DigitsExp, Parse, Round,
         };
 
         all! { $Uns }
@@ -350,7 +350,7 @@ macro_rules! unsigned {
             Ok((neg, val, overflow))
         }
 
-        pub(super) const fn get_int(int: DigitsUnds, radix: u32, nbits: u32) -> ($Uns, bool) {
+        pub(super) const fn get_int(int: DigitsExp, radix: u32, nbits: u32) -> ($Uns, bool) {
             $(
                 if nbits <= $Half::BITS {
                     let (half, overflow) = crate::from_str::$Half::get_int(int, radix, nbits);
@@ -383,7 +383,7 @@ macro_rules! unsigned {
             (parsed_int, overflow)
         }
 
-        pub(super) const fn get_frac(frac: DigitsUnds, radix: u32, nbits: u32) -> Option<$Uns> {
+        pub(super) const fn get_frac(frac: DigitsExp, radix: u32, nbits: u32) -> Option<$Uns> {
             $(
                 if nbits <= $Half::BITS {
                     return match crate::from_str::$Half::get_frac(frac, radix, nbits) {
@@ -407,7 +407,7 @@ macro_rules! unsigned {
             }
         }
 
-        const fn bin_str_int_to_bin(digits: DigitsUnds) -> ($Uns, bool) {
+        const fn bin_str_int_to_bin(digits: DigitsExp) -> ($Uns, bool) {
             let max_len = $Uns::BITS as usize;
             let (digits, overflow) = if digits.n_digits() > max_len {
                 let (_, last_max_len) = digits.split(digits.n_digits() - max_len);
@@ -425,7 +425,7 @@ macro_rules! unsigned {
             (acc, overflow)
         }
 
-        const fn bin_str_frac_to_bin(digits: DigitsUnds, nbits: u32) -> Option<$Uns> {
+        const fn bin_str_frac_to_bin(digits: DigitsExp, nbits: u32) -> Option<$Uns> {
             let mut rem_bits = nbits;
             let mut acc = 0;
             let mut rem_digits = digits;
@@ -455,7 +455,7 @@ macro_rules! unsigned {
             Some(acc << rem_bits)
         }
 
-        const fn oct_str_int_to_bin(digits: DigitsUnds) -> ($Uns, bool) {
+        const fn oct_str_int_to_bin(digits: DigitsExp) -> ($Uns, bool) {
             let max_len = ($Uns::BITS as usize + 2) / 3;
             let (digits, mut overflow) = if digits.n_digits() > max_len {
                 let (_, last_max_len) = digits.split(digits.n_digits() - max_len);
@@ -483,7 +483,7 @@ macro_rules! unsigned {
             (acc, overflow)
         }
 
-        const fn oct_str_frac_to_bin(digits: DigitsUnds, nbits: u32) -> Option<$Uns> {
+        const fn oct_str_frac_to_bin(digits: DigitsExp, nbits: u32) -> Option<$Uns> {
             let mut rem_bits = nbits;
             let mut acc = 0;
             let mut rem_digits = digits;
@@ -515,7 +515,7 @@ macro_rules! unsigned {
             Some(acc << rem_bits)
         }
 
-        const fn hex_str_int_to_bin(digits: DigitsUnds) -> ($Uns, bool) {
+        const fn hex_str_int_to_bin(digits: DigitsExp) -> ($Uns, bool) {
             let max_len = ($Uns::BITS as usize + 3) / 4;
             let (digits, mut overflow) = if digits.n_digits() > max_len {
                 let (_, last_max_len) = digits.split(digits.n_digits() - max_len);
@@ -543,7 +543,7 @@ macro_rules! unsigned {
             (acc, overflow)
         }
 
-        const fn hex_str_frac_to_bin(digits: DigitsUnds, nbits: u32) -> Option<$Uns> {
+        const fn hex_str_frac_to_bin(digits: DigitsExp, nbits: u32) -> Option<$Uns> {
             let mut rem_bits = nbits;
             let mut acc = 0;
             let mut rem_digits = digits;
@@ -575,7 +575,7 @@ macro_rules! unsigned {
             Some(acc << rem_bits)
         }
 
-        pub(super) const fn dec_str_int_to_bin(digits: DigitsUnds) -> ($Uns, bool) {
+        pub(super) const fn dec_str_int_to_bin(digits: DigitsExp) -> ($Uns, bool) {
             let max_effective_len = $Uns::BITS as usize;
             let (digits, mut overflow) = if digits.n_digits() > max_effective_len {
                 let (_, last_max_effective_len) =
@@ -597,7 +597,7 @@ macro_rules! unsigned {
             (acc, overflow)
         }
 
-        const fn dec_str_frac_to_bin(digits: DigitsUnds, nbits: u32) -> Option<$Uns> {
+        const fn dec_str_frac_to_bin(digits: DigitsExp, nbits: u32) -> Option<$Uns> {
             let (val, is_short) = parse_is_short(digits);
             let one: $Uns = 1;
             let dump_bits = $Uns::BITS - nbits;
@@ -731,7 +731,7 @@ macro_rules! unsigned_not_u128 {
                 Some(div as $Single)
             }
 
-            const fn parse_is_short(digits: DigitsUnds) -> ($Double, bool) {
+            const fn parse_is_short(digits: DigitsExp) -> ($Double, bool) {
                 let (is_short, slice, pad) =
                     if let Some(rem) = usize::checked_sub($dec, digits.n_digits()) {
                         (true, digits, $Double::pow(10, rem as u32))
@@ -840,7 +840,7 @@ pub mod u128 {
         Some(div)
     }
 
-    const fn parse_is_short(digits: DigitsUnds) -> ((u128, u128), bool) {
+    const fn parse_is_short(digits: DigitsExp) -> ((u128, u128), bool) {
         if let Some(rem) = 27usize.checked_sub(digits.n_digits()) {
             let hi = dec_str_int_to_bin(digits).0 * 10u128.pow(rem as u32);
             ((hi, 0), true)
@@ -885,8 +885,8 @@ pub enum Round {
 #[derive(Clone, Copy, Debug)]
 struct Parse<'a> {
     neg: bool,
-    int: DigitsUnds<'a>,
-    frac: DigitsUnds<'a>,
+    int: DigitsExp<'a>,
+    frac: DigitsExp<'a>,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -1061,12 +1061,20 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
         }
         _ => DigitsUnds::new(Bytes::new(&[])),
     };
+    let (int, frac) = match DigitsExp::new_int_frac(int, frac, 0) {
+        Some(s) => s,
+        None => unreachable!(),
+    };
     Ok(Parse { neg, int, frac })
 }
 
-const fn frac_is_half(digits: DigitsUnds, radix: u32) -> bool {
-    // since zeros are trimmed, there must be exatly one byte
-    digits.n_digits() == 1 && digits.bytes().get(0) - b'0' == (radix as u8) / 2
+const fn frac_is_half(digits: DigitsExp, radix: u32) -> bool {
+    // since zeros are trimmed, when the value is one half there has to be
+    // exatly one digit, and rest has to be empty
+    match digits.split_first() {
+        Some((digit, rest)) => digit - b'0' == (radix as u8) / 2 && rest.is_empty(),
+        None => false,
+    }
 }
 
 macro_rules! impl_from_str {
@@ -1097,7 +1105,7 @@ impl_from_str! { FixedU128, LeEqU128 }
 #[cfg(test)]
 mod tests {
     use crate::{
-        bytes::Bytes,
+        bytes::{Bytes, DigitsExp},
         from_str::{self, parse_bounds, Parse, ParseErrorKind, ParseFixedError, Round, Sep},
         types::*,
     };
@@ -1304,19 +1312,28 @@ mod tests {
         assert_eq!(narrow, Some(977_343_669_134));
     }
 
-    fn check_parse_bounds_ok(
-        bytes: &[u8],
-        radix: u32,
-        sep: Sep,
-        check: (bool, &[u8], usize, &[u8], usize),
-    ) {
+    fn digits_eq_bytes(mut digits: DigitsExp, bytes: &[u8]) -> bool {
+        let mut bytes = bytes.iter().copied();
+        while let Some((digit, rem)) = digits.split_first() {
+            digits = rem;
+            match bytes.next() {
+                Some(byte) => {
+                    if byte != digit {
+                        return false;
+                    }
+                }
+                None => return false,
+            }
+        }
+        bytes.next().is_none()
+    }
+
+    fn check_parse_bounds_ok(bytes: &[u8], radix: u32, sep: Sep, check: (bool, &[u8], &[u8])) {
         let bytes = Bytes::new(bytes);
         let Parse { neg, int, frac } = parse_bounds(bytes, radix, sep).unwrap();
-        let int_slice = int.bytes().slice();
-        let int_unds = int_slice.len() - int.n_digits();
-        let frac_slice = frac.bytes().slice();
-        let frac_unds = frac_slice.len() - frac.n_digits();
-        assert_eq!((neg, int_slice, int_unds, frac_slice, frac_unds), check);
+        assert_eq!(neg, check.0);
+        assert!(digits_eq_bytes(int, check.1));
+        assert!(digits_eq_bytes(frac, check.2));
     }
 
     fn check_parse_bounds_err(bytes: &[u8], radix: u32, sep: Sep, check: ParseErrorKind) {
@@ -1329,11 +1346,11 @@ mod tests {
     fn check_parse_bounds() {
         let sep = Sep::Error;
 
-        check_parse_bounds_ok(b"-12.34", 10, sep, (true, &b"12"[..], 0, &b"34"[..], 0));
-        check_parse_bounds_ok(b"012.", 10, sep, (false, &b"12"[..], 0, &b""[..], 0));
-        check_parse_bounds_ok(b"+.340", 10, sep, (false, &b""[..], 0, &b"34"[..], 0));
-        check_parse_bounds_ok(b"0", 10, sep, (false, &b""[..], 0, &b""[..], 0));
-        check_parse_bounds_ok(b"-.C1A0", 16, sep, (true, &b""[..], 0, &b"C1A"[..], 0));
+        check_parse_bounds_ok(b"-12.34", 10, sep, (true, &b"12"[..], &b"34"[..]));
+        check_parse_bounds_ok(b"012.", 10, sep, (false, &b"12"[..], &b""[..]));
+        check_parse_bounds_ok(b"+.340", 10, sep, (false, &b""[..], &b"34"[..]));
+        check_parse_bounds_ok(b"0", 10, sep, (false, &b""[..], &b""[..]));
+        check_parse_bounds_ok(b"-.C1A0", 16, sep, (true, &b""[..], &b"C1A"[..]));
 
         check_parse_bounds_err(b"0 ", 10, sep, ParseErrorKind::InvalidDigit);
         check_parse_bounds_err(b"+-", 10, sep, ParseErrorKind::InvalidDigit);
@@ -1360,11 +1377,11 @@ mod tests {
     fn check_parse_bounds_underscore() {
         let sep = Sep::Skip;
 
-        check_parse_bounds_ok(b"-12.34", 10, sep, (true, &b"12"[..], 0, &b"34"[..], 0));
-        check_parse_bounds_ok(b"012.", 10, sep, (false, &b"12"[..], 0, &b""[..], 0));
-        check_parse_bounds_ok(b"+.340", 10, sep, (false, &b""[..], 0, &b"34"[..], 0));
-        check_parse_bounds_ok(b"0", 10, sep, (false, &b""[..], 0, &b""[..], 0));
-        check_parse_bounds_ok(b"-.C1A0", 16, sep, (true, &b""[..], 0, &b"C1A"[..], 0));
+        check_parse_bounds_ok(b"-12.34", 10, sep, (true, &b"12"[..], &b"34"[..]));
+        check_parse_bounds_ok(b"012.", 10, sep, (false, &b"12"[..], &b""[..]));
+        check_parse_bounds_ok(b"+.340", 10, sep, (false, &b""[..], &b"34"[..]));
+        check_parse_bounds_ok(b"0", 10, sep, (false, &b""[..], &b""[..]));
+        check_parse_bounds_ok(b"-.C1A0", 16, sep, (true, &b""[..], &b"C1A"[..]));
 
         check_parse_bounds_err(b"0 ", 10, sep, ParseErrorKind::InvalidDigit);
         check_parse_bounds_err(b"+-", 10, sep, ParseErrorKind::InvalidDigit);
@@ -1374,16 +1391,16 @@ mod tests {
         check_parse_bounds_err(b"1-2", 10, sep, ParseErrorKind::InvalidDigit);
 
         check_parse_bounds_err(b"-_12.34", 10, sep, ParseErrorKind::InvalidDigit);
-        check_parse_bounds_ok(b"-1_2.34", 10, sep, (true, &b"1_2"[..], 1, &b"34"[..], 0));
-        check_parse_bounds_ok(b"-12_.34", 10, sep, (true, &b"12"[..], 0, &b"34"[..], 0));
+        check_parse_bounds_ok(b"-1_2.34", 10, sep, (true, &b"12"[..], &b"34"[..]));
+        check_parse_bounds_ok(b"-12_.34", 10, sep, (true, &b"12"[..], &b"34"[..]));
         check_parse_bounds_err(b"-12._34", 10, sep, ParseErrorKind::InvalidDigit);
-        check_parse_bounds_ok(b"-12.3_4", 10, sep, (true, &b"12"[..], 0, &b"3_4"[..], 1));
-        check_parse_bounds_ok(b"-12.34_", 10, sep, (true, &b"12"[..], 0, &b"34"[..], 0));
+        check_parse_bounds_ok(b"-12.3_4", 10, sep, (true, &b"12"[..], &b"34"[..]));
+        check_parse_bounds_ok(b"-12.34_", 10, sep, (true, &b"12"[..], &b"34"[..]));
         check_parse_bounds_ok(
             b"-0_1__2___.3____4_____0",
             10,
             sep,
-            (true, &b"1__2"[..], 2, &b"3____4"[..], 4),
+            (true, &b"12"[..], &b"34"[..]),
         );
     }
 
