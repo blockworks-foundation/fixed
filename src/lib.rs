@@ -166,14 +166,17 @@ have less fractional bits, so we use [`from_num`] instead.
 
 The [`lit`] method, which is available as a `const` function, can be used to
 parse literals. It supports underscores as separators, and prefixes `"0b"`,
-`"0o"` and `"0x"` for binary/octal/hexadecimal numbers.
+`"0o"` and `"0x"` for binary/octal/hexadecimal numbers. It also supports an
+optional exponent with separator `'e'` or `'E'` for decimal, binary and octal
+numbers, or with separator `'@'` for hexadecimal or any radix.
 
 ```rust
 use fixed::types::I16F16;
 
-const TWELVE_POINT_75: I16F16 = I16F16::lit("12.75");
-// 1.1 binary is 1.5 decimal
-const ONE_POINT_5: I16F16 = I16F16::lit("0b_1.1");
+// 0.1275e2 is 12.75
+const TWELVE_POINT_75: I16F16 = I16F16::lit("0.127_5e2");
+// 1.8 hexadecimal is 1.5 decimal, and 18@-1 is 0.18
+const ONE_POINT_5: I16F16 = I16F16::lit("0x_18@-1");
 // 12.75 + 1.5 = 14.25
 let sum = TWELVE_POINT_75 + ONE_POINT_5;
 assert_eq!(sum, 14.25);
