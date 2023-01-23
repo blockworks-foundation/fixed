@@ -15,6 +15,8 @@
 
 use core::marker::PhantomData;
 
+// TODO: remove unsafe once slice::split_at is supported in const context
+
 #[derive(Clone, Copy, Debug)]
 pub struct Bytes<'a> {
     ptr: *const u8,
@@ -45,27 +47,27 @@ impl<'a> Bytes<'a> {
     }
 
     #[inline]
-    pub const fn get(self, i: usize) -> u8 {
-        assert!(i < self.len, "index out of bounds");
-        let ptr = self.ptr.wrapping_add(i);
+    pub const fn index(self, index: usize) -> u8 {
+        assert!(index < self.len, "index out of bounds");
+        let ptr = self.ptr.wrapping_add(index);
         // SAFETY: points to a valid slice, and bounds already checked
         unsafe { *ptr }
     }
 
     #[inline]
-    pub const fn split(self, i: usize) -> (Bytes<'a>, Bytes<'a>) {
-        let end_len = match self.len().checked_sub(i) {
+    pub const fn split_at(self, mid: usize) -> (Bytes<'a>, Bytes<'a>) {
+        let end_len = match self.len().checked_sub(mid) {
             Some(s) => s,
             None => panic!("index out of bounds"),
         };
         (
             Bytes {
                 ptr: self.ptr,
-                len: i,
+                len: mid,
                 phantom: PhantomData,
             },
             Bytes {
-                ptr: self.ptr.wrapping_add(i),
+                ptr: self.ptr.wrapping_add(mid),
                 len: end_len,
                 phantom: PhantomData,
             },
@@ -77,8 +79,18 @@ impl<'a> Bytes<'a> {
         if self.is_empty() {
             None
         } else {
-            let (first, rest) = self.split(1);
-            Some((first.get(0), rest))
+            let (first, rest) = self.split_at(1);
+            Some((first.index(0), rest))
+        }
+    }
+
+    #[inline]
+    pub const fn split_last(self) -> Option<(Bytes<'a>, u8)> {
+        if self.is_empty() {
+            None
+        } else {
+            let (rest, last) = self.split_at(self.len() - 1);
+            Some((rest, last.index(0)))
         }
     }
 }
@@ -86,56 +98,41 @@ impl<'a> Bytes<'a> {
 // Kept trimmed: no underscores at beginning or end of slice
 #[derive(Clone, Copy, Debug)]
 pub struct DigitsUnds<'a> {
-    ptr: *const u8,
+    bytes: Bytes<'a>,
     digits: usize,
-    unds: usize,
-    phantom: PhantomData<&'a [u8]>,
 }
 
 impl<'a> DigitsUnds<'a> {
     pub const EMPTY: DigitsUnds<'a> = DigitsUnds::new(Bytes::EMPTY);
 
-    #[inline]
     pub const fn new(bytes: Bytes<'a>) -> DigitsUnds<'a> {
-        let mut ptr = bytes.ptr;
         let mut digits = 0;
-        let mut unds = 0;
-        let mut pending_unds = 0;
+        let mut leading_unds = 0;
+        let mut trailing_unds = 0;
         let mut rem_bytes = bytes;
         while let Some((byte, rem)) = rem_bytes.split_first() {
             rem_bytes = rem;
 
             if byte == b'_' {
-                pending_unds += 1;
+                trailing_unds += 1;
             } else {
                 if digits == 0 {
-                    ptr = ptr.wrapping_add(pending_unds);
-                } else {
-                    unds += pending_unds;
+                    leading_unds = trailing_unds;
                 }
                 digits += 1;
-                pending_unds = 0;
+                trailing_unds = 0;
             }
         }
+        let without_trailing_unds = bytes.split_at(bytes.len() - trailing_unds).0;
+        let without_leading_unds = without_trailing_unds.split_at(leading_unds).1;
         DigitsUnds {
-            ptr,
+            bytes: without_leading_unds,
             digits,
-            unds,
-            phantom: PhantomData,
         }
     }
 
     #[inline]
-    const fn bytes(self) -> Bytes<'a> {
-        Bytes {
-            ptr: self.ptr,
-            len: self.digits + self.unds,
-            phantom: PhantomData,
-        }
-    }
-
-    #[inline]
-    pub const fn n_digits(self) -> usize {
+    pub const fn len(self) -> usize {
         self.digits
     }
 
@@ -144,134 +141,96 @@ impl<'a> DigitsUnds<'a> {
         self.digits == 0
     }
 
-    #[inline]
-    pub const fn split(self, digit_index: usize) -> (DigitsUnds<'a>, DigitsUnds<'a>) {
-        let last_digits = match self.digits.checked_sub(digit_index) {
-            Some(s) => s,
-            None => panic!("index out of bounds"),
-        };
-        if last_digits == 0 {
-            return (self, DigitsUnds::EMPTY);
-        }
-
-        let mut remaining_digits = digit_index;
+    pub const fn split_at(self, mid: usize) -> (DigitsUnds<'a>, DigitsUnds<'a>) {
+        let mut remaining_digits = mid;
         let mut unds = 0;
-        let mut index = 0;
-        while remaining_digits > 0 {
-            let ptr = self.ptr.wrapping_add(index);
-            // SAFETY: there must be at least i digits, so ptr is in range
-            let byte = unsafe { *ptr };
+        let mut rem_bytes = self.bytes;
+        while let Some((byte, rem)) = rem_bytes.split_first() {
+            rem_bytes = rem;
+
             if byte != b'_' {
                 remaining_digits -= 1;
+                if remaining_digits == 0 {
+                    break;
+                }
             } else {
                 unds += 1;
             }
-            index += 1;
+        }
+        if remaining_digits > 0 {
+            panic!("index out of bounds");
         }
         let first = DigitsUnds {
-            ptr: self.ptr,
-            digits: digit_index,
-            unds,
-            phantom: PhantomData,
+            bytes: self.bytes.split_at(mid + unds).0,
+            digits: mid,
         };
 
-        // we need to reduce seps by numbers of SEP bytes between first part and last part
-        let mut remaining_unds = self.unds - unds;
-        loop {
-            let ptr = self.ptr.wrapping_add(index);
-            // SAFETY: there must be at least 1 more digit, otherwise we
-            // would have returned earlier in `last_digits == 0` condition.
-            let byte = unsafe { *ptr };
+        // skip over underscores between first part and last part
+        while let Some((byte, rem)) = rem_bytes.split_first() {
             if byte != b'_' {
-                return (
-                    first,
-                    DigitsUnds {
-                        ptr,
-                        digits: last_digits,
-                        unds: remaining_unds,
-                        phantom: PhantomData,
-                    },
-                );
+                break;
             }
-            remaining_unds -= 1;
-            index += 1;
+            rem_bytes = rem;
         }
+        (
+            first,
+            DigitsUnds {
+                bytes: rem_bytes,
+                digits: self.digits - mid,
+            },
+        )
     }
 
     #[inline]
     pub const fn split_first(self) -> Option<(u8, DigitsUnds<'a>)> {
-        if self.is_empty() {
-            return None;
-        }
-        // first byte is never underscore
-        let first = self.bytes().get(0);
-        debug_assert!(first != b'_');
-        let rem_digits = self.digits - 1;
-        if rem_digits == 0 {
-            return Some((first, DigitsUnds::EMPTY));
-        }
+        let (first, mut rem_bytes) = match self.bytes.split_first() {
+            Some(s) => s,
+            None => return None,
+        };
 
-        // index is 1 as [0] is the first digit
-        let mut index = 1;
-        // we need to reduce unds by numbers of underscores between first digit and remainder
-        let mut rem_unds = self.unds;
-        loop {
-            let ptr = self.ptr.wrapping_add(index);
-            // SAFETY: there must be at least 1 more digit, otherwise we
-            // would have returned earlier in `rem_digits == 0` condition.
-            let byte = unsafe { *ptr };
+        // first byte is never underscore
+        debug_assert!(first != b'_');
+
+        // skip over underscores between first digit and last part
+        while let Some((byte, rem)) = rem_bytes.split_first() {
             if byte != b'_' {
-                return Some((
-                    first,
-                    DigitsUnds {
-                        ptr,
-                        digits: rem_digits,
-                        unds: rem_unds,
-                        phantom: PhantomData,
-                    },
-                ));
+                break;
             }
-            rem_unds -= 1;
-            index += 1;
+            rem_bytes = rem;
         }
+        Some((
+            first,
+            DigitsUnds {
+                bytes: rem_bytes,
+                digits: self.digits - 1,
+            },
+        ))
     }
 
     #[inline]
     pub const fn split_last(self) -> Option<(DigitsUnds<'a>, u8)> {
-        if self.is_empty() {
-            return None;
-        }
-        // last byte is never underscore
-        let last = self.bytes().get(self.digits + self.unds - 1);
-        debug_assert!(last != b'_');
-        let rem_digits = self.digits - 1;
-        if rem_digits == 0 {
-            return Some((DigitsUnds::EMPTY, last));
-        }
+        let (mut rem_bytes, last) = match self.bytes.split_last() {
+            Some(s) => s,
+            None => return None,
+        };
 
-        // index is digits + unds - 2 as [digits + unds - 1] is the last digit
-        let mut index = self.digits + self.unds - 2;
-        // we need to reduce unds by numbers of underscores between last digit and remainder
-        let mut rem_unds = self.unds;
-        loop {
-            let check_ptr = self.ptr.wrapping_add(index);
-            // SAFETY: there must be at least 1 more digit, otherwise we
-            // would have returned earlier in `rem_digits == 0` condition.
-            let byte = unsafe { *check_ptr };
+        // last byte is never underscore
+        debug_assert!(last != b'_');
+
+        // skip over underscores between first part and last digit
+        while let Some((rem, byte)) = rem_bytes.split_last() {
             if byte != b'_' {
-                return Some((
-                    DigitsUnds {
-                        ptr: self.ptr,
-                        digits: rem_digits,
-                        unds: rem_unds,
-                        phantom: PhantomData,
-                    },
-                    last,
-                ));
+                break;
             }
-            rem_unds -= 1;
-            index += 1;
+            rem_bytes = rem;
         }
+        Some((
+            DigitsUnds {
+                bytes: rem_bytes,
+                digits: self.digits - 1,
+            },
+            last,
+        ))
     }
 
     const fn split_leading_zeros(self) -> (usize, DigitsUnds<'a>) {
@@ -311,7 +270,6 @@ impl<'a> DigitsExp<'a> {
         trailing_zeros: 0,
     };
 
-    #[inline]
     const fn new1(digits: DigitsUnds<'a>) -> DigitsExp<'a> {
         let (leading_zeros, rest) = digits.split_leading_zeros();
         let (rest, trailing_zeros) = rest.split_trailing_zeros();
@@ -323,8 +281,6 @@ impl<'a> DigitsExp<'a> {
         }
     }
 
-    // digits1 and digits2 should be in the same block, so length sum won't overflow
-    #[inline]
     const fn new2(digits1: DigitsUnds<'a>, digits2: DigitsUnds<'a>) -> DigitsExp<'a> {
         let (mut leading_zeros, mut digits1) = digits1.split_leading_zeros();
         let digits2 = if digits1.is_empty() {
@@ -359,29 +315,29 @@ impl<'a> DigitsExp<'a> {
             (DigitsExp::new1(int), DigitsExp::new1(frac))
         } else if exp < 0 {
             let abs_exp = exp.unsigned_abs() as usize;
-            if abs_exp as u32 != exp.unsigned_abs() || abs_exp > usize::MAX - frac.n_digits() {
+            if abs_exp as u32 != exp.unsigned_abs() || abs_exp > usize::MAX - frac.len() {
                 return None;
             }
-            if abs_exp < int.n_digits() {
-                let int = int.split(int.n_digits() - abs_exp);
+            if abs_exp < int.len() {
+                let int = int.split_at(int.len() - abs_exp);
                 (DigitsExp::new1(int.0), DigitsExp::new2(int.1, frac))
             } else {
                 let mut frac = DigitsExp::new2(int, frac);
-                frac.leading_zeros += abs_exp - int.n_digits();
+                frac.leading_zeros += abs_exp - int.len();
                 (DigitsExp::EMPTY, frac)
             }
         } else {
             // exp > 0
             let abs_exp = exp.unsigned_abs() as usize;
-            if abs_exp as u32 != exp.unsigned_abs() || abs_exp > usize::MAX - int.n_digits() {
+            if abs_exp as u32 != exp.unsigned_abs() || abs_exp > usize::MAX - int.len() {
                 return None;
             }
-            if abs_exp < frac.n_digits() {
-                let frac = frac.split(abs_exp);
+            if abs_exp < frac.len() {
+                let frac = frac.split_at(abs_exp);
                 (DigitsExp::new2(int, frac.0), DigitsExp::new1(frac.1))
             } else {
                 let mut int = DigitsExp::new2(int, frac);
-                int.trailing_zeros += abs_exp - frac.n_digits();
+                int.trailing_zeros += abs_exp - frac.len();
                 (int, DigitsExp::EMPTY)
             }
         };
@@ -397,86 +353,71 @@ impl<'a> DigitsExp<'a> {
     }
 
     #[inline]
-    pub const fn n_digits(self) -> usize {
-        self.leading_zeros + self.part1.n_digits() + self.part2.n_digits() + self.trailing_zeros
+    pub const fn len(self) -> usize {
+        self.leading_zeros + self.part1.len() + self.part2.len() + self.trailing_zeros
     }
 
     #[inline]
     pub const fn is_empty(self) -> bool {
-        self.n_digits() == 0
+        self.len() == 0
     }
 
-    #[inline]
-    pub const fn split(self, mut digit_index: usize) -> (DigitsExp<'a>, DigitsExp<'a>) {
-        if digit_index <= self.leading_zeros {
-            return (
-                DigitsExp {
-                    leading_zeros: digit_index,
-                    part1: DigitsUnds::EMPTY,
-                    part2: DigitsUnds::EMPTY,
-                    trailing_zeros: 0,
-                },
-                DigitsExp {
-                    leading_zeros: self.leading_zeros - digit_index,
-                    part1: self.part1,
-                    part2: self.part2,
-                    trailing_zeros: self.trailing_zeros,
-                },
-            );
+    pub const fn split_at(self, mut mid: usize) -> (DigitsExp<'a>, DigitsExp<'a>) {
+        let mut first = DigitsExp::EMPTY;
+        let mut last = self;
+        if mid == 0 {
+            return (first, last);
         }
-        digit_index -= self.leading_zeros;
-        if digit_index <= self.part1.n_digits() {
-            let part1 = self.part1.split(digit_index);
-            return (
-                DigitsExp {
-                    leading_zeros: self.leading_zeros,
-                    part1: part1.0,
-                    part2: DigitsUnds::EMPTY,
-                    trailing_zeros: 0,
-                },
-                DigitsExp {
-                    leading_zeros: 0,
-                    part1: part1.1,
-                    part2: self.part2,
-                    trailing_zeros: self.trailing_zeros,
-                },
-            );
+
+        if mid < self.leading_zeros {
+            (first.leading_zeros, last.leading_zeros) = (mid, self.leading_zeros - mid);
+            return (first, last);
         }
-        digit_index -= self.part1.n_digits();
-        if digit_index <= self.part2.n_digits() {
-            let part2 = self.part2.split(digit_index);
-            return (
-                DigitsExp {
-                    leading_zeros: self.leading_zeros,
-                    part1: self.part1,
-                    part2: part2.0,
-                    trailing_zeros: 0,
-                },
-                DigitsExp {
-                    leading_zeros: 0,
-                    part1: DigitsUnds::EMPTY,
-                    part2: part2.1,
-                    trailing_zeros: self.trailing_zeros,
-                },
-            );
+
+        (first.leading_zeros, last.leading_zeros) = (self.leading_zeros, 0);
+        mid -= self.leading_zeros;
+        if mid == 0 {
+            return (first, last);
         }
-        digit_index -= self.part2.n_digits();
-        if digit_index <= self.trailing_zeros {
-            return (
-                DigitsExp {
-                    leading_zeros: self.leading_zeros,
-                    part1: self.part1,
-                    part2: self.part2,
-                    trailing_zeros: digit_index,
-                },
-                DigitsExp {
-                    leading_zeros: self.trailing_zeros - digit_index,
-                    part1: DigitsUnds::EMPTY,
-                    part2: DigitsUnds::EMPTY,
-                    trailing_zeros: 0,
-                },
-            );
+
+        if mid < self.part1.len() {
+            (first.part1, last.part1) = self.part1.split_at(mid);
+            return (first, last);
         }
+
+        first.part1 = self.part1;
+        last.part1 = self.part2;
+        last.part2 = DigitsUnds::EMPTY;
+        mid -= self.part1.len();
+        if mid == 0 {
+            return (first, last);
+        }
+
+        if mid < self.part2.len() {
+            (first.part2, last.part1) = self.part2.split_at(mid);
+            return (first, last);
+        }
+
+        first.part2 = self.part2;
+        last.leading_zeros = self.trailing_zeros;
+        last.part1 = DigitsUnds::EMPTY;
+        last.trailing_zeros = 0;
+        mid -= self.part2.len();
+        if mid == 0 {
+            return (first, last);
+        }
+
+        if mid < self.trailing_zeros {
+            (first.trailing_zeros, last.leading_zeros) = (mid, self.trailing_zeros - mid);
+            return (first, last);
+        }
+
+        (first.trailing_zeros, last.leading_zeros) = (self.trailing_zeros, 0);
+        mid -= self.trailing_zeros;
+        if mid == 0 {
+            return (first, last);
+        }
+
         panic!("index out of bounds");
     }
 

@@ -202,8 +202,8 @@ macro_rules! signed {
                 if bytes.is_empty() {
                     return None;
                 }
-                let neg = if bytes.get(0) == b'-' {
-                    bytes = bytes.split(1).1;
+                let neg = if bytes.index(0) == b'-' {
+                    bytes = bytes.split_at(1).1;
                     true
                 } else {
                     false
@@ -284,8 +284,8 @@ macro_rules! unsigned {
             if bytes.is_empty() {
                 return None;
             }
-            let radix = if bytes.len() >= 2 && bytes.get(0) == b'0' {
-                match bytes.get(1) {
+            let radix = if bytes.len() >= 2 && bytes.index(0) == b'0' {
+                match bytes.index(1) {
                     b'b' => 2,
                     b'o' => 8,
                     b'x' => 16,
@@ -295,15 +295,15 @@ macro_rules! unsigned {
                 10
             };
             if radix != 10 {
-                bytes = bytes.split(2).1;
-                while !bytes.is_empty() && bytes.get(0) == b'_' {
-                    bytes = bytes.split(1).1;
+                bytes = bytes.split_at(2).1;
+                while !bytes.is_empty() && bytes.index(0) == b'_' {
+                    bytes = bytes.split_at(1).1;
                 }
             }
             if bytes.is_empty() {
                 return None;
             }
-            let next_byte = bytes.get(0);
+            let next_byte = bytes.index(0);
             if next_byte == b'-' || next_byte == b'+' {
                 return None;
             }
@@ -409,8 +409,8 @@ macro_rules! unsigned {
 
         const fn bin_str_int_to_bin(digits: DigitsExp) -> ($Uns, bool) {
             let max_len = $Uns::BITS as usize;
-            let (digits, overflow) = if digits.n_digits() > max_len {
-                let (_, last_max_len) = digits.split(digits.n_digits() - max_len);
+            let (digits, overflow) = if digits.len() > max_len {
+                let (_, last_max_len) = digits.split_at(digits.len() - max_len);
                 (last_max_len, true)
             } else {
                 (digits, false)
@@ -457,8 +457,8 @@ macro_rules! unsigned {
 
         const fn oct_str_int_to_bin(digits: DigitsExp) -> ($Uns, bool) {
             let max_len = ($Uns::BITS as usize + 2) / 3;
-            let (digits, mut overflow) = if digits.n_digits() > max_len {
-                let (_, last_max_len) = digits.split(digits.n_digits() - max_len);
+            let (digits, mut overflow) = if digits.len() > max_len {
+                let (_, last_max_len) = digits.split_at(digits.len() - max_len);
                 (last_max_len, true)
             } else {
                 (digits, false)
@@ -468,7 +468,7 @@ macro_rules! unsigned {
                 None => unreachable!(),
             };
             let mut acc = from_byte(first_digit - b'0');
-            if digits.n_digits() == max_len {
+            if digits.len() == max_len {
                 let first_max_bits = $Uns::BITS - (max_len as u32 - 1) * 3;
                 let first_max = (from_byte(1) << first_max_bits) - 1;
                 if acc > first_max {
@@ -517,8 +517,8 @@ macro_rules! unsigned {
 
         const fn hex_str_int_to_bin(digits: DigitsExp) -> ($Uns, bool) {
             let max_len = ($Uns::BITS as usize + 3) / 4;
-            let (digits, mut overflow) = if digits.n_digits() > max_len {
-                let (_, last_max_len) = digits.split(digits.n_digits() - max_len);
+            let (digits, mut overflow) = if digits.len() > max_len {
+                let (_, last_max_len) = digits.split_at(digits.len() - max_len);
                 (last_max_len, true)
             } else {
                 (digits, false)
@@ -528,7 +528,7 @@ macro_rules! unsigned {
                 None => unreachable!(),
             };
             let mut acc = from_byte(unchecked_hex_digit(first_digit));
-            if digits.n_digits() == max_len {
+            if digits.len() == max_len {
                 let first_max_bits = $Uns::BITS - (max_len as u32 - 1) * 4;
                 let first_max = (from_byte(1) << first_max_bits) - 1;
                 if acc > first_max {
@@ -577,9 +577,8 @@ macro_rules! unsigned {
 
         pub(super) const fn dec_str_int_to_bin(digits: DigitsExp) -> ($Uns, bool) {
             let max_effective_len = $Uns::BITS as usize;
-            let (digits, mut overflow) = if digits.n_digits() > max_effective_len {
-                let (_, last_max_effective_len) =
-                    digits.split(digits.n_digits() - max_effective_len);
+            let (digits, mut overflow) = if digits.len() > max_effective_len {
+                let (_, last_max_effective_len) = digits.split_at(digits.len() - max_effective_len);
                 (last_max_effective_len, true)
             } else {
                 (digits, false)
@@ -733,10 +732,10 @@ macro_rules! unsigned_not_u128 {
 
             const fn parse_is_short(digits: DigitsExp) -> ($Double, bool) {
                 let (is_short, slice, pad) =
-                    if let Some(rem) = usize::checked_sub($dec, digits.n_digits()) {
+                    if let Some(rem) = usize::checked_sub($dec, digits.len()) {
                         (true, digits, $Double::pow(10, rem as u32))
                     } else {
-                        let (short, _) = digits.split($dec);
+                        let (short, _) = digits.split_at($dec);
                         (false, short, 1)
                     };
                 let val = crate::from_str::$Double::dec_str_int_to_bin(slice).0 * pad;
@@ -841,17 +840,17 @@ pub mod u128 {
     }
 
     const fn parse_is_short(digits: DigitsExp) -> ((u128, u128), bool) {
-        if let Some(rem) = 27usize.checked_sub(digits.n_digits()) {
+        if let Some(rem) = 27usize.checked_sub(digits.len()) {
             let hi = dec_str_int_to_bin(digits).0 * 10u128.pow(rem as u32);
             ((hi, 0), true)
         } else {
-            let (begin, end) = digits.split(27);
+            let (begin, end) = digits.split_at(27);
             let hi = dec_str_int_to_bin(begin).0;
 
-            let (is_short, slice, pad) = if let Some(rem) = 54usize.checked_sub(digits.n_digits()) {
+            let (is_short, slice, pad) = if let Some(rem) = 54usize.checked_sub(digits.len()) {
                 (true, end, 10u128.pow(rem as u32))
             } else {
-                let (mid, _) = end.split(27);
+                let (mid, _) = end.split_at(27);
                 (false, mid, 1)
             };
             let lo = dec_str_int_to_bin(slice).0 * pad;
@@ -1101,20 +1100,20 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
     };
     let int = match (trimmed_int_start, point, exp_sep) {
         (Some(begin), Some(end), _) | (Some(begin), None, Some(end)) => {
-            let (up_to_end, _) = bytes.split(end);
-            let (_, from_begin) = up_to_end.split(begin);
+            let (up_to_end, _) = bytes.split_at(end);
+            let (_, from_begin) = up_to_end.split_at(begin);
             DigitsUnds::new(from_begin)
         }
         (Some(begin), None, None) => {
-            let (_, from_begin) = bytes.split(begin);
+            let (_, from_begin) = bytes.split_at(begin);
             DigitsUnds::new(from_begin)
         }
         (None, _, _) => DigitsUnds::new(Bytes::EMPTY),
     };
     let frac = match (point, trimmed_frac_end) {
         (Some(point), Some(end)) => {
-            let (up_to_end, _) = bytes.split(end);
-            let (_, from_after_point) = up_to_end.split(point + 1);
+            let (up_to_end, _) = bytes.split_at(end);
+            let (_, from_after_point) = up_to_end.split_at(point + 1);
             DigitsUnds::new(from_after_point)
         }
         _ => DigitsUnds::new(Bytes::EMPTY),
