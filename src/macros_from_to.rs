@@ -980,7 +980,7 @@ assert_eq!(Fix::lit("0_.017_5_e+0_2"), 1.75);
 "#,
             if_signed_else_empty_str! {
                 $Signedness;
-                r#"assert_eq!(Fix::lit("-0x1.C"), -1.75);
+                r#"assert_eq!(Fix::lit("-01.75"), -1.75);
 "#,
             },
             r#"
@@ -992,7 +992,13 @@ assert_eq!(Fix::lit("0o_.16E1"), 1.75);
 
 assert_eq!(Fix::lit("0x1.C"), 1.75);
 assert_eq!(Fix::lit("0x0.1C@1"), 1.75);
-```
+"#,
+            if_signed_else_empty_str! {
+                $Signedness;
+                r#"assert_eq!(Fix::lit("-0x1.C"), -1.75);
+"#,
+            },
+            r#"```
 
 This method is useful to write constant fixed-point literals.
 
