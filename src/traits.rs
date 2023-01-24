@@ -35,7 +35,7 @@ use arbitrary::Arbitrary;
 use borsh::{BorshDeserialize, BorshSerialize};
 use bytemuck::{self, Contiguous, Pod, TransparentWrapper};
 use core::{
-    fmt::{Binary, Debug, Display, LowerHex, Octal, UpperHex},
+    fmt::{Binary, Debug, Display, LowerExp, LowerHex, Octal, UpperExp, UpperHex},
     hash::Hash,
     iter::{Product, Sum},
     mem,
@@ -549,7 +549,8 @@ pub trait Fixed
 where
     Self: Default + Hash + Ord,
     Self: Contiguous + Pod + TransparentWrapper<<Self as Fixed>::Bits>,
-    Self: Debug + Display + Binary + Octal + LowerHex + UpperHex,
+    Self: Debug + Display + LowerExp + UpperExp,
+    Self: Binary + Octal + LowerHex + UpperHex,
     Self: FromStr<Err = ParseFixedError>,
     Self: FromFixed + ToFixed,
     Self: Add<Output = Self> + AddAssign,

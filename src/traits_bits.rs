@@ -25,7 +25,7 @@ use az_crate::{
 use borsh::{BorshDeserialize, BorshSerialize};
 use bytemuck::{Contiguous, Pod};
 use core::{
-    fmt::{Binary, Debug, Display, LowerHex, Octal, UpperHex},
+    fmt::{Binary, Debug, Display, LowerExp, LowerHex, Octal, UpperExp, UpperHex},
     hash::Hash,
     iter::{Product, Sum},
     num::ParseIntError,
@@ -114,7 +114,8 @@ pub trait FixedBits
 where
     Self: Default + Hash + Ord,
     Self: Contiguous + Pod,
-    Self: Debug + Display + Binary + Octal + LowerHex + UpperHex,
+    Self: Debug + Display + LowerExp + UpperExp,
+    Self: Binary + Octal + LowerHex + UpperHex,
     Self: FromStr<Err = ParseIntError>,
     Self: Add<Output = Self> + AddAssign,
     Self: Sub<Output = Self> + SubAssign,

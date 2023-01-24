@@ -95,8 +95,9 @@ The conversions supported cover the following cases.
     [`from_str_binary`], [`from_str_octal`] and [`from_str_hex`] methods. The
     result is rounded to the nearest, with ties rounded to even.
   * Fixed-point numbers can be converted to strings using [`Display`],
-    [`Binary`], [`Octal`], [`LowerHex`] and [`UpperHex`]. The output is rounded
-    to the nearest, with ties rounded to even.
+    [`Binary`], [`Octal`], [`LowerHex`], [`UpperHex`], [`LowerExp`] and
+    [`UpperExp`]. The output is rounded to the nearest, with ties rounded to
+    even.
   * All fixed-point numbers are plain old data, so [`bytemuck`] bit casting
     conversions can be used.
 
@@ -109,10 +110,13 @@ The conversions supported cover the following cases.
     useful to write fixed-point numbers literally in code and also works in
     constant context.
   * All fixed-point numbers now implement [`LowerExp`] and [`UpperExp`].
+  * [`Binary`], [`Octal`], [`LowerHex`], [`UpperHex`], [`LowerExp`] and
+    [`UpperExp`] are now supertraits of the [`Fixed`][tf-1-22] and
+    [`FixedBits`][fb-1-22] traits.
 
-[`LowerExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html
-[`UpperExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html
 [f-l-1-22]: https://docs.rs/fixed/~1.22/fixed/struct.FixedI32.html#method.lit
+[fb-1-22]: https://docs.rs/fixed/~1.22/fixed/traits/trait.FixedBits.html
+[tf-1-22]: https://docs.rs/fixed/~1.22/fixed/traits/trait.Fixed.html
 
 ### Version 1.21.0 news (2022-12-24)
 
@@ -355,11 +359,13 @@ shall be dual licensed as above, without any additional terms or conditions.
 [`LosslessTryInto`]: https://docs.rs/fixed/~1.21/fixed/traits/trait.LosslessTryInto.html
 [`LossyFrom`]: https://docs.rs/fixed/~1.21/fixed/traits/trait.LossyFrom.html
 [`LossyInto`]: https://docs.rs/fixed/~1.21/fixed/traits/trait.LossyInto.html
+[`LowerExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html
 [`LowerHex`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html
 [`Octal`]: https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html
 [`ParseFixedError`]: https://docs.rs/fixed/~1.21/fixed/struct.ParseFixedError.html
 [`ToFixed`]: https://docs.rs/fixed/~1.21/fixed/traits/trait.ToFixed.html
 [`U20F12`]: https://docs.rs/fixed/~1.21/fixed/types/type.U20F12.html
+[`UpperExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html
 [`UpperHex`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html
 [`az`]: https://docs.rs/az/^1/az/index.html
 [`bf16`]: https://docs.rs/half/^2/half/struct.bf16.html

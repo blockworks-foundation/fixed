@@ -13,8 +13,13 @@ Version 1.22.0 (unreleased)
     useful to write fixed-point numbers literally in code and also works in
     constant context.
   * All fixed-point numbers now implement [`LowerExp`] and [`UpperExp`].
+  * [`Binary`], [`Octal`], [`LowerHex`], [`UpperHex`], [`LowerExp`] and
+    [`UpperExp`] are now supertraits of the [`Fixed`][tf-1-22] and
+    [`FixedBits`][fb-1-22] traits.
 
 [f-l-1-22]: https://docs.rs/fixed/~1.22/fixed/struct.FixedI32.html#method.lit
+[fb-1-22]: https://docs.rs/fixed/~1.22/fixed/traits/trait.FixedBits.html
+[tf-1-22]: https://docs.rs/fixed/~1.22/fixed/traits/trait.Fixed.html
 
 Version 1.21.0 (2022-12-24)
 ===========================
@@ -1333,6 +1338,7 @@ Version 0.1.0 (2018-08-10)
 [*num-traits* crate]: https://crates.io/crates/num-traits
 [*typenum* crate]: https://crates.io/crates/typenum
 [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
+[`Binary`]: https://doc.rust-lang.org/nightly/core/fmt/trait.Binary.html
 [`BitAndAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.BitAndAssign.html
 [`BitOrAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.BitOrAssign.html
 [`BitXorAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.BitXorAssign.html
@@ -1343,15 +1349,18 @@ Version 0.1.0 (2018-08-10)
 [`FromStr`]: https://doc.rust-lang.org/nightly/core/str/trait.FromStr.html
 [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
 [`LowerExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html
+[`LowerHex`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html
 [`MulAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.MulAssign.html
 [`NonZeroI32`]: https://doc.rust-lang.org/nightly/core/num/struct.NonZeroI32.html
 [`NonZeroU32`]: https://doc.rust-lang.org/nightly/core/num/struct.NonZeroU32.html
+[`Octal`]: https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html
 [`Product`]: https://doc.rust-lang.org/nightly/core/iter/trait.Product.html
 [`RemAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.RemAssign.html
 [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
 [`SubAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.SubAssign.html
 [`Sum`]: https://doc.rust-lang.org/nightly/core/iter/trait.Sum.html
 [`UpperExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html
+[`UpperHex`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html
 [`f32`]: https://doc.rust-lang.org/nightly/core/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/nightly/core/primitive.f64.html
 [`rust-version`]: https://doc.rust-lang.org/nightly/cargo/reference/manifest.html#the-rust-version-field
