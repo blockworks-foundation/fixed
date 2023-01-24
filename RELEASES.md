@@ -12,6 +12,7 @@ Version 1.22.0 (unreleased)
   * The [`lit`][f-l-1-22] method was added to all fixed-point numbers. This is
     useful to write fixed-point numbers literally in code and also works in
     constant context.
+  * All fixed-point numbers now implement [`LowerExp`] and [`UpperExp`].
 
 [f-l-1-22]: https://docs.rs/fixed/~1.22/fixed/struct.FixedI32.html#method.lit
 
@@ -1341,6 +1342,7 @@ Version 0.1.0 (2018-08-10)
 [`FromStr::from_str`]: https://doc.rust-lang.org/nightly/core/str/trait.FromStr.html#tymethod.from_str
 [`FromStr`]: https://doc.rust-lang.org/nightly/core/str/trait.FromStr.html
 [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+[`LowerExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html
 [`MulAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.MulAssign.html
 [`NonZeroI32`]: https://doc.rust-lang.org/nightly/core/num/struct.NonZeroI32.html
 [`NonZeroU32`]: https://doc.rust-lang.org/nightly/core/num/struct.NonZeroU32.html
@@ -1349,6 +1351,7 @@ Version 0.1.0 (2018-08-10)
 [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
 [`SubAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.SubAssign.html
 [`Sum`]: https://doc.rust-lang.org/nightly/core/iter/trait.Sum.html
+[`UpperExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html
 [`f32`]: https://doc.rust-lang.org/nightly/core/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/nightly/core/primitive.f64.html
 [`rust-version`]: https://doc.rust-lang.org/nightly/cargo/reference/manifest.html#the-rust-version-field

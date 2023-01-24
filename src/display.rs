@@ -24,8 +24,8 @@ use az_crate::{WrappingAs, WrappingCast};
 use core::{
     cmp::{self, Ordering},
     fmt::{
-        Alignment, Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult,
-        UpperHex,
+        Alignment, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
+        Result as FmtResult, UpperExp, UpperHex,
     },
     ops::{Add, Shl, Shr},
     str,
@@ -42,10 +42,14 @@ use core::{
 //
 //   * data[0..1 + int_digits]: integer digits with 0, 1, or 2 extra zeros
 //   * data[1 + int_digits..1 + int_digits + frac_digits]: fractional digits
+//
+// exp is only used for decimal, so its range is from -39 to 38 inclusive.
 struct Buffer {
     int_digits: usize,
     frac_digits: usize,
     digits: [u8; 129],
+    exp_len: usize,
+    exp: [u8; 4],
 }
 
 impl Buffer {
@@ -55,6 +59,8 @@ impl Buffer {
             int_digits: int_digits as usize,
             frac_digits: frac_digits as usize,
             digits: [0; 129],
+            exp_len: 0,
+            exp: [0; 4],
         }
     }
 
@@ -69,6 +75,46 @@ impl Buffer {
         let begin = 1 + self.int_digits;
         let end = 1 + self.int_digits + self.frac_digits;
         &mut self.digits[begin..end]
+    }
+
+    fn format_exp_dec(&mut self, exp_is_upper: bool) {
+        self.exp_len = 1;
+        self.exp[0] = if exp_is_upper { b'E' } else { b'e' };
+        let digits_end = self.int_digits + self.frac_digits;
+        match self.digits[..digits_end].iter().position(|&x| x > 0) {
+            None => {
+                self.int_digits = 0;
+                self.frac_digits = 0;
+                self.exp_len = 2;
+                self.exp[1] = b'0';
+            }
+            Some(first) => {
+                // point should be between digits[int_digits] and digits[1 + int_digits],
+                // so digits[int_digits] should be digits[first]
+                let neg_exp = self.int_digits < first;
+                let abs_exp = self.int_digits.abs_diff(first);
+                if neg_exp {
+                    self.int_digits += abs_exp;
+                    self.frac_digits -= abs_exp;
+                    self.exp_len = 2;
+                    self.exp[1] = b'-';
+                } else {
+                    self.int_digits -= abs_exp;
+                    self.frac_digits += abs_exp;
+                }
+                // exp should be between -38 and 39 inclusive
+                debug_assert!(abs_exp <= 39);
+                if abs_exp > 9 {
+                    self.exp_len += 2;
+                    let (e0, e1) = (abs_exp as u8 % 10, abs_exp as u8 / 10);
+                    self.exp[self.exp_len - 2] = b'0' + e1;
+                    self.exp[self.exp_len - 1] = b'0' + e0;
+                } else {
+                    self.exp_len += 1;
+                    self.exp[self.exp_len - 1] = b'0' + abs_exp as u8;
+                }
+            }
+        }
     }
 
     fn finish(
@@ -135,8 +181,11 @@ impl Buffer {
         };
         let prefix = if fmt.alternate() { maybe_prefix } else { "" };
 
+        // For numbers with a negative exponent:
+        //   * digits[int_digits] is the first non-zero digit
+        //
         // For numbers with no significant integer bits:
-        //   * digits starts  with "0" and begin = 0
+        //   * digits starts with "0" and begin = 0
         //
         // For numbers with some significant integer bits, data can have:
         //   * no leading zeros => begin = 0
@@ -148,7 +197,9 @@ impl Buffer {
         // between 8 and 15, so two decimal digits are allocated apart
         // from the initial padding zero. This means that for 8, data
         // would begin as "008.", and begin = 2.
-        let abs_begin = if self.int_digits == 0 || self.digits[0] != b'0' {
+        let abs_begin = if self.exp[1] == b'-' {
+            self.int_digits
+        } else if self.int_digits == 0 || self.digits[0] != b'0' {
             0
         } else if self.digits[1] != b'0' {
             1
@@ -159,7 +210,8 @@ impl Buffer {
         let has_frac = self.frac_digits > 0 || end_zeros > 0;
 
         let digits_width = 1 + self.int_digits + self.frac_digits - abs_begin;
-        let req_width = sign.len() + prefix.len() + digits_width + has_frac as usize + end_zeros;
+        let req_width =
+            sign.len() + prefix.len() + digits_width + has_frac as usize + end_zeros + self.exp_len;
         let pad = fmt
             .width()
             .and_then(|w| w.checked_sub(req_width))
@@ -194,6 +246,7 @@ impl Buffer {
                 fmt.write_char('0')?;
             }
         }
+        fmt.write_str(str::from_utf8(&self.exp[..self.exp_len]).unwrap())?;
         for _ in 0..pad_right {
             fmt.write_char(fill)?;
         }
@@ -208,6 +261,8 @@ enum Format {
     LowHex,
     UpHex,
     Dec,
+    LowExp,
+    UpExp,
 }
 
 impl Format {
@@ -216,7 +271,7 @@ impl Format {
             Format::Bin => 1,
             Format::Oct => 3,
             Format::LowHex | Format::UpHex => 4,
-            Format::Dec => 4,
+            Format::Dec | Format::LowExp | Format::UpExp => 4,
         }
     }
     fn max_digit(self) -> u8 {
@@ -224,7 +279,7 @@ impl Format {
             Format::Bin => 1,
             Format::Oct => 7,
             Format::LowHex | Format::UpHex => 15,
-            Format::Dec => 9,
+            Format::Dec | Format::LowExp | Format::UpExp => 9,
         }
     }
     fn prefix(self) -> &'static str {
@@ -232,7 +287,7 @@ impl Format {
             Format::Bin => "0b",
             Format::Oct => "0o",
             Format::LowHex | Format::UpHex => "0x",
-            Format::Dec => "",
+            Format::Dec | Format::LowExp | Format::UpExp => "",
         }
     }
 }
@@ -288,26 +343,49 @@ where
         frac.cmp(&Self::MSB)
     }
 
-    fn write_int_dec(mut int: Self, nbits: u32, buf: &mut Buffer) {
+    // returns the number of significant digits
+    fn write_int_dec(mut int: Self, nbits: u32, buf: &mut Buffer) -> usize {
         if Self::Half::BITS == Self::BITS / 2 && nbits <= Self::Half::BITS {
             return FmtHelper::write_int_dec(Self::as_half(int), nbits, buf);
         }
+        let mut sig = 0;
         for b in buf.int().iter_mut().rev() {
             let (q, r) = Self::div_rem_10(int);
             int = q;
             *b = r;
+            if r != 0 || sig != 0 {
+                sig += 1;
+            }
         }
         debug_assert!(int == Self::ZERO);
+        sig
     }
 
-    fn write_frac_dec(mut frac: Self, nbits: u32, auto_prec: bool, buf: &mut Buffer) -> Ordering {
+    fn write_frac_dec(
+        mut frac: Self,
+        nbits: u32,
+        frac_format: DecFracFormat,
+        buf: &mut Buffer,
+    ) -> Ordering {
         if Self::Half::BITS == Self::BITS / 2 && nbits <= Self::Half::BITS {
             return FmtHelper::write_frac_dec(
                 Self::as_half(frac >> Self::Half::BITS),
                 nbits,
-                auto_prec,
+                frac_format,
                 buf,
             );
+        }
+
+        let mut is_past_point = !frac_format.has_exp || frac_format.int_sig_digits > 0;
+        let (auto_prec, mut rem_prec) = match frac_format.precision {
+            Some(prec) => (false, prec),
+            None => (true, 0),
+        };
+        if !auto_prec && frac_format.has_exp && is_past_point {
+            rem_prec = rem_prec.saturating_sub(frac_format.int_sig_digits - 1);
+        }
+        if !auto_prec && is_past_point && buf.frac_digits > rem_prec {
+            buf.frac_digits = rem_prec;
         }
 
         // add_5 is to add rounding when all bits are used
@@ -316,33 +394,40 @@ where
         } else {
             (Self::MSB >> nbits, false)
         };
-        let mut trim_to = None;
         for (i, b) in buf.frac().iter_mut().enumerate() {
             *b = Mul10::mul10_assign(&mut frac);
 
             // Check if very close to zero, to avoid things like 0.19999999 and 0.20000001.
-            // This takes place even if we have a precision.
-            if frac < Self::from(10) || Self::wrapping_neg(frac) < Self::from(10) {
-                trim_to = Some(i + 1);
+            if auto_prec && frac < Self::from(10) || Self::wrapping_neg(frac) < Self::from(10) {
+                buf.frac_digits = i + 1;
                 break;
             }
 
             if auto_prec {
                 // tie might overflow in last iteration when i = frac_digits - 1,
-                // but it has no effect as all it can do is set trim_to = Some(i + 1)
+                // but it has no effect as all it can do is set frac_digits to i + 1
                 Mul10::mul10_assign(&mut tie);
                 if add_5 {
                     tie = tie + Self::from(5);
                     add_5 = false;
                 }
                 if frac < tie || Self::wrapping_neg(frac) < tie {
-                    trim_to = Some(i + 1);
+                    buf.frac_digits = i + 1;
                     break;
                 }
+            } else if frac_format.has_exp {
+                debug_assert!(rem_prec > 0);
+                if is_past_point {
+                    rem_prec -= 1;
+                    if rem_prec == 0 {
+                        buf.frac_digits = i + 1;
+                        break;
+                    }
+                } else if *b != 0 {
+                    is_past_point = true;
+                    // *b is still before point, so do not decrement rem_prec here.
+                }
             }
-        }
-        if let Some(trim_to) = trim_to {
-            buf.frac_digits = trim_to;
         }
         frac.cmp(&Self::MSB)
     }
@@ -403,29 +488,50 @@ fn fmt<U: FmtHelper>(
         Format::Bin | Format::Oct | Format::LowHex | Format::UpHex => {
             fmt_radix2((neg, int, frac), format, fmt)
         }
-        Format::Dec => fmt_dec((neg, int, frac), frac_nbits, fmt),
+        Format::Dec | Format::LowExp | Format::UpExp => {
+            fmt_dec((neg, int, frac), frac_nbits, format, fmt)
+        }
     }
+}
+
+#[derive(Clone, Copy, Debug)]
+struct DecFracFormat {
+    int_sig_digits: usize,
+    has_exp: bool,
+    precision: Option<usize>,
 }
 
 fn fmt_dec<U: FmtHelper>(
     (neg, int, frac): (bool, U, U),
     frac_nbits: u32,
+    format: Format,
     fmt: &mut Formatter,
 ) -> FmtResult {
     let int_used_nbits = FmtHelper::int_used_nbits(int);
-    let int_digits = ceil_log10_2_times(int_used_nbits);
     let frac_used_nbits = FmtHelper::frac_used_nbits(frac);
-    let (frac_digits, auto_prec) = if let Some(precision) = fmt.precision() {
-        // frac_used_nbits fits in usize, but precision might wrap to 0 in u32
-        (cmp::min(frac_used_nbits as usize, precision) as u32, false)
+    let int_max_len = ceil_log10_2_times(int_used_nbits);
+    let frac_max_len = if fmt.precision().is_some() {
+        // for specified precision, we want exact fractions till the very end
+        frac_used_nbits
     } else {
-        (ceil_log10_2_times(frac_nbits), true)
+        // for auto precision, we don't need more than ceil(log10(2) × frac_nbits)
+        ceil_log10_2_times(frac_nbits)
     };
+    let mut buf = Buffer::new(int_max_len, frac_max_len);
 
-    let mut buf = Buffer::new(int_digits, frac_digits);
-    FmtHelper::write_int_dec(int, int_used_nbits, &mut buf);
-    let frac_rem_cmp_tie = FmtHelper::write_frac_dec(frac, frac_nbits, auto_prec, &mut buf);
-    buf.finish(Format::Dec, neg, frac_rem_cmp_tie, fmt)
+    let int_sig_digits = FmtHelper::write_int_dec(int, int_used_nbits, &mut buf);
+    let has_exp = matches!(format, Format::UpExp | Format::LowExp);
+    let exp_is_upper = matches!(format, Format::UpExp);
+    let frac_format = DecFracFormat {
+        int_sig_digits,
+        has_exp,
+        precision: fmt.precision(),
+    };
+    let frac_rem_cmp_tie = FmtHelper::write_frac_dec(frac, frac_nbits, frac_format, &mut buf);
+    if has_exp {
+        buf.format_exp_dec(exp_is_upper);
+    }
+    buf.finish(format, neg, frac_rem_cmp_tie, fmt)
 }
 
 fn fmt_radix2<U: FmtHelper>(
@@ -497,6 +603,20 @@ macro_rules! impl_fmt {
                 fmt(neg_abs, Self::FRAC_NBITS, Format::UpHex, f)
             }
         }
+
+        impl<Frac: $LeEqU> LowerExp for $Fixed<Frac> {
+            fn fmt(&self, f: &mut Formatter) -> FmtResult {
+                let neg_abs = int_helper::$Inner::neg_abs(self.to_bits());
+                fmt(neg_abs, Self::FRAC_NBITS, Format::LowExp, f)
+            }
+        }
+
+        impl<Frac: $LeEqU> UpperExp for $Fixed<Frac> {
+            fn fmt(&self, f: &mut Formatter) -> FmtResult {
+                let neg_abs = int_helper::$Inner::neg_abs(self.to_bits());
+                fmt(neg_abs, Self::FRAC_NBITS, Format::UpExp, f)
+            }
+        }
     };
 }
 
@@ -565,6 +685,7 @@ mod tests {
     fn format() {
         let pos = I16F16::from_num(12.3);
         assert_eq!(format!("{pos:+}"), "+12.3");
+        assert_eq!(format!("{pos:.20}"), "12.30000305175781250000");
         assert_eq!(format!("{pos:+08}"), "+00012.3");
         assert_eq!(format!("{pos:+#08}"), "+00012.3");
         assert_eq!(format!("{pos:+08X}"), "+0C.4CCD");
@@ -577,6 +698,16 @@ mod tests {
         assert_eq!(format!("{pos:#^9}"), "##12.3###");
         assert_eq!(format!("{pos:#>8}"), "####12.3");
         assert_eq!(format!("{pos:#^08}"), "000012.3");
+
+        assert_eq!(format!("{pos:^8e}"), " 1.23e1 ");
+        assert_eq!(format!("{pos:^08E}"), "001.23E1");
+        assert_eq!(format!("{pos:.20e}"), "1.23000030517578125000e1");
+
+        let pos = I16F16::from_bits(9);
+        assert_eq!(format!("{pos}"), "0.00014");
+        assert_eq!(format!("{pos:.16}"), "0.0001373291015625");
+        assert_eq!(format!("{pos:e}"), "1.4e-4");
+        assert_eq!(format!("{pos:.16e}"), "1.3732910156250000e-4");
     }
 
     fn trim_frac_zeros(mut x: &str) -> &str {

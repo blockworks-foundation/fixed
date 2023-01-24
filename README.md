@@ -108,7 +108,10 @@ The conversions supported cover the following cases.
   * The [`lit`][f-l-1-22] method was added to all fixed-point numbers. This is
     useful to write fixed-point numbers literally in code and also works in
     constant context.
+  * All fixed-point numbers now implement [`LowerExp`] and [`UpperExp`].
 
+[`LowerExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html
+[`UpperExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html
 [f-l-1-22]: https://docs.rs/fixed/~1.22/fixed/struct.FixedI32.html#method.lit
 
 ### Version 1.21.0 news (2022-12-24)
