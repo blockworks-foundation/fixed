@@ -16,10 +16,15 @@ Version 1.22.0 (unreleased)
   * [`Binary`], [`Octal`], [`LowerHex`], [`UpperHex`], [`LowerExp`] and
     [`UpperExp`] are now supertraits of the [`Fixed`][tf-1-22] and
     [`FixedBits`][fb-1-22] traits.
+  * The [`Wrapping`][w-1-22] and [`Unwrapped`][u-1-22] wrappers now implement
+    [`Binary`], [`Octal`], [`LowerHex`], [`UpperHex`], [`LowerExp`] and
+    [`UpperExp`].
 
 [f-l-1-22]: https://docs.rs/fixed/~1.22/fixed/struct.FixedI32.html#method.lit
 [fb-1-22]: https://docs.rs/fixed/~1.22/fixed/traits/trait.FixedBits.html
 [tf-1-22]: https://docs.rs/fixed/~1.22/fixed/traits/trait.Fixed.html
+[u-1-22]: https://docs.rs/fixed/~1.22/fixed/struct.Unwrapped.html
+[w-1-22]: https://docs.rs/fixed/~1.22/fixed/struct.Wrapping.html
 
 Version 1.21.0 (2022-12-24)
 ===========================

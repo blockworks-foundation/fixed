@@ -21,7 +21,10 @@ use crate::{
     FixedU8,
 };
 use core::{
-    fmt::{Debug, Display, Formatter, Result as FmtResult},
+    fmt::{
+        Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Result as FmtResult,
+        UpperExp, UpperHex,
+    },
     iter::{Product, Sum},
     mem,
     ops::{
@@ -1940,6 +1943,48 @@ impl<F: Fixed> Debug for Unwrapped<F> {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         Debug::fmt(&self.0, f)
+    }
+}
+
+impl<F: Fixed> Binary for Unwrapped<F> {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        Binary::fmt(&self.0, f)
+    }
+}
+
+impl<F: Fixed> Octal for Unwrapped<F> {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        Octal::fmt(&self.0, f)
+    }
+}
+
+impl<F: Fixed> LowerHex for Unwrapped<F> {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        LowerHex::fmt(&self.0, f)
+    }
+}
+
+impl<F: Fixed> UpperHex for Unwrapped<F> {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        UpperHex::fmt(&self.0, f)
+    }
+}
+
+impl<F: Fixed> LowerExp for Unwrapped<F> {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        LowerExp::fmt(&self.0, f)
+    }
+}
+
+impl<F: Fixed> UpperExp for Unwrapped<F> {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        UpperExp::fmt(&self.0, f)
     }
 }
 
