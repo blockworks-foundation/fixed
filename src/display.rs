@@ -16,7 +16,7 @@
 use crate::{
     debug_hex::{self, IsDebugHex},
     int_helper,
-    types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8},
+    types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8, Unsigned},
     FixedI128, FixedI16, FixedI32, FixedI64, FixedI8, FixedU128, FixedU16, FixedU32, FixedU64,
     FixedU8,
 };
@@ -565,13 +565,27 @@ macro_rules! impl_fmt {
             }
         }
 
-        impl<Frac: $LeEqU> Debug for $Fixed<Frac> {
+        impl<Frac: Unsigned> Debug for $Fixed<Frac> {
             fn fmt(&self, f: &mut Formatter) -> FmtResult {
+                if Frac::U32 > $Inner::BITS {
+                    match debug_hex::is_debug_hex(f) {
+                        IsDebugHex::Lower => {
+                            f.write_fmt(format_args!("(0x{:x}", self.to_bits()))?;
+                        }
+                        IsDebugHex::Upper => {
+                            f.write_fmt(format_args!("(0x{:X}", self.to_bits()))?;
+                        }
+                        IsDebugHex::No => {
+                            f.write_fmt(format_args!("({}", self.to_bits()))?;
+                        }
+                    }
+                    return f.write_fmt(format_args!(" >> {})", Frac::U32));
+                }
                 let neg_abs = int_helper::$Inner::neg_abs(self.to_bits());
                 match debug_hex::is_debug_hex(f) {
-                    IsDebugHex::Lower => fmt(neg_abs, Self::FRAC_NBITS, Format::LowHex, f),
-                    IsDebugHex::Upper => fmt(neg_abs, Self::FRAC_NBITS, Format::UpHex, f),
-                    IsDebugHex::No => fmt(neg_abs, Self::FRAC_NBITS, Format::Dec, f),
+                    IsDebugHex::Lower => fmt(neg_abs, Frac::U32, Format::LowHex, f),
+                    IsDebugHex::Upper => fmt(neg_abs, Frac::U32, Format::UpHex, f),
+                    IsDebugHex::No => fmt(neg_abs, Frac::U32, Format::Dec, f),
                 }
             }
         }
