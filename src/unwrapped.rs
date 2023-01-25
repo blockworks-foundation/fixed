@@ -570,6 +570,7 @@ impl<F: Fixed> Unwrapped<F> {
     /// let _error = Unwrapped::<I8F8>::from_str_dec("1.2.");
     /// ```
     #[inline]
+    #[track_caller]
     pub fn from_str_dec(src: &str) -> Unwrapped<F> {
         Unwrapped(F::unwrapped_from_str(src))
     }
@@ -610,6 +611,7 @@ impl<F: Fixed> Unwrapped<F> {
     ///
     /// [`from_str_dec`]: Self::from_str_dec
     #[inline]
+    #[track_caller]
     pub fn from_str_binary(src: &str) -> Result<Unwrapped<F>, ParseFixedError> {
         Ok(Unwrapped(F::unwrapped_from_str_binary(src)))
     }
@@ -650,6 +652,7 @@ impl<F: Fixed> Unwrapped<F> {
     ///
     /// [`from_str_dec`]: Self::from_str_dec
     #[inline]
+    #[track_caller]
     pub fn from_str_octal(src: &str) -> Result<Unwrapped<F>, ParseFixedError> {
         Ok(Unwrapped(F::unwrapped_from_str_octal(src)))
     }
@@ -690,6 +693,7 @@ impl<F: Fixed> Unwrapped<F> {
     ///
     /// [`from_str_dec`]: Self::from_str_dec
     #[inline]
+    #[track_caller]
     pub fn from_str_hex(src: &str) -> Result<Unwrapped<F>, ParseFixedError> {
         Ok(Unwrapped(F::unwrapped_from_str_hex(src)))
     }
@@ -1152,6 +1156,7 @@ impl<F: Fixed> Unwrapped<F> {
     /// let _overflow = Unwr::MIN.dist(Unwr::ZERO);
     /// ```
     #[inline]
+    #[track_caller]
     #[must_use = "this returns the result of the operation, without modifying the original"]
     pub fn dist(self, other: Unwrapped<F>) -> Unwrapped<F> {
         Unwrapped(self.0.unwrapped_dist(other.0))
@@ -1313,6 +1318,7 @@ impl<F: Fixed> Unwrapped<F> {
     /// let _overflow = max.add_prod(max, Unwrapped(I16F16::from_num(3)));
     /// ```
     #[inline]
+    #[track_caller]
     pub fn add_prod(self, a: Unwrapped<F>, b: Unwrapped<F>) -> Unwrapped<F> {
         Unwrapped(self.0.unwrapped_add_prod(a.0, b.0))
     }
@@ -1345,6 +1351,7 @@ impl<F: Fixed> Unwrapped<F> {
     /// acc.mul_acc(Unwrapped(I16F16::MAX), Unwrapped(I16F16::from_num(3)));
     /// ```
     #[inline]
+    #[track_caller]
     pub fn mul_acc(&mut self, a: Unwrapped<F>, b: Unwrapped<F>) {
         self.0.unwrapped_mul_acc(a.0, b.0);
     }
@@ -1504,6 +1511,7 @@ impl<F: Fixed> Unwrapped<F> {
     /// let _overflow = Unwr::from_num(1.5).lerp(Unwr::ZERO, Unwr::MAX);
     /// ```
     #[inline]
+    #[track_caller]
     #[must_use = "this returns the result of the operation, without modifying the original"]
     pub fn lerp(self, start: Unwrapped<F>, end: Unwrapped<F>) -> Unwrapped<F> {
         Unwrapped(self.0.unwrapped_lerp(start.0, end.0))
@@ -1547,6 +1555,7 @@ impl<F: Fixed> Unwrapped<F> {
     /// let _overflow = Unwr::MAX.inv_lerp(Unwr::ZERO, Unwr::from_num(0.5));
     /// ```
     #[inline]
+    #[track_caller]
     #[must_use]
     pub fn inv_lerp(self, start: Unwrapped<F>, end: Unwrapped<F>) -> Unwrapped<F> {
         Unwrapped(self.0.unwrapped_inv_lerp(start.0, end.0))
@@ -2011,6 +2020,7 @@ impl<F: Fixed> FromStr for Unwrapped<F> {
     ///
     /// Panics if the value does not fit or if there is a parsing error.
     #[inline]
+    #[track_caller]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Unwrapped(F::unwrapped_from_str(s)))
     }
@@ -2345,6 +2355,7 @@ impl<F: Fixed> Product<Unwrapped<F>> for Unwrapped<F> {
 }
 
 impl<'a, F: 'a + Fixed> Product<&'a Unwrapped<F>> for Unwrapped<F> {
+    #[track_caller]
     fn product<I>(mut iter: I) -> Unwrapped<F>
     where
         I: Iterator<Item = &'a Unwrapped<F>>,

@@ -103,6 +103,11 @@ The conversions supported cover the following cases.
 
 ## What’s new
 
+### Version 1.23.0 news (unreleased)
+
+  * The `track_caller` attribute is now applied to many inline functions that
+    can panic.
+
 ### Version 1.22.0 news (2023-01-25)
 
   * String parsing now supports an optional exponent for all supported radices.

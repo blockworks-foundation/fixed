@@ -478,6 +478,7 @@ impl<F: Fixed> Wrapping<F> {
     /// [`f16`]: half::f16
     /// [finite]: f64::is_finite
     #[inline]
+    #[track_caller]
     pub fn from_num<Src: ToFixed>(src: Src) -> Wrapping<F> {
         Wrapping(src.wrapping_to_fixed())
     }
@@ -877,6 +878,7 @@ impl<F: Fixed> Wrapping<F> {
     ///
     /// Panics if the fixed-point number is ≤&nbsp;0.
     #[inline]
+    #[track_caller]
     #[doc(alias("ilog2"))]
     pub fn int_log2(self) -> i32 {
         self.0.int_log2()
@@ -891,6 +893,7 @@ impl<F: Fixed> Wrapping<F> {
     ///
     /// Panics if the fixed-point number is ≤&nbsp;0.
     #[inline]
+    #[track_caller]
     #[doc(alias("ilog10"))]
     pub fn int_log10(self) -> i32 {
         self.0.int_log10()
@@ -905,6 +908,7 @@ impl<F: Fixed> Wrapping<F> {
     ///
     /// Panics if the fixed-point number is ≤&nbsp;0 or if the base is <&nbsp;2.
     #[inline]
+    #[track_caller]
     #[doc(alias("ilog"))]
     pub fn int_log(self, base: u32) -> i32 {
         self.0.int_log(base)
@@ -1041,6 +1045,7 @@ impl<F: Fixed> Wrapping<F> {
     /// assert_eq!(frac_1_512.recip(), Wrapping(I8F24::ZERO));
     /// ```
     #[inline]
+    #[track_caller]
     #[must_use]
     pub fn recip(self) -> Wrapping<F> {
         Wrapping(self.0.wrapping_recip())
@@ -1071,6 +1076,7 @@ impl<F: Fixed> Wrapping<F> {
     /// assert_eq!(max.next_multiple_of(max_minus_delta), max_minus_delta * 2);
     /// ```
     #[inline]
+    #[track_caller]
     #[must_use]
     pub fn next_multiple_of(self, other: Wrapping<F>) -> Wrapping<F> {
         Wrapping(self.0.wrapping_next_multiple_of(other.0))
@@ -1170,6 +1176,7 @@ impl<F: Fixed> Wrapping<F> {
     /// assert_eq!(Wrapping(I16F16::MAX).div_euclid(quarter), check);
     /// ```
     #[inline]
+    #[track_caller]
     #[must_use = "this returns the result of the operation, without modifying the original"]
     pub fn div_euclid(self, divisor: Wrapping<F>) -> Wrapping<F> {
         Wrapping(self.0.wrapping_div_euclid(divisor.0))
@@ -1194,6 +1201,7 @@ impl<F: Fixed> Wrapping<F> {
     /// assert_eq!((-num).rem_euclid(den), Wrapping(I16F16::from_num(0.5)));
     /// ```
     #[inline]
+    #[track_caller]
     #[must_use = "this returns the result of the operation, without modifying the original"]
     pub fn rem_euclid(self, divisor: Wrapping<F>) -> Wrapping<F> {
         Wrapping(self.0.rem_euclid(divisor.0))
@@ -1220,6 +1228,7 @@ impl<F: Fixed> Wrapping<F> {
     /// assert_eq!(min.div_euclid_int(-1), min);
     /// ```
     #[inline]
+    #[track_caller]
     #[must_use = "this returns the result of the operation, without modifying the original"]
     pub fn div_euclid_int(self, divisor: F::Bits) -> Wrapping<F> {
         Wrapping(self.0.wrapping_div_euclid_int(divisor))
@@ -1245,6 +1254,7 @@ impl<F: Fixed> Wrapping<F> {
     /// assert_eq!((-num).rem_euclid_int(2), Wrapping(I16F16::from_num(0.5)));
     /// ```
     #[inline]
+    #[track_caller]
     #[must_use = "this returns the result of the operation, without modifying the original"]
     pub fn rem_euclid_int(self, divisor: F::Bits) -> Wrapping<F> {
         Wrapping(self.0.wrapping_rem_euclid_int(divisor))

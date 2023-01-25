@@ -87,6 +87,7 @@ assert_eq!(Fix::from_num(0.1875).int_log2(), -3);
 ```
 ";
                 #[inline]
+                #[track_caller]
                 #[doc(alias("ilog2"))]
                 pub const fn int_log2(self) -> i32 {
                     match self.checked_int_log2() {
@@ -117,6 +118,7 @@ assert_eq!(", $s_fixed, "::<U6>::from_num(0.09375).int_log10(), -2);
 ```
 ";
                 #[inline]
+                #[track_caller]
                 #[doc(alias("ilog10"))]
                 pub const fn int_log10(self) -> i32 {
                     match self.checked_int_log10() {
@@ -146,6 +148,7 @@ assert_eq!(Fix::from_num(0.1875).int_log(5), -2);
 ```
 ";
                 #[inline]
+                #[track_caller]
                 #[doc(alias("ilog"))]
                 pub const fn int_log(self, base: u32) -> i32 {
                     match self.checked_int_log(base) {
@@ -291,6 +294,7 @@ assert_eq!(Fix::from_num(-5).signum(), -1);
 ```
 ";
                     #[inline]
+                    #[track_caller]
                     #[must_use]
                     pub const fn signum(self) -> $Fixed<Frac> {
                         let (ans, overflow) = self.overflowing_signum();
@@ -324,6 +328,7 @@ assert_eq!(Fix::from_num(2).recip(), Fix::from_num(0.5));
 [`wrapping_recip`]: Self::wrapping_recip
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use]
                 pub const fn recip(self) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_recip();
@@ -362,6 +367,7 @@ assert_eq!(Fix::from_num(7.5).div_euclid(Fix::from_num(2)), Fix::from_num(3));
 [`wrapping_div_euclid`]: Self::wrapping_div_euclid
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn div_euclid(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_div_euclid(rhs);
@@ -405,6 +411,7 @@ assert_eq!(Fix::from_num(7.5).div_euclid_int(2), Fix::from_num(3));
 [`wrapping_div_euclid_int`]: Self::wrapping_div_euclid_int
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn div_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_div_euclid_int(rhs);
@@ -458,6 +465,7 @@ assert_eq!((-Fix::MAX).add_prod(Fix::MAX, Fix::from_num(1.5)), Fix::MAX / 2);
 [`wrapping_add_prod`]: Self::wrapping_add_prod
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use]
                 pub const fn add_prod<AFrac: $LeEqU, BFrac: $LeEqU>(
                     self,
@@ -525,6 +533,7 @@ assert_eq!(acc, Fix::MAX / 2);
 [`wrapping_mul_acc`]: Self::wrapping_mul_acc
 ";
                 #[inline]
+                #[track_caller]
                 pub fn mul_acc<AFrac: $LeEqU, BFrac: $LeEqU>(
                     &mut self,
                     a: $Fixed<AFrac>,
@@ -556,6 +565,7 @@ assert_eq!(Fix::from_num(7.5).rem_euclid_int(2), Fix::from_num(1.5));
                 "```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn rem_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_rem_euclid_int(rhs);
@@ -602,6 +612,7 @@ assert_eq!(Fix::from_num(2.0).lerp(start, end), 5);
 [`wrapping_lerp`]: Self::wrapping_lerp
 ";
                 #[inline]
+                #[track_caller]
                 pub const fn lerp<RangeFrac>(
                     self,
                     start: $Fixed<RangeFrac>,
@@ -1214,6 +1225,7 @@ assert_eq!(Fix::MAX.saturating_div(one_half), Fix::MAX);
 ```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn saturating_div(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
                     match arith::$Inner::overflowing_div(self.to_bits(), rhs.to_bits(), Frac::U32) {
@@ -1257,6 +1269,7 @@ assert_eq!(Fix::from_num(0.25).saturating_recip(), Fix::MAX);
                 "```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use]
                 pub const fn saturating_recip(self) -> $Fixed<Frac> {
                     match self.overflowing_recip() {
@@ -1301,6 +1314,7 @@ assert_eq!(Fix::MIN.saturating_div_euclid(Fix::from_num(0.25)), Fix::MIN);
                 "```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn saturating_div_euclid(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
                     match self.overflowing_div_euclid(rhs) {
@@ -1353,6 +1367,7 @@ assert_eq!(Fix::MIN.saturating_div_euclid_int(-1), Fix::MAX);
                 "```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn saturating_div_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
                     // dividing by integer can never result in something < MIN
@@ -1512,6 +1527,7 @@ assert_eq!(Fix::from_num(-7.5).saturating_rem_euclid_int(20), Fix::MAX);
                 "```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn saturating_rem_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
                     match self.overflowing_rem_euclid_int(rhs) {
@@ -1655,6 +1671,7 @@ assert_eq!(Fix::MAX.wrapping_div(quarter), wrapped);
 ```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn wrapping_div(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
                     let (ans, _) =
@@ -1681,6 +1698,7 @@ assert_eq!(Fix::from_num(0.25).wrapping_recip(), Fix::ZERO);
 ```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use]
                 pub const fn wrapping_recip(self) -> $Fixed<Frac> {
                     let (ans, _) = self.overflowing_recip();
@@ -1706,6 +1724,7 @@ assert_eq!(Fix::MAX.wrapping_div_euclid(Fix::from_num(0.25)), wrapped);
 ```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn wrapping_div_euclid(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
                     self.overflowing_div_euclid(rhs).0
@@ -1746,6 +1765,7 @@ assert_eq!(Fix::MIN.wrapping_div_euclid_int(-1), wrapped);
                 "```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn wrapping_div_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
                     self.overflowing_div_euclid_int(rhs).0
@@ -1856,6 +1876,7 @@ assert_eq!(Fix::from_num(-7.5).wrapping_rem_euclid_int(20), Fix::from_num(-3.5))
                 "```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn wrapping_rem_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
                     self.overflowing_rem_euclid_int(rhs).0
@@ -2378,6 +2399,7 @@ let _overflow = Fix::from_num(1.5).unwrapped_lerp(Fix::ZERO, Fix::MAX);
 ```
 ";
                 #[inline]
+                #[track_caller]
                 pub const fn unwrapped_lerp<RangeFrac>(
                     self,
                     start: $Fixed<RangeFrac>,
@@ -2486,6 +2508,7 @@ assert_eq!(Fix::MAX.overflowing_div(quarter), (wrapped, true));
 ```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn overflowing_div(self, rhs: $Fixed<Frac>) -> ($Fixed<Frac>, bool) {
                     let (ans, overflow) =
@@ -2519,6 +2542,7 @@ assert_eq!(Small::from_num(0.25).overflowing_recip(), (Small::ZERO, true));
 ```
 ";
                 #[inline]
+                #[track_caller]
                 pub const fn overflowing_recip(self) -> ($Fixed<Frac>, bool) {
                     if let Some(one) = Self::TRY_ONE {
                         return one.overflowing_div(self);
@@ -2574,6 +2598,7 @@ assert_eq!(Fix::MAX.overflowing_div_euclid(Fix::from_num(0.25)), (wrapped, true)
 ```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn overflowing_div_euclid(
                     self,
@@ -2634,6 +2659,7 @@ assert_eq!(Fix::MIN.overflowing_div_euclid_int(-1), (wrapped, true));
                 "```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn overflowing_div_euclid_int(self, rhs: $Inner) -> ($Fixed<Frac>, bool) {
                     let (mut q, overflow) = self.overflowing_div_int(rhs);
@@ -2807,6 +2833,7 @@ assert_eq!(Fix::from_num(-7.5).overflowing_rem_euclid_int(20), (Fix::from_num(-3
                 "```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn overflowing_rem_euclid_int(self, rhs: $Inner) -> ($Fixed<Frac>, bool) {
                     if_signed! {

@@ -81,6 +81,7 @@ assert_eq!(Fix::from_num(",
 [finite]: f64::is_finite
 ";
             #[inline]
+            #[track_caller]
             pub fn from_num<Src: ToFixed>(src: Src) -> $Fixed<Frac> {
                 src.to_fixed()
             }
@@ -151,6 +152,7 @@ assert_eq!(",
 [`wrapping_to_num`]: Self::wrapping_to_num
 ";
             #[inline]
+            #[track_caller]
             pub fn to_num<Dst: FromFixed>(self) -> Dst {
                 Dst::from_fixed(self)
             }
@@ -361,6 +363,7 @@ assert_eq!(Fix::saturating_from_num(std::f64::NEG_INFINITY), Fix::MIN);
 [`f16`]: half::f16
 ";
             #[inline]
+            #[track_caller]
             pub fn saturating_from_num<Src: ToFixed>(src: Src) -> $Fixed<Frac> {
                 src.saturating_to_fixed()
             }
@@ -491,6 +494,7 @@ assert_eq!(Fix::wrapping_from_num(large), wrapped);
 [finite]: f64::is_finite
 ";
             #[inline]
+            #[track_caller]
             pub fn wrapping_from_num<Src: ToFixed>(src: Src) -> $Fixed<Frac> {
                 src.wrapping_to_fixed()
             }
@@ -753,6 +757,7 @@ assert_eq!(Fix::overflowing_from_num(large), (wrapped, true));
 [finite]: f64::is_finite
 ";
             #[inline]
+            #[track_caller]
             pub fn overflowing_from_num<Src: ToFixed>(src: Src) -> ($Fixed<Frac>, bool) {
                 src.overflowing_to_fixed()
             }
@@ -869,6 +874,7 @@ assert_eq!(one_point_625.overflowing_to_num::<f32>(), (1.625f32, false));
         /// [`from_num`]: Self::from_num
         /// [`unwrapped_from_num`]: Self::unwrapped_from_num
         #[inline]
+        #[track_caller]
         #[must_use]
         pub const fn const_from_fixed<SrcFrac: $LeEqU>(src: $Fixed<SrcFrac>) -> $Fixed<Frac> {
             let shift_left = Frac::I32 - SrcFrac::I32;
@@ -931,6 +937,7 @@ assert_eq!(one_point_625.overflowing_to_num::<f32>(), (1.625f32, false));
         /// [`from_num`]: Self::from_num
         /// [`unwrapped_from_num`]: Self::unwrapped_from_num
         #[inline]
+        #[track_caller]
         #[must_use]
         pub const fn const_from_int(src: $Inner) -> $Fixed<Frac> {
             Self::const_from_fixed($Fixed::<U0>::from_bits(src))

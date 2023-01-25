@@ -938,6 +938,7 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
 ",
                     };
                     #[inline]
+                    #[track_caller]
                     #[must_use = "this returns the result of the operation, without modifying the original"]
                     pub const fn wide_div<RhsFrac>(
                         self,
@@ -1012,6 +1013,7 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
                     ///
                     /// [`wide_div`]: Self::wide_div
                     #[inline]
+                    #[track_caller]
                     #[must_use]
                     pub const fn wide_sdiv<RhsFrac>(
                         self,
@@ -1060,6 +1062,7 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
                     /// assert_eq!(ans, -148);
                     /// ```
                     #[inline]
+                    #[track_caller]
                     #[must_use]
                     pub const fn wide_div_unsigned<RhsFrac>(
                         self,
@@ -1124,6 +1127,7 @@ let _overflow = Fix::MIN.wide_div(-Fix::DELTA);
                     /// assert_eq!(ans, -148);
                     /// ```
                     #[inline]
+                    #[track_caller]
                     #[must_use]
                     pub const fn wide_sdiv_signed<RhsFrac>(
                         self,
@@ -1184,6 +1188,7 @@ assert_eq!(Fix::MAX.mul_add(Fix::from_num(1.5), -Fix::MAX), Fix::MAX / 2);
 [`wrapping_mul_add`]: Self::wrapping_mul_add
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn mul_add<MulFrac: $LeEqU>(
                     self,
@@ -1223,6 +1228,7 @@ assert_eq!(Fix::from_num(7.5).rem_euclid(Fix::from_num(2)), Fix::from_num(1.5));
                 "```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn rem_euclid(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
                     let rhs_bits = rhs.to_bits();
@@ -1320,6 +1326,7 @@ assert_eq!(Fix::ONE.dist(Fix::from_num(5)), Fix::from_num(4));
 ",
                 };
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn dist(self, other: $Fixed<Frac>) -> $Fixed<Frac> {
                     let s = self.to_bits();
@@ -1449,6 +1456,7 @@ assert_eq!(
 [`wrapping_next_multiple_of`]: Self::wrapping_next_multiple_of
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn next_multiple_of(self, other: $Fixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_next_multiple_of(other);
@@ -1498,6 +1506,7 @@ assert_eq!(Fix::from_num(5).inv_lerp::<U4>(start, end), 2);
 [`wrapping_inv_lerp`]: Self::wrapping_inv_lerp
 ";
                 #[inline]
+                #[track_caller]
                 pub const fn inv_lerp<RetFrac: $LeEqU>(
                     self,
                     start: $Fixed<Frac>,
@@ -1573,6 +1582,7 @@ assert_eq!(Fix::from_num(6.5).next_power_of_two(), Fix::from_num(8));
 [`checked_next_power_of_two`]: Self::checked_next_power_of_two
 ";
                     #[inline]
+                    #[track_caller]
                     #[must_use]
                     pub const fn next_power_of_two(self) -> $Fixed<Frac> {
                         Self::from_bits(self.to_bits().next_power_of_two())
@@ -1603,6 +1613,7 @@ assert_eq!(Fix::from_num(6.5).next_power_of_two(), Fix::from_num(8));
                 ///
                 /// [`wrapping_add_unsigned`]: Self::wrapping_add_unsigned
                 #[inline]
+                #[track_caller]
                 #[must_use]
                 pub const fn add_unsigned(self, rhs: $UFixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_add_unsigned(rhs);
@@ -1631,6 +1642,7 @@ assert_eq!(Fix::from_num(6.5).next_power_of_two(), Fix::from_num(8));
                 ///
                 /// [`wrapping_sub_unsigned`]: Self::wrapping_sub_unsigned
                 #[inline]
+                #[track_caller]
                 #[must_use]
                 pub const fn sub_unsigned(self, rhs: $UFixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_sub_unsigned(rhs);
@@ -1662,6 +1674,7 @@ assert_eq!(Fix::from_num(6.5).next_power_of_two(), Fix::from_num(8));
                 ///
                 /// [`wrapping_add_signed`]: Self::wrapping_add_signed
                 #[inline]
+                #[track_caller]
                 #[must_use]
                 pub const fn add_signed(self, rhs: $IFixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_add_signed(rhs);
@@ -1690,6 +1703,7 @@ assert_eq!(Fix::from_num(6.5).next_power_of_two(), Fix::from_num(8));
                 ///
                 /// [`wrapping_sub_signed`]: Self::wrapping_sub_signed
                 #[inline]
+                #[track_caller]
                 #[must_use]
                 pub const fn sub_signed(self, rhs: $IFixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_sub_signed(rhs);
@@ -2724,6 +2738,7 @@ assert_eq!(Fix::MAX.saturating_next_multiple_of(Fix::from_num(2)), Fix::MAX);
 ```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn saturating_next_multiple_of(
                     self,
@@ -2774,6 +2789,7 @@ assert_eq!(Fix::MAX.saturating_inv_lerp::<U4>(Fix::from_num(0.5), Fix::ZERO), Fi
 ```
 ";
                 #[inline]
+                #[track_caller]
                 pub const fn saturating_inv_lerp<RetFrac: $LeEqU>(
                     self,
                     start: $Fixed<Frac>,
@@ -3084,6 +3100,7 @@ assert_eq!(Fix::from_num(3).wrapping_div_int(2), one_point_5);
                 "```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn wrapping_div_int(self, rhs: $Inner) -> $Fixed<Frac> {
                     Self::from_bits(self.to_bits().wrapping_div(rhs))
@@ -3236,6 +3253,7 @@ assert_eq!(
 ```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn wrapping_next_multiple_of(
                     self,
@@ -3276,6 +3294,7 @@ assert_eq!(
 ```
 ";
                 #[inline]
+                #[track_caller]
                 pub const fn wrapping_inv_lerp<RetFrac: $LeEqU>(
                     self,
                     start: $Fixed<Frac>,
@@ -3912,6 +3931,7 @@ let _overflow = Fix::MIN.unwrapped_dist(Fix::ZERO);
 "
                 };
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn unwrapped_dist(self, other: $Fixed<Frac>) -> $Fixed<Frac> {
                     if_signed_unsigned!(
@@ -4015,6 +4035,7 @@ let _overflow = Fix::MAX.unwrapped_inv_lerp::<U4>(Fix::ZERO, Fix::from_num(0.5))
 ```
 ";
                 #[inline]
+                #[track_caller]
                 pub const fn unwrapped_inv_lerp<RetFrac: $LeEqU>(
                     self,
                     start: $Fixed<Frac>,
@@ -4100,6 +4121,7 @@ let _overflow = Fix::MAX.unwrapped_next_power_of_two();
                 /// let _overflow = Fix::MAX.unwrapped_add_unsigned(UFix::DELTA);
                 /// ```
                 #[inline]
+                #[track_caller]
                 #[must_use]
                 pub const fn unwrapped_add_unsigned(self, rhs: $UFixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_add_unsigned(rhs);
@@ -4132,6 +4154,7 @@ let _overflow = Fix::MAX.unwrapped_next_power_of_two();
                 /// let _overflow = Fix::MIN.unwrapped_sub_unsigned(UFix::DELTA);
                 /// ```
                 #[inline]
+                #[track_caller]
                 #[must_use]
                 pub const fn unwrapped_sub_unsigned(self, rhs: $UFixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_sub_unsigned(rhs);
@@ -4167,6 +4190,7 @@ let _overflow = Fix::MAX.unwrapped_next_power_of_two();
                 /// let _overflow = Fix::from_num(2).unwrapped_add_signed(IFix::from_num(-3));
                 /// ```
                 #[inline]
+                #[track_caller]
                 #[must_use]
                 pub const fn unwrapped_add_signed(self, rhs: $IFixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_add_signed(rhs);
@@ -4199,6 +4223,7 @@ let _overflow = Fix::MAX.unwrapped_next_power_of_two();
                 /// let _overflow = Fix::from_num(2).unwrapped_sub_signed(IFix::from_num(3));
                 /// ```
                 #[inline]
+                #[track_caller]
                 #[must_use]
                 pub const fn unwrapped_sub_signed(self, rhs: $IFixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_sub_signed(rhs);
@@ -4426,6 +4451,7 @@ assert_eq!(Fix::from_num(3).overflowing_div_int(2), (one_point_5, false));
                 "```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn overflowing_div_int(self, rhs: $Inner) -> ($Fixed<Frac>, bool) {
                     let (ans, o) = self.to_bits().overflowing_div(rhs);
@@ -4600,6 +4626,7 @@ assert_eq!(
 ```
 ";
                 #[inline]
+                #[track_caller]
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn overflowing_next_multiple_of(
                     self,
@@ -4684,6 +4711,7 @@ assert_eq!(
 ```
 ";
                 #[inline]
+                #[track_caller]
                 pub const fn overflowing_inv_lerp<RetFrac: $LeEqU>(
                     self,
                     start: $Fixed<Frac>,

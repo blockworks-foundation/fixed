@@ -1223,6 +1223,7 @@ where
     /// # Panics
     ///
     /// Panics if the value does not fit or if there is a parsing error.
+    #[track_caller]
     fn unwrapped_from_str(src: &str) -> Self;
 
     /// Parses a string slice containing binary digits to return a
@@ -1238,6 +1239,7 @@ where
     /// # Panics
     ///
     /// Panics if the value does not fit or if there is a parsing error.
+    #[track_caller]
     fn unwrapped_from_str_binary(src: &str) -> Self;
 
     /// Parses a string slice containing octal digits to return a
@@ -1253,6 +1255,7 @@ where
     /// # Panics
     ///
     /// Panics if the value does not fit or if there is a parsing error.
+    #[track_caller]
     fn unwrapped_from_str_octal(src: &str) -> Self;
 
     /// Parses a string slice containing hexadecimal digits to return a
@@ -1268,6 +1271,7 @@ where
     /// # Panics
     ///
     /// Panics if the value does not fit or if there is a parsing error.
+    #[track_caller]
     fn unwrapped_from_str_hex(src: &str) -> Self;
 
     /// Parses a string slice containing decimal digits to return a
@@ -2734,6 +2738,7 @@ where
     /// See also
     /// <code>FixedI32::[unwrapped\_dist][FixedI32::unwrapped_dist]</code> and
     /// <code>FixedU32::[unwrapped\_dist][FixedU32::unwrapped_dist]</code>.
+    #[track_caller]
     #[must_use = "this returns the result of the operation, without modifying the original"]
     fn unwrapped_dist(self, other: Self) -> Self;
 
@@ -2746,6 +2751,7 @@ where
     /// See also
     /// <code>FixedI32::[unwrapped\_lerp][FixedI32::unwrapped_lerp]</code> and
     /// <code>FixedU32::[unwrapped\_lerp][FixedU32::unwrapped_lerp]</code>.
+    #[track_caller]
     #[must_use]
     fn unwrapped_lerp(self, start: Self, end: Self) -> Self;
 
@@ -2759,6 +2765,7 @@ where
     /// <code>FixedI32::[unwrapped\_inv\_lerp][FixedI32::unwrapped_inv_lerp]</code>
     /// and
     /// <code>FixedU32::[unwrapped\_inv\_lerp][FixedU32::unwrapped_inv_lerp]</code>.
+    #[track_caller]
     #[must_use]
     fn unwrapped_inv_lerp(self, start: Self, end: Self) -> Self;
 

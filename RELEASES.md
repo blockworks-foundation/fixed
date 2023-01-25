@@ -5,6 +5,12 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.23.0 (unreleased)
+===========================
+
+  * The `track_caller` attribute is now applied to many inline functions that
+    can panic.
+
 Version 1.22.0 (2023-01-25)
 ===========================
 

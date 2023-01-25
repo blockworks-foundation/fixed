@@ -40,6 +40,7 @@ impl ToFixed for bool {
     ///
     /// [`wrapping_to_fixed`]: ToFixed::wrapping_to_fixed
     #[inline]
+    #[track_caller]
     fn to_fixed<F: Fixed>(self) -> F {
         ToFixed::to_fixed(self as u8)
     }
@@ -104,6 +105,7 @@ macro_rules! impl_int {
             ///
             /// [`wrapping_from_fixed`]: FromFixed::wrapping_from_fixed
             #[inline]
+            #[track_caller]
             fn from_fixed<F: Fixed>(src: F) -> Self {
                 IntFixed::<$Int>::int(FromFixed::from_fixed(src))
             }
@@ -154,6 +156,7 @@ macro_rules! impl_int {
             /// Panics if the value
             /// does not fit, even when debug assertions are not enabled.
             #[inline]
+            #[track_caller]
             fn unwrapped_from_fixed<F: Fixed>(src: F) -> Self {
                 IntFixed::<$Int>::int(FromFixed::unwrapped_from_fixed(src))
             }
@@ -173,6 +176,7 @@ macro_rules! impl_int {
             ///
             /// [`wrapping_to_fixed`]: ToFixed::wrapping_to_fixed
             #[inline]
+            #[track_caller]
             fn to_fixed<F: Fixed>(self) -> F {
                 ToFixed::to_fixed(IntFixed(self).fixed())
             }
@@ -212,6 +216,7 @@ macro_rules! impl_int {
             /// Panics if the value does not fit, even when debug
             /// assertions are not enabled.
             #[inline]
+            #[track_caller]
             fn unwrapped_to_fixed<F: Fixed>(self) -> F {
                 ToFixed::unwrapped_to_fixed(IntFixed(self).fixed())
             }
@@ -286,6 +291,7 @@ macro_rules! impl_float {
             ///
             /// [`wrapping_from_fixed`]: FromFixed::wrapping_from_fixed
             #[inline]
+            #[track_caller]
             fn from_fixed<F: Fixed>(src: F) -> Self {
                 let helper = src.to_float_helper(Private);
                 float_helper::$Float::from_to_float_helper(helper, F::FRAC_NBITS, F::INT_NBITS)
@@ -340,6 +346,7 @@ macro_rules! impl_float {
             /// Panics if the value does not fit, even when debug
             /// assertions are not enabled.
             #[inline]
+            #[track_caller]
             fn unwrapped_from_fixed<F: Fixed>(src: F) -> Self {
                 FromFixed::from_fixed(src)
             }
@@ -364,6 +371,7 @@ it panics; if wrapping is required use [`wrapping_to_fixed`] instead.
 [finite]: ", $link, "::is_finite
 ";
                 #[inline]
+                #[track_caller]
                 fn to_fixed<F: Fixed>(self) -> F {
                     let (wrapped, overflow) = ToFixed::overflowing_to_fixed(self);
                     debug_assert!(!overflow, $overflows_fmt, $overflows_filt(self));
@@ -404,6 +412,7 @@ Panics if `self` is [NaN].
 [NaN]: ", $link, "::is_nan
 ";
                 #[inline]
+                #[track_caller]
                 fn saturating_to_fixed<F: Fixed>(self) -> F {
                     let kind =
                         float_helper::$Float::to_float_kind(self, F::FRAC_NBITS, F::INT_NBITS);
@@ -425,6 +434,7 @@ Panics if `self` is not [finite].
 [finite]: ", $link, "::is_finite
 ";
                 #[inline]
+                #[track_caller]
                 fn wrapping_to_fixed<F: Fixed>(self) -> F {
                     let (wrapped, _) = ToFixed::overflowing_to_fixed(self);
                     wrapped
@@ -470,6 +480,7 @@ when debug assertions are not enabled.
 [finite]: ", $link, "::is_finite
 ";
                 #[inline]
+                #[track_caller]
                 fn unwrapped_to_fixed<F: Fixed>(self) -> F {
                     match ToFixed::overflowing_to_fixed(self) {
                         (val, false) => val,

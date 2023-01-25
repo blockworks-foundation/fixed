@@ -566,6 +566,7 @@ impl F128 {
     /// assert!(F128::NAN.clamp(F128::NEG_ONE, F128::ONE).is_nan());
     /// ```
     #[inline]
+    #[track_caller]
     pub const fn clamp(mut self, min: F128, max: F128) -> F128 {
         match partial_cmp(&min, &max) {
             Some(Ordering::Less) | Some(Ordering::Equal) => {}
