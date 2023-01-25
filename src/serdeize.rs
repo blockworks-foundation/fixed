@@ -110,7 +110,7 @@ macro_rules! serde_fixed {
                 if deserializer.is_human_readable() {
                     String::deserialize(deserializer)?
                         .parse()
-                        .map_err(|e| DeError::custom(format_args!("parse error: {}", e)))
+                        .map_err(|e| DeError::custom(format_args!("parse error: {e}")))
                 } else {
                     $TBits::deserialize(deserializer).map($Fixed::from_bits)
                 }

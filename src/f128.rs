@@ -784,13 +784,13 @@ fn decimal_string(val: &Float, prec: i32) -> String {
     let val = val.clone() * Integer::from(Integer::u_pow_u(10, shift));
     let int = val.to_integer_round(Round::Down).unwrap().0;
     let padding = "0".repeat(usize::try_from(-floor_log10.min(0)).unwrap());
-    let mut s = format!("{}{}", padding, int);
+    let mut s = format!("{padding}{int}");
     s.insert(1, '.');
     s
 }
 
 fn hex_bits(bits: u128) -> String {
-    let mut s = format!("0x{:016X}", bits);
+    let mut s = format!("0x{bits:016X}");
     for i in 0..7 {
         s.insert(6 + 5 * i, '_');
     }

@@ -1502,10 +1502,10 @@ mod tests {
             };
             match m {
                 Ok((f, o)) => {
-                    assert_eq!(f.to_bits(), $bits, "{} -> ({}, {})", $str, f, o);
-                    assert_eq!(o, $overflow, "{} -> ({}, {})", $str, f, o);
+                    assert_eq!(f.to_bits(), $bits, "{} -> ({f}, {o})", $str);
+                    assert_eq!(o, $overflow, "{} -> ({f}, {o})", $str);
                 }
-                Err(e) => panic!("could not parse {}: {}", $str, e),
+                Err(e) => panic!("could not parse {}: {e}", $str),
             }
         };
     }
