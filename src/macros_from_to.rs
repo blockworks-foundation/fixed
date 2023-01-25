@@ -1010,10 +1010,11 @@ assert_eq!(ONE_AND_HALF, 1.5);
 ```
 "#;
             #[inline]
+            #[track_caller]
             pub const fn lit(src: &str) -> $Fixed<Frac> {
                 match from_str::$Inner::lit(src, Self::FRAC_NBITS) {
-                    Some(s) => $Fixed::from_bits(s),
-                    None => panic!("invalid literal"),
+                    Ok(s) => $Fixed::from_bits(s),
+                    Err(e) => panic!("{}", e.lit_message()),
                 }
             }
         }

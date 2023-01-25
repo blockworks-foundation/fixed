@@ -197,10 +197,12 @@ macro_rules! signed {
                 Ok((abs, overflow))
             }
 
-            pub const fn lit(s: &str, frac_nbits: u32) -> Option<$Single> {
+            pub const fn lit(s: &str, frac_nbits: u32) -> Result<$Single, ParseFixedError> {
                 let mut bytes = Bytes::new(s.as_bytes());
                 if bytes.is_empty() {
-                    return None;
+                    return Err(ParseFixedError {
+                        kind: ParseErrorKind::NoDigits,
+                    });
                 }
                 let neg = if bytes.index(0) == b'-' {
                     bytes = bytes.split_at(1).1;
@@ -209,15 +211,17 @@ macro_rules! signed {
                     false
                 };
                 let abs = match crate::from_str::$Uns::lit_no_sign(bytes, frac_nbits) {
-                    Some(s) => s,
-                    None => return None,
+                    Ok(o) => o,
+                    Err(e) => return Err(e),
                 };
                 let bound = if !neg { $Single::MAX } else { $Single::MIN };
                 if abs > bound.unsigned_abs() {
-                    return None;
+                    return Err(ParseFixedError {
+                        kind: ParseErrorKind::Overflow,
+                    });
                 }
                 let val = if neg { abs.wrapping_neg() } else { abs } as $Single;
-                Some(val)
+                Ok(val)
             }
         }
     };
@@ -276,13 +280,18 @@ macro_rules! unsigned {
         }
 
         #[inline]
-        pub const fn lit(s: &str, frac_nbits: u32) -> Option<$Uns> {
+        pub const fn lit(s: &str, frac_nbits: u32) -> Result<$Uns, ParseFixedError> {
             lit_no_sign(Bytes::new(s.as_bytes()), frac_nbits)
         }
 
-        pub(super) const fn lit_no_sign(mut bytes: Bytes, frac_nbits: u32) -> Option<$Uns> {
+        pub(super) const fn lit_no_sign(
+            mut bytes: Bytes,
+            frac_nbits: u32,
+        ) -> Result<$Uns, ParseFixedError> {
             if bytes.is_empty() {
-                return None;
+                return Err(ParseFixedError {
+                    kind: ParseErrorKind::NoDigits,
+                });
             }
             let radix = if bytes.len() >= 2 && bytes.index(0) == b'0' {
                 match bytes.index(1) {
@@ -301,15 +310,22 @@ macro_rules! unsigned {
                 }
             }
             if bytes.is_empty() {
-                return None;
+                return Err(ParseFixedError {
+                    kind: ParseErrorKind::NoDigits,
+                });
             }
             let next_byte = bytes.index(0);
             if next_byte == b'-' || next_byte == b'+' {
-                return None;
+                return Err(ParseFixedError {
+                    kind: ParseErrorKind::InvalidDigit,
+                });
             }
             match from_str(bytes, radix, Sep::Skip, frac_nbits) {
-                Ok((val, false)) => Some(val),
-                Ok((_, true)) | Err(_) => None,
+                Ok((val, false)) => Ok(val),
+                Ok((_, true)) => Err(ParseFixedError {
+                    kind: ParseErrorKind::Overflow,
+                }),
+                Err(e) => Err(e),
             }
         }
 
@@ -927,7 +943,21 @@ enum ParseErrorKind {
 
 impl ParseFixedError {
     #[inline]
-    pub(crate) const fn message(&self) -> &str {
+    #[track_caller]
+    pub(crate) const fn lit_message(self) -> &'static str {
+        use self::ParseErrorKind::*;
+        match self.kind {
+            InvalidDigit => "invalid literal: invalid digit found in string",
+            NoDigits => "invalid literal: string has no digits",
+            TooManyPoints => "invalid literal: more than one point found in string",
+            Overflow => "invalid literal: overflow",
+            ExpOverflow => "invalid literal: exponent overflow",
+            ExpNoDigits => "invalid literal: exponent has no digits",
+        }
+    }
+
+    #[inline]
+    pub(crate) const fn message(&self) -> &'static str {
         use self::ParseErrorKind::*;
         match self.kind {
             InvalidDigit => "invalid digit found in string",
