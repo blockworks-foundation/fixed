@@ -156,7 +156,10 @@ macro_rules! all {
             frac_nbits: u32,
         ) -> Result<($Single, bool), ParseFixedError> {
             let bytes = Bytes::new(s.as_bytes());
-            from_str(bytes, radix, Sep::Error, frac_nbits)
+            match from_str(bytes, radix, Sep::Error, frac_nbits) {
+                Ok(val) => Ok(val),
+                Err(kind) => Err(ParseFixedError { kind }),
+            }
         }
     };
 }
@@ -173,12 +176,12 @@ macro_rules! signed {
         pub mod $Single {
             all! { $Single }
 
-            pub const fn from_str(
+            pub(super) const fn from_str(
                 bytes: Bytes,
                 radix: u32,
                 sep: Sep,
                 frac_nbits: u32,
-            ) -> Result<($Single, bool), ParseFixedError> {
+            ) -> Result<($Single, bool), ParseErrorKind> {
                 let (neg, abs, mut overflow) = match crate::from_str::$Uns::get_int_frac(
                     bytes,
                     radix,
@@ -211,8 +214,8 @@ macro_rules! signed {
                     false
                 };
                 let abs = match crate::from_str::$Uns::lit_no_sign(bytes, frac_nbits) {
-                    Ok(o) => o,
-                    Err(e) => return Err(e),
+                    Ok(val) => val,
+                    Err(kind) => return Err(ParseFixedError { kind }),
                 };
                 let bound = if !neg { $Single::MAX } else { $Single::MIN };
                 if abs > bound.unsigned_abs() {
@@ -237,7 +240,7 @@ signed! { i128, u128 }
 //
 //   * Expands `all` macro.
 //   * Defines:
-//       - pub const fn from_str
+//       - pub(super) const fn from_str
 //       - pub const fn lit
 //       - pub(super) const fn lit_no_sign
 //       - pub(super) const fn get_int_frac
@@ -261,12 +264,12 @@ macro_rules! unsigned {
 
         all! { $Uns }
 
-        pub const fn from_str(
+        pub(super) const fn from_str(
             bytes: Bytes,
             radix: u32,
             sep: Sep,
             frac_nbits: u32,
-        ) -> Result<($Uns, bool), ParseFixedError> {
+        ) -> Result<($Uns, bool), ParseErrorKind> {
             let (neg, abs, mut overflow) =
                 match get_int_frac(bytes, radix, sep, $Uns::BITS - frac_nbits, frac_nbits) {
                     Ok((neg, abs, overflow)) => (neg, abs, overflow),
@@ -281,17 +284,18 @@ macro_rules! unsigned {
 
         #[inline]
         pub const fn lit(s: &str, frac_nbits: u32) -> Result<$Uns, ParseFixedError> {
-            lit_no_sign(Bytes::new(s.as_bytes()), frac_nbits)
+            match lit_no_sign(Bytes::new(s.as_bytes()), frac_nbits) {
+                Ok(val) => Ok(val),
+                Err(kind) => Err(ParseFixedError { kind }),
+            }
         }
 
         pub(super) const fn lit_no_sign(
             mut bytes: Bytes,
             frac_nbits: u32,
-        ) -> Result<$Uns, ParseFixedError> {
+        ) -> Result<$Uns, ParseErrorKind> {
             if bytes.is_empty() {
-                return Err(ParseFixedError {
-                    kind: ParseErrorKind::NoDigits,
-                });
+                return Err(ParseErrorKind::NoDigits);
             }
             let radix = if bytes.len() >= 2 && bytes.index(0) == b'0' {
                 match bytes.index(1) {
@@ -305,26 +309,20 @@ macro_rules! unsigned {
             };
             if radix != 10 {
                 bytes = bytes.split_at(2).1;
-                while !bytes.is_empty() && bytes.index(0) == b'_' {
-                    bytes = bytes.split_at(1).1;
+                while let Some((b'_', rest)) = bytes.split_first() {
+                    bytes = rest;
                 }
             }
             if bytes.is_empty() {
-                return Err(ParseFixedError {
-                    kind: ParseErrorKind::NoDigits,
-                });
+                return Err(ParseErrorKind::NoDigits);
             }
             let next_byte = bytes.index(0);
             if next_byte == b'-' || next_byte == b'+' {
-                return Err(ParseFixedError {
-                    kind: ParseErrorKind::InvalidDigit,
-                });
+                return Err(ParseErrorKind::InvalidDigit);
             }
             match from_str(bytes, radix, Sep::Skip, frac_nbits) {
                 Ok((val, false)) => Ok(val),
-                Ok((_, true)) => Err(ParseFixedError {
-                    kind: ParseErrorKind::Overflow,
-                }),
+                Ok((_, true)) => Err(ParseErrorKind::Overflow),
                 Err(e) => Err(e),
             }
         }
@@ -335,7 +333,7 @@ macro_rules! unsigned {
             sep: Sep,
             int_nbits: u32,
             frac_nbits: u32,
-        ) -> Result<(bool, $Uns, bool), ParseFixedError> {
+        ) -> Result<(bool, $Uns, bool), ParseErrorKind> {
             let Parse { neg, int, frac } = match parse_bounds(bytes, radix, sep) {
                 Ok(o) => o,
                 Err(e) => return Err(e),
@@ -985,11 +983,7 @@ impl Error for ParseFixedError {
 
 // Zeros at start of int and at end of frac are trimmed.
 // Leading underscores for either int or frac are never accepted, even for Sep::Skip.
-const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, ParseFixedError> {
-    const INVALID: ParseFixedError = ParseFixedError {
-        kind: ParseErrorKind::InvalidDigit,
-    };
-
+const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, ParseErrorKind> {
     let mut sign: Option<bool> = None;
     let mut trimmed_int_start: Option<usize> = None;
     let mut point: Option<usize> = None;
@@ -1012,12 +1006,12 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
             (b'+', _) => {
                 if exp_sep.is_none() {
                     if sign.is_some() || has_int_digit || point.is_some() {
-                        return Err(INVALID);
+                        return Err(ParseErrorKind::InvalidDigit);
                     }
                     sign = Some(false);
                 } else {
                     if exp_sign.is_some() || has_exp_digit {
-                        return Err(INVALID);
+                        return Err(ParseErrorKind::InvalidDigit);
                     }
                     exp_sign = Some(false);
                 }
@@ -1025,24 +1019,22 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
             (b'-', _) => {
                 if exp_sep.is_none() {
                     if sign.is_some() || has_int_digit || point.is_some() {
-                        return Err(INVALID);
+                        return Err(ParseErrorKind::InvalidDigit);
                     }
                     sign = Some(true);
                 } else {
                     if exp_sign.is_some() || has_exp_digit {
-                        return Err(INVALID);
+                        return Err(ParseErrorKind::InvalidDigit);
                     }
                     exp_sign = Some(true);
                 }
             }
             (b'.', _) => {
                 if point.is_some() {
-                    return Err(ParseFixedError {
-                        kind: ParseErrorKind::TooManyPoints,
-                    });
+                    return Err(ParseErrorKind::TooManyPoints);
                 }
                 if exp_sep.is_some() {
-                    return Err(INVALID);
+                    return Err(ParseErrorKind::InvalidDigit);
                 }
                 point = Some(index);
                 trimmed_frac_end = Some(index + 1);
@@ -1054,12 +1046,12 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
                     || (point.is_some() && exp_sep.is_none() && !has_frac_digit)
                     || (exp_sep.is_some() && !has_exp_digit)
                 {
-                    return Err(INVALID);
+                    return Err(ParseErrorKind::InvalidDigit);
                 }
             }
             (b'e', 2) | (b'E', 2) | (b'e', 8) | (b'E', 8) | (b'e', 10) | (b'E', 10) | (b'@', _) => {
                 if exp_sep.is_some() {
-                    return Err(INVALID);
+                    return Err(ParseErrorKind::InvalidDigit);
                 }
                 exp_sep = Some(index);
             }
@@ -1067,9 +1059,7 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
                 exp = match exp.checked_mul(10) {
                     Some(s) => s,
                     None => {
-                        return Err(ParseFixedError {
-                            kind: ParseErrorKind::ExpOverflow,
-                        });
+                        return Err(ParseErrorKind::ExpOverflow);
                     }
                 };
                 let add = match exp_sign {
@@ -1079,9 +1069,7 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
                 exp = match exp.checked_add(add) {
                     Some(s) => s,
                     None => {
-                        return Err(ParseFixedError {
-                            kind: ParseErrorKind::ExpOverflow,
-                        });
+                        return Err(ParseErrorKind::ExpOverflow);
                     }
                 };
                 has_exp_digit = true;
@@ -1106,18 +1094,14 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
                     }
                 }
             }
-            _ => return Err(INVALID),
+            _ => return Err(ParseErrorKind::InvalidDigit),
         }
     }
     if !has_int_digit && !has_frac_digit {
-        return Err(ParseFixedError {
-            kind: ParseErrorKind::NoDigits,
-        });
+        return Err(ParseErrorKind::NoDigits);
     }
     if exp_sep.is_some() && !has_exp_digit {
-        return Err(ParseFixedError {
-            kind: ParseErrorKind::ExpNoDigits,
-        });
+        return Err(ParseErrorKind::ExpNoDigits);
     }
     let neg = match sign {
         Some(s) => s,
@@ -1146,9 +1130,7 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
     let (int, frac) = match DigitsExp::new_int_frac(int, frac, exp) {
         Some(s) => s,
         None => {
-            return Err(ParseFixedError {
-                kind: ParseErrorKind::ExpOverflow,
-            });
+            return Err(ParseErrorKind::ExpOverflow);
         }
     };
     Ok(Parse { neg, int, frac })
@@ -1424,7 +1406,7 @@ mod tests {
 
     fn check_parse_bounds_err(bytes: &str, radix: u32, sep: Sep, check: ParseErrorKind) {
         let bytes = Bytes::new(bytes.as_bytes());
-        let ParseFixedError { kind } = parse_bounds(bytes, radix, sep).unwrap_err();
+        let kind = parse_bounds(bytes, radix, sep).unwrap_err();
         assert_eq!(kind, check);
     }
 
