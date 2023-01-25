@@ -1089,11 +1089,6 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
             kind: ParseErrorKind::ExpNoDigits,
         });
     }
-    if exp.unsigned_abs() != exp.unsigned_abs() as usize as u32 {
-        return Err(ParseFixedError {
-            kind: ParseErrorKind::ExpOverflow,
-        });
-    }
     let neg = match sign {
         Some(s) => s,
         None => false,
@@ -1108,7 +1103,7 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
             let (_, from_begin) = bytes.split_at(begin);
             DigitsUnds::new(from_begin)
         }
-        (None, _, _) => DigitsUnds::new(Bytes::EMPTY),
+        (None, _, _) => DigitsUnds::EMPTY,
     };
     let frac = match (point, trimmed_frac_end) {
         (Some(point), Some(end)) => {
@@ -1116,11 +1111,15 @@ const fn parse_bounds(bytes: Bytes, radix: u32, sep: Sep) -> Result<Parse<'_>, P
             let (_, from_after_point) = up_to_end.split_at(point + 1);
             DigitsUnds::new(from_after_point)
         }
-        _ => DigitsUnds::new(Bytes::EMPTY),
+        _ => DigitsUnds::EMPTY,
     };
     let (int, frac) = match DigitsExp::new_int_frac(int, frac, exp) {
         Some(s) => s,
-        None => unreachable!(),
+        None => {
+            return Err(ParseFixedError {
+                kind: ParseErrorKind::ExpOverflow,
+            });
+        }
     };
     Ok(Parse { neg, int, frac })
 }

@@ -15,7 +15,8 @@
 
 use core::marker::PhantomData;
 
-// TODO: remove unsafe once slice::split_at is supported in const context
+// TODO: remove unsafe by making Bytes a transparent wrapper over &[u8] once
+// slice::split_at is supported in const context.
 
 #[derive(Clone, Copy, Debug)]
 pub struct Bytes<'a> {
@@ -311,34 +312,48 @@ impl<'a> DigitsExp<'a> {
         frac: DigitsUnds<'a>,
         exp: i32,
     ) -> Option<(DigitsExp<'a>, DigitsExp<'a>)> {
+        if int.len() > usize::MAX - frac.len() {
+            return None;
+        }
+        let abs_exp = exp.unsigned_abs() as usize;
+        if abs_exp as u32 != exp.unsigned_abs() {
+            return None;
+        }
+
         let (mut int, mut frac) = if exp == 0 {
             (DigitsExp::new1(int), DigitsExp::new1(frac))
         } else if exp < 0 {
-            let abs_exp = exp.unsigned_abs() as usize;
-            if abs_exp as u32 != exp.unsigned_abs() || abs_exp > usize::MAX - frac.len() {
-                return None;
-            }
-            if abs_exp < int.len() {
-                let int = int.split_at(int.len() - abs_exp);
-                (DigitsExp::new1(int.0), DigitsExp::new2(int.1, frac))
-            } else {
-                let mut frac = DigitsExp::new2(int, frac);
-                frac.leading_zeros += abs_exp - int.len();
-                (DigitsExp::EMPTY, frac)
+            match abs_exp.checked_sub(int.len()) {
+                Some(extra_zeros) => {
+                    let mut frac = DigitsExp::new2(int, frac);
+                    frac.trailing_zeros = 0;
+                    if extra_zeros > usize::MAX - frac.len() {
+                        return None;
+                    }
+                    frac.leading_zeros += extra_zeros;
+                    (DigitsExp::EMPTY, frac)
+                }
+                None => {
+                    let int = int.split_at(int.len() - abs_exp);
+                    (DigitsExp::new1(int.0), DigitsExp::new2(int.1, frac))
+                }
             }
         } else {
             // exp > 0
-            let abs_exp = exp.unsigned_abs() as usize;
-            if abs_exp as u32 != exp.unsigned_abs() || abs_exp > usize::MAX - int.len() {
-                return None;
-            }
-            if abs_exp < frac.len() {
-                let frac = frac.split_at(abs_exp);
-                (DigitsExp::new2(int, frac.0), DigitsExp::new1(frac.1))
-            } else {
-                let mut int = DigitsExp::new2(int, frac);
-                int.trailing_zeros += abs_exp - frac.len();
-                (int, DigitsExp::EMPTY)
+            match abs_exp.checked_sub(frac.len()) {
+                Some(extra_zeros) => {
+                    let mut int = DigitsExp::new2(int, frac);
+                    int.leading_zeros = 0;
+                    if extra_zeros > usize::MAX - int.len() {
+                        return None;
+                    }
+                    int.trailing_zeros += extra_zeros;
+                    (int, DigitsExp::EMPTY)
+                }
+                None => {
+                    let frac = frac.split_at(abs_exp);
+                    (DigitsExp::new2(int, frac.0), DigitsExp::new1(frac.1))
+                }
             }
         };
         int.leading_zeros = 0;
