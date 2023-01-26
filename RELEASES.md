@@ -5,11 +5,12 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Version 1.23.0 (unreleased)
+Version 1.22.1 (2023-01-26)
 ===========================
 
-  * The `track_caller` attribute is now applied to many inline functions that
-    can panic.
+  * The errors from the [`lit`][f-l-1-22] method have been improved.
+  * The `track_caller` attribute is now applied to many more inline functions
+    that can panic.
 
 Version 1.22.0 (2023-01-25)
 ===========================
@@ -19,9 +20,9 @@ Version 1.22.0 (2023-01-25)
     useful to write fixed-point numbers literally in code and also works in
     constant context.
   * All fixed-point numbers now implement [`LowerExp`] and [`UpperExp`].
-  * [`Binary`], [`Octal`], [`LowerHex`], [`UpperHex`], [`LowerExp`] and
-    [`UpperExp`] are now supertraits of the [`Fixed`][tf-1-22] and
-    [`FixedBits`][fb-1-22] traits.
+  * The [`Fixed`][tf-1-22] and [`FixedBits`][fb-1-22] traits now have the added
+    supertraits [`Binary`], [`Octal`], [`LowerHex`], [`UpperHex`], [`LowerExp`]
+    and [`UpperExp`].
   * The [`Wrapping`][w-1-22] and [`Unwrapped`][u-1-22] wrappers now implement
     [`Binary`], [`Octal`], [`LowerHex`], [`UpperHex`], [`LowerExp`] and
     [`UpperExp`].

@@ -7,7 +7,7 @@
 
 [package]
 name = "fixed"
-version = "1.22.0"
+version = "1.22.1"
 description = "Fixed-point numbers"
 documentation = "https://docs.rs/fixed"
 repository = "https://gitlab.com/tspiteri/fixed"
