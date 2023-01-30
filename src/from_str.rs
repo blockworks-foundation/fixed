@@ -260,7 +260,7 @@ signed! { i128, u128 }
 macro_rules! unsigned {
     ($Uns:ident $(, $Half:ident)?) => {
         use crate::from_str::{
-            frac_is_half, parse_bounds, unchecked_hex_digit, DigitsExp, Parse, Round,
+            frac_is_half, parse_bounds, unchecked_hex_digit, BitExp, DigitsExp, Parse, Round,
         };
 
         all! { $Uns }
@@ -340,8 +340,8 @@ macro_rules! unsigned {
                 Ok(o) => o,
                 Err(e) => return Err(e),
             };
-            let (int_val, mut overflow) = get_int(int, radix, int_nbits);
-            let (frac_val, frac_overflow) = match get_frac(frac, radix, frac_nbits) {
+            let (int_val, mut overflow) = get_int(int, radix, int_nbits, bit_exp);
+            let (frac_val, frac_overflow) = match get_frac(frac, radix, frac_nbits, bit_exp) {
                 Some(val) => (val, false),
                 None => (0, true),
             };
@@ -366,21 +366,27 @@ macro_rules! unsigned {
             Ok((neg, val, overflow))
         }
 
-        pub(super) const fn get_int(int: DigitsExp, radix: u32, nbits: u32) -> ($Uns, bool) {
+        pub(super) const fn get_int(
+            int: DigitsExp,
+            radix: u32,
+            nbits: u32,
+            bit_exp: Option<BitExp>,
+        ) -> ($Uns, bool) {
             $(
                 if nbits <= $Half::BITS {
-                    let (half, overflow) = crate::from_str::$Half::get_int(int, radix, nbits);
+                    let (half, overflow) =
+                        crate::from_str::$Half::get_int(int, radix, nbits, bit_exp);
                     return ((half as $Uns) << $Half::BITS, overflow);
                 }
             )?
 
-            if int.is_empty() {
+            if int.is_empty() && bit_exp.is_none() {
                 return (0, false);
             }
             let (mut parsed_int, mut overflow): ($Uns, bool) = match radix {
                 2 => bin_str_int_to_bin(int),
-                8 => oct_str_int_to_bin(int),
-                16 => hex_str_int_to_bin(int),
+                8 => oct_str_int_to_bin(int, bit_exp),
+                16 => hex_str_int_to_bin(int, bit_exp),
                 _ => {
                     debug_assert!(radix == 10);
                     dec_str_int_to_bin(int)
@@ -399,10 +405,15 @@ macro_rules! unsigned {
             (parsed_int, overflow)
         }
 
-        pub(super) const fn get_frac(frac: DigitsExp, radix: u32, nbits: u32) -> Option<$Uns> {
+        pub(super) const fn get_frac(
+            frac: DigitsExp,
+            radix: u32,
+            nbits: u32,
+            bit_exp: Option<BitExp>,
+        ) -> Option<$Uns> {
             $(
                 if nbits <= $Half::BITS {
-                    return match crate::from_str::$Half::get_frac(frac, radix, nbits) {
+                    return match crate::from_str::$Half::get_frac(frac, radix, nbits, bit_exp) {
                         Some(half) => Some(half as $Uns),
                         None => None,
                     };
@@ -414,8 +425,8 @@ macro_rules! unsigned {
             }
             match radix {
                 2 => bin_str_frac_to_bin(frac, nbits),
-                8 => oct_str_frac_to_bin(frac, nbits),
-                16 => hex_str_frac_to_bin(frac, nbits),
+                8 => oct_str_frac_to_bin(frac, nbits, bit_exp),
+                16 => hex_str_frac_to_bin(frac, nbits, bit_exp),
                 _ => {
                     debug_assert!(radix == 10);
                     dec_str_frac_to_bin(frac, nbits)
@@ -471,11 +482,21 @@ macro_rules! unsigned {
             Some(acc << rem_bits)
         }
 
-        const fn oct_str_int_to_bin(digits: DigitsExp) -> ($Uns, bool) {
-            let max_len = ($Uns::BITS as usize + 2) / 3;
-            let (digits, mut overflow) = if digits.len() > max_len {
-                let (_, last_max_len) = digits.split_at(digits.len() - max_len);
-                (last_max_len, true)
+        const fn oct_str_int_to_bin(digits: DigitsExp, bit_exp: Option<BitExp>) -> ($Uns, bool) {
+            let (exp, exp_extra_digit) = match bit_exp {
+                Some(s) => (s.exp.get(), s.first_frac_digit),
+                None => (0, 0),
+            };
+            // handle condition where exp_extra_digit is only digit we have
+            if digits.is_empty() {
+                let val = (from_byte(exp_extra_digit - b'0')) >> (3 - exp);
+                return (val, false)
+            }
+            // max_digits does not count exp_extra_digit, which holds exp bits we'll use.
+            let max_digits = (($Uns::BITS - exp + 2) / 3) as usize;
+            let (digits, mut overflow) = if digits.len() > max_digits {
+                let (_, last_max_digits) = digits.split_at(digits.len() - max_digits);
+                (last_max_digits, true)
             } else {
                 (digits, false)
             };
@@ -484,8 +505,8 @@ macro_rules! unsigned {
                 None => unreachable!(),
             };
             let mut acc = from_byte(first_digit - b'0');
-            if digits.len() == max_len {
-                let first_max_bits = $Uns::BITS - (max_len as u32 - 1) * 3;
+            if digits.len() == max_digits {
+                let first_max_bits = $Uns::BITS - exp - (max_digits as u32 - 1) * 3;
                 let first_max = (from_byte(1) << first_max_bits) - 1;
                 if acc > first_max {
                     overflow = true;
@@ -496,18 +517,36 @@ macro_rules! unsigned {
 
                 acc = (acc << 3) + from_byte(digit - b'0');
             }
+            if bit_exp.is_some() {
+                let val = (exp_extra_digit - b'0') >> (3 - exp);
+                acc = (acc << exp) + from_byte(val);
+            }
             (acc, overflow)
         }
 
-        const fn oct_str_frac_to_bin(digits: DigitsExp, nbits: u32) -> Option<$Uns> {
+        const fn oct_str_frac_to_bin(
+            digits: DigitsExp,
+            nbits: u32,
+            bit_exp: Option<BitExp>,
+        ) -> Option<$Uns> {
             let mut rem_bits = nbits;
             let mut acc = 0;
             let mut rem_digits = digits;
+            let mut val_bits = match bit_exp {
+                Some(s) => 3 - s.exp.get(),
+                None => 3,
+            };
             while let Some((digit, rem)) = rem_digits.split_first() {
                 rem_digits = rem;
 
-                let val = digit - b'0';
-                if rem_bits < 3 {
+                // If val_bits is not 3, we need to skip some bits
+                let val = if val_bits != 3 {
+                    let first_digit_mask = (1 << val_bits) - 1;
+                    (digit - b'0') & first_digit_mask
+                } else {
+                    digit - b'0'
+                };
+                if rem_bits < val_bits {
                     acc = (acc << rem_bits) + from_byte(val >> (3 - rem_bits));
                     let half = 1 << (2 - rem_bits);
                     if val & half != 0 {
@@ -526,16 +565,27 @@ macro_rules! unsigned {
                     return Some(acc);
                 }
                 acc = (acc << 3) + from_byte(val);
-                rem_bits -= 3;
+                rem_bits -= val_bits;
+                val_bits = 3;
             }
             Some(acc << rem_bits)
         }
 
-        const fn hex_str_int_to_bin(digits: DigitsExp) -> ($Uns, bool) {
-            let max_len = ($Uns::BITS as usize + 3) / 4;
-            let (digits, mut overflow) = if digits.len() > max_len {
-                let (_, last_max_len) = digits.split_at(digits.len() - max_len);
-                (last_max_len, true)
+        const fn hex_str_int_to_bin(digits: DigitsExp, bit_exp: Option<BitExp>) -> ($Uns, bool) {
+            let (exp, exp_extra_digit) = match bit_exp {
+                Some(s) => (s.exp.get(), s.first_frac_digit),
+                None => (0, 0),
+            };
+            // handle condition where exp_extra_digit is only digit we have
+            if digits.is_empty() {
+                let val = (from_byte(exp_extra_digit - b'0')) >> (3 - exp);
+                return (val, false)
+            }
+            // max_digits does not count exp_extra_digit, which holds exp bits we'll use.
+            let max_digits = (($Uns::BITS - exp + 3) / 4) as usize;
+            let (digits, mut overflow) = if digits.len() > max_digits {
+                let (_, last_max_digits) = digits.split_at(digits.len() - max_digits);
+                (last_max_digits, true)
             } else {
                 (digits, false)
             };
@@ -544,8 +594,8 @@ macro_rules! unsigned {
                 None => unreachable!(),
             };
             let mut acc = from_byte(unchecked_hex_digit(first_digit));
-            if digits.len() == max_len {
-                let first_max_bits = $Uns::BITS - (max_len as u32 - 1) * 4;
+            if digits.len() == max_digits {
+                let first_max_bits = $Uns::BITS - exp - (max_digits as u32 - 1) * 4;
                 let first_max = (from_byte(1) << first_max_bits) - 1;
                 if acc > first_max {
                     overflow = true;
@@ -556,18 +606,36 @@ macro_rules! unsigned {
 
                 acc = (acc << 4) + from_byte(unchecked_hex_digit(digit));
             }
+            if bit_exp.is_some() {
+                let val = unchecked_hex_digit(exp_extra_digit) >> (4 - exp);
+                acc = (acc << exp) + from_byte(val);
+            }
             (acc, overflow)
         }
 
-        const fn hex_str_frac_to_bin(digits: DigitsExp, nbits: u32) -> Option<$Uns> {
+        const fn hex_str_frac_to_bin(
+            digits: DigitsExp,
+            nbits: u32,
+            bit_exp: Option<BitExp>,
+        ) -> Option<$Uns> {
             let mut rem_bits = nbits;
             let mut acc = 0;
             let mut rem_digits = digits;
+            let mut val_bits = match bit_exp {
+                Some(s) => 4 - s.exp.get(),
+                None => 4,
+            };
             while let Some((digit, rem)) = rem_digits.split_first() {
                 rem_digits = rem;
 
-                let val = unchecked_hex_digit(digit);
-                if rem_bits < 4 {
+                // If val_bits is not 4, we need to skip some bits
+                let val = if val_bits != 4 {
+                    let first_digit_mask = (1 << val_bits) - 1;
+                    unchecked_hex_digit(digit) & first_digit_mask
+                } else {
+                    unchecked_hex_digit(digit)
+                };
+                if rem_bits < val_bits {
                     acc = (acc << rem_bits) + from_byte(val >> (4 - rem_bits));
                     let half = 1 << (3 - rem_bits);
                     if val & half != 0 {
@@ -586,7 +654,8 @@ macro_rules! unsigned {
                     return Some(acc);
                 }
                 acc = (acc << 4) + from_byte(val);
-                rem_bits -= 4;
+                rem_bits -= val_bits;
+                val_bits = 4;
             }
             Some(acc << rem_bits)
         }
@@ -2162,6 +2231,11 @@ mod tests {
         assert_ok!(U16F0, "0111111111111111.10", 2, 0x8000, false);
         assert_ok!(U16F0, "1111111111111111.01", 2, 0xFFFF, false);
         assert_ok!(U16F0, "1111111111111111.10", 2, 0x0000, true);
+
+        assert_ok!(U0F16, "00111.11111111111101e-4", 2, 0x7FFF, false);
+        assert_ok!(U16F0, "011111111111.111101e4", 2, 0x7FFF, false);
+        assert_ok!(U8F8, "011.110P3", 2, 0x1E00, false);
+        assert_ok!(U8F8, "011.110P-3", 2, 0x0078, false);
     }
 
     #[test]
@@ -2202,6 +2276,18 @@ mod tests {
         assert_ok!(U16F0, "077777.4", 8, 0x8000, false);
         assert_ok!(U16F0, "177777.3", 8, 0xFFFF, false);
         assert_ok!(U16F0, "177777.4", 8, 0x0000, true);
+
+        assert_ok!(U0F16, "037.7775e-2", 8, 0x7FFF, false);
+        assert_ok!(U16F0, "0777.773e2", 8, 0x7FFF, false);
+        assert_ok!(U8F8, "037.450P4", 8, 0xF940, true);
+        assert_ok!(U8F8, "037.450P3", 8, 0xFCA0, false);
+        assert_ok!(U8F8, "037.450P2", 8, 0x7E50, false);
+        assert_ok!(U8F8, "037.450P1", 8, 0x3F28, false);
+        assert_ok!(U8F8, "037.450P0", 8, 0x1F94, false);
+        assert_ok!(U8F8, "037.450P-1", 8, 0x0FCA, false);
+        assert_ok!(U8F8, "037.450P-2", 8, 0x07E5, false);
+        assert_ok!(U8F8, "037.450P-3", 8, 0x03F2, false);
+        assert_ok!(U8F8, "037.450P-4", 8, 0x01F9, false);
     }
 
     #[test]
@@ -2242,6 +2328,18 @@ mod tests {
         assert_ok!(U16F0, "7FFF.8", 16, 0x8000, false);
         assert_ok!(U16F0, "FFFF.7", 16, 0xFFFF, false);
         assert_ok!(U16F0, "FFFF.8", 16, 0x0000, true);
+
+        assert_ok!(U0F16, "07F.FF7@-2", 16, 0x7FFF, false);
+        assert_ok!(U16F0, "7F.FF7@2", 16, 0x7FFF, false);
+        assert_ok!(U8F8, "13.B8P4", 16, 0x3B80, true);
+        assert_ok!(U8F8, "13.B8P3", 16, 0x9DC0, false);
+        assert_ok!(U8F8, "13.B8P2", 16, 0x4EE0, false);
+        assert_ok!(U8F8, "13.B8P1", 16, 0x2770, false);
+        assert_ok!(U8F8, "13.B8P0", 16, 0x13B8, false);
+        assert_ok!(U8F8, "13.B8P-1", 16, 0x09DC, false);
+        assert_ok!(U8F8, "13.B8P-2", 16, 0x04EE, false);
+        assert_ok!(U8F8, "13.B8P-3", 16, 0x0277, false);
+        assert_ok!(U8F8, "13.B8P-4", 16, 0x013C, false);
     }
 
     #[test]
