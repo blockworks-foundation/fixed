@@ -103,6 +103,11 @@ The conversions supported cover the following cases.
 
 ## What’s new
 
+### Version 1.23.0 news (unreleased)
+
+  * String parsing of binary, octal and hexadecimal strings now supports base-2
+    exponents starting with the separator “`p`” or “`P`”.
+
 ### Version 1.22.1 news (2023-01-26)
 
   * The errors from the [`lit`][f-l-1-22] method have been improved.

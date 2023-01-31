@@ -968,7 +968,13 @@ separator “`e`” or “`E`” can be used to start an exponent, which is then
 followed by an optional sign “`+`” or “`-`”, and then by a decimal integer which
 is the exponent. For hexadecimal numbers, since “`e`” and “`E`” are hexadecimal
 digits, the separator “`@`” has to be used instead. The separator “`@`” is
-accepted for all radices.
+accepted for all radices. The parsed value is scaled by the radix to the power
+of the exponent.
+
+For binary, octal and hexadecimal, base-2 exponents are supported too, using the
+separator “`p`” or “`P`”. The parsed value is scaled by 2 to the power of the
+exponent. For example, for hexadecimal “`P8`” means ×2⁸, and is equivalent to
+“`@2`” which means ×16².
 
 # Panics
 
@@ -1031,6 +1037,11 @@ assert_eq!(ONE_AND_HALF, 1.5);
 
 Rounding is to the nearest, with ties rounded to even.
 
+The number can have an optional exponent. The separator “`e`”, “`E`” or “`@`”
+can be used to start an exponent, which is then followed by an optional sign
+“`+`” or “`-`”, and then by a decimal integer which is the exponent. The parsed
+value is scaled by 10 to the power of the exponent.
+
 # Examples
 
 ```rust
@@ -1060,6 +1071,15 @@ assert_eq!(Fix::from_str("1.25e-1"), Ok(Fix::from_num(0.125)));
             "Parses a string slice containing binary digits to return a fixed-point number.
 
 Rounding is to the nearest, with ties rounded to even.
+
+The number can have an optional exponent. The separator “`e`”, “`E`” or “`@`”
+can be used to start an exponent, which is then followed by an optional sign
+“`+`” or “`-`”, and then by a decimal integer which is the exponent. The parsed
+value is scaled by the radix (2 for binary) to the power of the exponent.
+
+Base-2 exponents are supported too, using the separator “`p`” or “`P`”. The
+parsed value is scaled by 2 to the power of the exponent. For binary, since the
+radix is 2, base-2 exponents are equivalent to the other form of exponent.
 
 # Examples
 
@@ -1094,6 +1114,15 @@ assert_eq!(Fix::from_str_binary("11101.01e-2"), Ok(Fix::from_num(7.3125)));
 
 Rounding is to the nearest, with ties rounded to even.
 
+The number can have an optional exponent. The separator “`e`”, “`E`” or “`@`”
+can be used to start an exponent, which is then followed by an optional sign
+“`+`” or “`-`”, and then by a decimal integer which is the exponent. The parsed
+value is scaled by 8 to the power of the exponent.
+
+Base-2 exponents are supported too, using the separator “`p`” or “`P`”. The
+parsed value is scaled by 2 to the power of the exponent. For example, for octal
+“`P6`” means ×2⁶, and is equivalent to “`E2`” which means ×8².
+
 # Examples
 
 ```rust
@@ -1125,11 +1154,17 @@ assert_eq!(neg, Ok(-check));
         comment! {
             "Parses a string slice containing hexadecimal digits to return a fixed-point number.
 
-Since “`E`” is a valid hexadecimal digit, it cannot be used as a separator to
-start an exponent; the “`@`” character can be used instead. The “`@`” character
-can be used as an exponent separator for other radices as well.
-
 Rounding is to the nearest, with ties rounded to even.
+
+The number can have an optional exponent. Since “`e`” and “`E`” are valid
+hexadecimal digits, they cannot be used as a separator to start an exponent, so
+“`@`” is used instead. This is then followed by an optional sign “`+`” or “`-`”,
+and then by a decimal integer which is the exponent. The parsed value is scaled
+by 16 to the power of the exponent.
+
+Base-2 exponents are supported too, using the separator “`p`” or “`P`”. The
+parsed value is scaled by 2 to the power of the exponent. For example, for
+hexadecimal “`P8`” means ×2⁸, and is equivalent to “`E2`” which means ×16².
 
 # Examples
 
