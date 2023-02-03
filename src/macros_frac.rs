@@ -219,13 +219,14 @@ assert_eq!(", $s_fixed, "::<U6>::from_num(0.09375).checked_int_log10(), Some(-2)
                     }
                     // Use unsigned representation because we use all bits in fractional part.
                     let bits = self.to_bits() as $UInner;
-                    let int = bits >> Self::FRAC_NBITS;
-                    if int != 0 {
-                        Some(log10::int_part::$UInner(int))
-                    } else {
-                        let frac = bits << Self::INT_NBITS;
-                        Some(log10::frac_part::$UInner(frac))
+                    if Self::FRAC_NBITS < $UInner::BITS {
+                        let int = bits >> Self::FRAC_NBITS;
+                        if int != 0 {
+                            return Some(log10::int_part::$UInner(int));
+                        }
                     }
+                    let frac = bits << Self::INT_NBITS;
+                    Some(log10::frac_part::$UInner(frac))
                 }
             }
 
@@ -255,13 +256,14 @@ assert_eq!(Fix::from_num(0.1875).checked_int_log(5), Some(-2));
                     }
                     // Use unsigned representation.
                     let bits = self.to_bits() as $UInner;
-                    let int = bits >> Self::FRAC_NBITS;
-                    if int != 0 {
-                        Some(log::int_part::$UInner(int, base))
-                    } else {
-                        let frac = bits << Self::INT_NBITS;
-                        Some(log::frac_part::$UInner(frac, base))
+                    if Self::FRAC_NBITS < $UInner::BITS {
+                        let int = bits >> Self::FRAC_NBITS;
+                        if int != 0 {
+                            return Some(log::int_part::$UInner(int, base));
+                        }
                     }
+                    let frac = bits << Self::INT_NBITS;
+                    Some(log::frac_part::$UInner(frac, base))
                 }
             }
 

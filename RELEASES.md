@@ -10,6 +10,15 @@ Version 1.23.0 (unreleased)
 
   * String parsing of binary, octal and hexadecimal strings now supports base-2
     exponents starting with the separator “`p`” or “`P`”.
+  * Bug fix: [`int_log10`][f-il10-1-23], [`int_log`][f-il-1-23],
+    [`checked_int_log10`][f-cil10-1-23] and [`checked_int_log`][f-cil-1-23] were
+    panicking or returning incorrect values for fixed-point numbers with no
+    integer bits.
+
+[f-cil-1-23]: https://docs.rs/fixed/~1.23/fixed/struct.FixedI32.html#method.checked_int_log
+[f-cil10-1-23]: https://docs.rs/fixed/~1.23/fixed/struct.FixedI32.html#method.checked_int_log10
+[f-il-1-23]: https://docs.rs/fixed/~1.23/fixed/struct.FixedI32.html#method.int_log
+[f-il10-1-23]: https://docs.rs/fixed/~1.23/fixed/struct.FixedI32.html#method.int_log10
 
 Version 1.22.1 (2023-01-26)
 ===========================
