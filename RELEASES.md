@@ -5,8 +5,7 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Version 1.23.0 (unreleased)
-===========================
+# Version 1.23.0 (unreleased)
 
   * String parsing of binary, octal and hexadecimal strings now supports base-2
     exponents starting with the separator “`p`” or “`P`”.
@@ -20,15 +19,13 @@ Version 1.23.0 (unreleased)
 [f-il-1-23]: https://docs.rs/fixed/~1.23/fixed/struct.FixedI32.html#method.int_log
 [f-il10-1-23]: https://docs.rs/fixed/~1.23/fixed/struct.FixedI32.html#method.int_log10
 
-Version 1.22.1 (2023-01-26)
-===========================
+# Version 1.22.1 (2023-01-26)
 
   * The errors from the [`lit`][f-l-1-22] method have been improved.
   * The `track_caller` attribute is now applied to many more inline functions
     that can panic.
 
-Version 1.22.0 (2023-01-25)
-===========================
+# Version 1.22.0 (2023-01-25)
 
   * String parsing now supports an optional exponent for all supported radices.
   * The [`lit`][f-l-1-22] method was added to all fixed-point numbers. This is
@@ -52,8 +49,7 @@ Version 1.22.0 (2023-01-25)
 [uns-1-22]: https://docs.rs/fixed/~1.22/fixed/types/extra/trait.Unsigned.html
 [w-1-22]: https://docs.rs/fixed/~1.22/fixed/struct.Wrapping.html
 
-Version 1.21.0 (2022-12-24)
-===========================
+# Version 1.21.0 (2022-12-24)
 
   * Comparisons involving fixed-point numbers now have more relaxed constraints
     on the fractional bits generic parameter: now `Frac` only needs to implement
@@ -70,8 +66,7 @@ Version 1.21.0 (2022-12-24)
 [f128-min-1-21]: https://docs.rs/fixed/~1.21/fixed/struct.F128.html#method.min
 [uns-1-21]: https://docs.rs/fixed/~1.21/fixed/types/extra/trait.Unsigned.html
 
-Version 1.20.0 (2022-11-08)
-===========================
+# Version 1.20.0 (2022-11-08)
 
   * The [`TRY_ONE`][tf-to-1-20] associated constant was added to the
     [`Fixed`][tf-1-20] trait.
@@ -106,8 +101,7 @@ Version 1.20.0 (2022-11-08)
 [tfs-1-20]: https://docs.rs/fixed/~1.20/fixed/traits/trait.FixedSigned.html
 [tfs-tno-1-20]: https://docs.rs/fixed/~1.20/fixed/traits/trait.FixedSigned.html#associatedconstant.TRY_NEG_ONE
 
-Version 1.19.0 (2022-08-29)
-===========================
+# Version 1.19.0 (2022-08-29)
 
   * Bug fix: comparison of and conversion from subnormal floating-point numbers
     to fixed-point numbers were off by a factor of 2.
@@ -128,8 +122,7 @@ Version 1.19.0 (2022-08-29)
 [fe-1-19]: https://docs.rs/fixed/~1.19/fixed/traits/trait.FixedEquiv.html
 [feat-exp-1-19]: https://docs.rs/fixed/~1.19/fixed/index.html#experimental-optional-features
 
-Version 1.18.0 (2022-08-19)
-===========================
+# Version 1.18.0 (2022-08-19)
 
   * Bug fix: checked division methods were panicking when dividing
     [`MIN`][f-m-1-18] by <code>-[DELTA][f-d-1-18]</code> for fixed-point numbers
@@ -163,8 +156,7 @@ Version 1.18.0 (2022-08-19)
 [u-fsd-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.Unwrapped.html#method.from_str_dec
 [w-1-18]: https://docs.rs/fixed/~1.18/fixed/struct.Wrapping.html
 
-Version 1.17.0 (2022-08-03)
-===========================
+# Version 1.17.0 (2022-08-03)
 
   * The [*half* crate] dependency was updated to [version 2][half-2].
   * The inherent [`from_str`][f-fs-1-17] method was added as a `const` function
@@ -295,13 +287,11 @@ Version 1.17.0 (2022-08-03)
 [u-fsh-1-17]: https://docs.rs/fixed/~1.17/fixed/struct.Unwrapped.html#method.from_str_hex
 [u-fso-1-17]: https://docs.rs/fixed/~1.17/fixed/struct.Unwrapped.html#method.from_str_octal
 
-Version 1.16.1 (2022-07-22)
-===========================
+# Version 1.16.1 (2022-07-22)
 
   * *Cargo.toml* now includes the [`rust-version`] field ([merge request 11]).
 
-Version 1.16.0 (2022-06-30)
-===========================
+# Version 1.16.0 (2022-06-30)
 
   * The crate now requires rustc version 1.61.0 or later.
   * The [`NEG_ONE`][f-no-1-16] constant was added to all signed fixed-point
@@ -418,8 +408,7 @@ Version 1.16.0 (2022-06-30)
 [u-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.Unwrapped.html
 [w-1-16]: https://docs.rs/fixed/~1.16/fixed/struct.Wrapping.html
 
-Version 1.15.0 (2022-04-28)
-===========================
+# Version 1.15.0 (2022-04-28)
 
   * The following methods were added to all fixed-point signed numbers up to 64
     bits wide:
@@ -437,8 +426,7 @@ Version 1.15.0 (2022-04-28)
 [f-ws-1-15]: https://docs.rs/fixed/~1.15/fixed/struct.FixedI32.html#method.wide_sdiv
 [f-wss-1-15]: https://docs.rs/fixed/~1.15/fixed/struct.FixedU32.html#method.wide_sdiv_signed
 
-Version 1.14.0 (2022-03-20)
-===========================
+# Version 1.14.0 (2022-03-20)
 
   * The [`next_multiple_of`][f-nmo-1-14] method was added to all fixed-point
     numbers, to the [`Fixed`][tf-1-14] trait, and to the [`Wrapping`][w-1-14]
@@ -524,14 +512,12 @@ Version 1.14.0 (2022-03-20)
 [u-1-14]: https://docs.rs/fixed/~1.14/fixed/struct.Unwrapped.html
 [w-1-14]: https://docs.rs/fixed/~1.14/fixed/struct.Wrapping.html
 
-Version 1.13.1 (2022-03-04)
-===========================
+# Version 1.13.1 (2022-03-04)
 
   * The [`const_fixed_from_int`][cffi-1-13] macro now accepts a visibility
     qualifier ([merge request 10]).
 
-Version 1.13.0 (2022-02-22)
-===========================
+# Version 1.13.0 (2022-02-22)
 
   * The [`AddAssign`], [`SubAssign`], [`MulAssign`], [`DivAssign`],
     [`RemAssign`], [`BitAndAssign`], [`BitOrAssign`] and [`BitXorAssign`] traits
@@ -549,8 +535,7 @@ Version 1.13.0 (2022-02-22)
 [u-1-13]: https://docs.rs/fixed/~1.13/fixed/struct.Unwrapped.html
 [w-1-13]: https://docs.rs/fixed/~1.13/fixed/struct.Wrapping.html
 
-Version 1.12.0 (2022-02-04)
-===========================
+# Version 1.12.0 (2022-02-04)
 
   * The crate now requires rustc version 1.57.0 or later.
   * The [`wide_div`][f-wd-1-12] method was added to all fixed-point numbers up to
@@ -574,8 +559,7 @@ Version 1.12.0 (2022-02-04)
 [f-ushr-1-12]: https://docs.rs/fixed/~1.12/fixed/struct.FixedI32.html#method.unwrapped_shr
 [f-wd-1-12]: https://docs.rs/fixed/~1.12/fixed/struct.FixedI32.html#method.wide_div
 
-Version 1.11.0 (2021-11-24)
-===========================
+# Version 1.11.0 (2021-11-24)
 
   * The following methods were added to all fixed-point numbers, to the
     [`Fixed`][tf-1-11] trait, and to the [`Wrapping`][w-1-11] and
@@ -624,8 +608,7 @@ Version 1.11.0 (2021-11-24)
 [uns-1-11]: https://docs.rs/fixed/~1.11/fixed/types/extra/trait.Unsigned.html
 [w-1-11]: https://docs.rs/fixed/~1.11/fixed/struct.Wrapping.html
 
-Version 1.10.0 (2021-08-23)
-===========================
+# Version 1.10.0 (2021-08-23)
 
   * The crate now requires rustc version 1.53.0 or later.
   * <code>{[Div][`Div`],[DivAssign][`DivAssign`],[Rem][`Rem`],[RemAssign][`RemAssign`]}\<[NonZeroU32][`NonZeroU32`]></code>
@@ -644,8 +627,7 @@ Version 1.10.0 (2021-08-23)
 [fu-1-10]: https://docs.rs/fixed/~1.10/fixed/struct.FixedU32.html
 [issue 37]: https://gitlab.com/tspiteri/fixed/-/issues/37
 
-Version 1.9.0 (2021-05-13)
-==========================
+# Version 1.9.0 (2021-05-13)
 
   * Fixed-point numbers can now be formatted as hexadecimal with [`Debug`]
     similarly to primitive integers, for example formatting with `{:X?}` will
@@ -722,8 +704,7 @@ Compatibility notes
 [uns-1-9]: https://docs.rs/fixed/~1.9/fixed/types/extra/trait.Unsigned.html
 [w-1-9]: https://docs.rs/fixed/~1.9/fixed/struct.Wrapping.html
 
-Version 1.8.0 (2021-04-20)
-==========================
+# Version 1.8.0 (2021-04-20)
 
   * The following constants and method were added to all fixed-point numbers, to
     the [`Fixed`][tf-1-8] trait, and to the [`Wrapping`][w-1-8] and
@@ -781,8 +762,7 @@ Version 1.8.0 (2021-04-20)
 [u-1-8]: https://docs.rs/fixed/~1.8/fixed/struct.Unwrapped.html
 [w-1-8]: https://docs.rs/fixed/~1.8/fixed/struct.Wrapping.html
 
-Version 1.7.0 (2021-03-25)
-==========================
+# Version 1.7.0 (2021-03-25)
 
   * The crate now requires rustc version 1.50.0 or later.
   * The following methods are now `const` functions:
@@ -875,8 +855,7 @@ Version 1.7.0 (2021-03-25)
 [u-1-7]: https://docs.rs/fixed/~1.7/fixed/struct.Unwrapped.html
 [w-1-7]: https://docs.rs/fixed/~1.7/fixed/struct.Wrapping.html
 
-Version 1.6.0 (2021-02-05)
-==========================
+# Version 1.6.0 (2021-02-05)
 
   * The crate now requires rustc version 1.47.0 or later.
   * The optional [*az* crate] dependency was updated to [version 1.1][az-1-1].
@@ -907,8 +886,7 @@ Version 1.6.0 (2021-02-05)
 [f-utf-1-6]: https://docs.rs/fixed/~1.6/fixed/traits/trait.ToFixed.html#method.unwrapped_to_fixed
 [tfs-1-6]: https://docs.rs/fixed/~1.6/fixed/traits/trait.FixedSigned.html
 
-Version 1.5.0 (2020-11-05)
-==========================
+# Version 1.5.0 (2020-11-05)
 
   * The [`wide_mul`][f-wm-1-5] method was added to all fixed-point numbers up to
     64 bits wide ([issue 25]).
@@ -933,8 +911,7 @@ Version 1.5.0 (2020-11-05)
 [tfof-1-5]: https://docs.rs/fixed/~1.5/fixed/traits/trait.FixedOptionalFeatures.html
 [unw-1-5]: https://docs.rs/fixed/~1.5/fixed/struct.Unwrapped.html
 
-Version 1.4.0 (2020-10-22)
-==========================
+# Version 1.4.0 (2020-10-22)
 
   * The following methods were added to all fixed-point types, to the
     [`Fixed`][tf-1-4] trait, and to the [`Wrapping`][w-1-4] wrapper:
@@ -973,8 +950,7 @@ Version 1.4.0 (2020-10-22)
 [tf-1-4]: https://docs.rs/fixed/~1.4/fixed/traits/trait.Fixed.html
 [w-1-4]: https://docs.rs/fixed/~1.4/fixed/struct.Wrapping.html
 
-Version 1.3.0 (2020-10-15)
-==========================
+# Version 1.3.0 (2020-10-15)
 
   * The [`MulAssign`] implementation on fixed-point numbers now accepts an rhs
     fixed-point number with a different number of fractional bits from `self`.
@@ -998,8 +974,7 @@ Version 1.3.0 (2020-10-15)
 [tf-1-3]: https://docs.rs/fixed/~1.3/fixed/traits/trait.Fixed.html
 [w-1-3]: https://docs.rs/fixed/~1.3/fixed/struct.Wrapping.html
 
-Version 1.2.0 (2020-09-02)
-==========================
+# Version 1.2.0 (2020-09-02)
 
   * The [`const_fixed_from_int!`][cffi-1-2] macro was added to make it easy to
     define constant fixed-point numbers using integer expressions ([issue 20]).
@@ -1007,8 +982,7 @@ Version 1.2.0 (2020-09-02)
 [cffi-1-2]: https://docs.rs/fixed/~1.2/fixed/macro.const_fixed_from_int.html
 [issue 20]: https://gitlab.com/tspiteri/fixed/-/issues/20
 
-Version 1.1.0 (2020-07-21)
-==========================
+# Version 1.1.0 (2020-07-21)
 
   * The new experimental feature [`num-traits`][feat-nt-1-1] was added to
     implement some traits, and to also add the relevant traits as supertraits to
@@ -1018,8 +992,7 @@ Version 1.1.0 (2020-07-21)
 [feat-nt-1-1]: https://docs.rs/fixed/~1.1/fixed/index.html#experimental-optional-features
 [fof-1-1]: https://docs.rs/fixed/~1.1/fixed/traits/trait.FixedOptionalFeatures.html
 
-Version 1.0.0 (2020-06-04)
-==========================
+# Version 1.0.0 (2020-06-04)
 
   * The crate now requires rustc version 1.44.0 or later.
   * The following methods are now `const` functions:
@@ -1036,8 +1009,7 @@ Version 1.0.0 (2020-06-04)
 [f-tlb-1-0]: https://docs.rs/fixed/~1.0/fixed/struct.FixedI32.html#method.to_le_bytes
 [f-tnb-1-0]: https://docs.rs/fixed/~1.0/fixed/struct.FixedI32.html#method.to_ne_bytes
 
-Version 0.5.7 (2020-05-11)
-==========================
+# Version 0.5.7 (2020-05-11)
 
   * The `LosslessTryFrom` and `LosslessTryInto` traits were added.
   * The following methods were added to all fixed-point types, to the `Fixed`
@@ -1049,8 +1021,7 @@ Version 0.5.7 (2020-05-11)
   * The `PHI` and `FRAC_1_PHI` constants were added to the `consts` module and
     as associated constants to fixed-point types.
 
-Version 0.5.6 (2020-05-01)
-==========================
+# Version 0.5.6 (2020-05-01)
 
   * The following methods were added to signed fixed-point types and to the
     `FixedSigned` trait:
@@ -1060,8 +1031,7 @@ Version 0.5.6 (2020-05-01)
   * Casts deprecated in version 0.3.1 of the *az* crate were marked as
     deprecated.
 
-Version 0.5.5 (2020-04-16)
-==========================
+# Version 0.5.5 (2020-04-16)
 
   * Bug fix: an incorrect result could be given when comparing a signed
     fixed-point number of type `FixedI` to a number that would overflow by
@@ -1084,14 +1054,12 @@ Version 0.5.5 (2020-04-16)
       * `min_value`, `max_value`
       * `int_nbits`, `frac_nbits`
 
-Version 0.5.4 (2020-02-21)
-==========================
+# Version 0.5.4 (2020-02-21)
 
   * Bug fix: `rem_euclid_int` and its checked versions were handling overflow
     incorrectly.
 
-Version 0.5.3 (2020-02-13)
-==========================
+# Version 0.5.3 (2020-02-13)
 
   * Bug fix: `round_to_zero` was returning incorrect results for negative whole
     number operands.
@@ -1115,18 +1083,15 @@ Version 0.5.3 (2020-02-13)
   * The following methods were deprecated:
       * `wrapping_rem_int`, `overflowing_rem_int`
 
-Version 0.5.2 (2020-02-02)
-==========================
+# Version 0.5.2 (2020-02-02)
 
   * `Wrapping` now supports serialization. (Thanks: Shane Pearman)
 
-Version 0.5.1 (2019-12-22)
-==========================
+# Version 0.5.1 (2019-12-22)
 
   * `ParseFixedError` implements `Error` when the new `std` feature is enabled.
 
-Version 0.5.0 (2019-12-06)
-==========================
+# Version 0.5.0 (2019-12-06)
 
   * The crate now requires rustc version 1.39.0 or later.
   * The following methods were added to all fixed-point types and to the `Fixed`
@@ -1145,8 +1110,7 @@ Incompatible changes
 
   * Deprecated methods and modules were removed.
 
-Version 0.4.6 (2019-10-16)
-==========================
+# Version 0.4.6 (2019-10-16)
 
   * Conversions to/from `bf16` are now provided when the `f16` option is
     enabled.
@@ -1154,16 +1118,14 @@ Version 0.4.6 (2019-10-16)
     `saturating_add`, `saturating_sub`, `saturating_mul_int`, `saturating_abs`
   * Support for casts using the *az* crate was added.
 
-Version 0.4.5 (2019-08-30)
-==========================
+# Version 0.4.5 (2019-08-30)
 
   * Bug fix: display of many decimal numbers was panicking in debug mode or
     including a leading zero in release mode.
   * Many methods were added to `Wrapping` for convenience, even if they do not
     involve wrapping.
 
-Version 0.4.4 (2019-08-24)
-==========================
+# Version 0.4.4 (2019-08-24)
 
   * Bug fix: rounding could produce bad output for `Binary`, `Octal`, `LowerHex`
     and `UpperHex`.
@@ -1172,8 +1134,7 @@ Version 0.4.4 (2019-08-24)
   * The method `round_to_zero` was added.
   * The method `round_ties_to_even` and its checked versions were added.
 
-Version 0.4.3 (2019-08-20)
-==========================
+# Version 0.4.3 (2019-08-20)
 
   * The crate now requires rustc version 1.34.0 or later.
   * The precision argument is no longer ignored when formatting fixed-point
@@ -1197,8 +1158,7 @@ Version 0.4.3 (2019-08-20)
   * The reexports in the `frac` module and the `LeEqU*` traits were moved into
     the new `types::extra` module.
 
-Version 0.4.2 (2019-08-16)
-==========================
+# Version 0.4.2 (2019-08-16)
 
   * The new methods `from_num` and `to_num` together with their checked versions
     were added to all fixed-point numbers.
@@ -1210,15 +1170,13 @@ Version 0.4.2 (2019-08-16)
     bits, 0.96874999… (just below 31⁄32) and 0.96875 (31⁄32) are now parsed
     correctly as 0.9375 (15⁄16) and 1.0.
 
-Version 0.4.1 (2019-08-12)
-==========================
+# Version 0.4.1 (2019-08-12)
 
   * All fixed-point types now implement `FromStr`.
   * The methods `from_str_binary`, `from_str_octal` and `from_str_hex` were
     added.
 
-Version 0.4.0 (2019-08-08)
-==========================
+# Version 0.4.0 (2019-08-08)
 
   * The crate now requires rustc version 1.31.0 or later.
   * The `traits` module was added, with its traits `Fixed`, `FixedSigned`,
@@ -1242,24 +1200,20 @@ Contributors
   * @jean-airoldie
   * @tspiteri
 
-Version 0.3.3 (2019-06-27)
-==========================
+# Version 0.3.3 (2019-06-27)
 
   * Conversions to/from `isize` and `usize` were added.
 
-Version 0.3.2 (2019-02-27)
-==========================
+# Version 0.3.2 (2019-02-27)
 
   * The `Wrapping` wrapper was added.
 
-Version 0.3.1 (2019-02-07)
-==========================
+# Version 0.3.1 (2019-02-07)
 
   * Reimplement `From<bool>` for all fixed-point types which can represent the
     integer 1. This was inadvertently removed in 0.3.0.
 
-Version 0.3.0 (2019-02-03)
-==========================
+# Version 0.3.0 (2019-02-03)
 
   * Incompatible change: the return type of `to_int` is now generic.
   * Incompatible change: the `Int` trait implementation for `bool` was removed.
@@ -1279,16 +1233,14 @@ Version 0.3.0 (2019-02-03)
   * The methods `int_bits` and `frac_bits` were deprecated and replaced by the
     methods `int_nbits` and `frac_nbits`.
 
-Version 0.2.1 (2019-01-29)
-==========================
+# Version 0.2.1 (2019-01-29)
 
   * Bug fix: the `from_fixed` and `from_int` methods (and their checked
     counterparts) could return wrong values for negative values.
   * Bug fix: display was using one fractional digit less than required, thus
     yielding the same output for diffent fixed-point numbers.
 
-Version 0.2.0 (2019-01-29)
-==========================
+# Version 0.2.0 (2019-01-29)
 
   * Incompatible change: The method `from_int` was change to accept a generic
     parameter.
@@ -1310,40 +1262,34 @@ Version 0.2.0 (2019-01-29)
   * The methods `to_int_ceil`, `to_int_floor` and `to_int_round` were
     deprecated.
 
-Version 0.1.6 (2019-01-27)
-==========================
+# Version 0.1.6 (2019-01-27)
 
   * Optional serde support was added.
 
-Version 0.1.5 (2019-01-26)
-==========================
+# Version 0.1.5 (2019-01-26)
 
   * Lossless infallible conversions between fixed-point numbers and numeric
     primitives are now supported using `From` and `Into`.
   * A new module `types` is available with aliases for all supported fixed-point
     numbers.
 
-Version 0.1.4 (2018-11-29)
-==========================
+# Version 0.1.4 (2018-11-29)
 
   * Division is now implemented for `FixedI128` and `FixedU128`.
 
-Version 0.1.3 (2018-08-23)
-==========================
+# Version 0.1.3 (2018-08-23)
 
   * The `f16` feature was added, and new methods `from_f16` and `to_f16` were
     added.
 
-Version 0.1.2 (2018-08-15)
-==========================
+# Version 0.1.2 (2018-08-15)
 
   * The crate can now be used without the standard library `std`.
   * New methods `from_f32` and `from_f64` were added.
   * New methods `is_positive` and `is_negative` were added to signed fixed-point
     numbers.
 
-Version 0.1.1 (2018-08-11)
-==========================
+# Version 0.1.1 (2018-08-11)
 
   * Comparisons are now supported between all fixed-point numbers with the same
     underlying integer type.
@@ -1353,8 +1299,7 @@ Version 0.1.1 (2018-08-11)
   * New methods `int` and `frac` were added.
   * Support for multiplication and division by integers was added.
 
-Version 0.1.0 (2018-08-10)
-==========================
+# Version 0.1.0 (2018-08-10)
 
   * `Unsigned` constants provided by the *typenum* crate are now used for the
     number of fractional bits.
