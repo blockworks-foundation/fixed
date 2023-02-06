@@ -5,7 +5,7 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-# Version 1.23.0 (unreleased)
+# Version 1.23.0 (2023-02-06)
 
   * String parsing of binary, octal and hexadecimal strings now supports base-2
     exponents starting with the separator “`p`” or “`P`”.
