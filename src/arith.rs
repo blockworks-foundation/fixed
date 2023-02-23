@@ -240,7 +240,7 @@ macro_rules! fixed_arith {
             fn mul(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
                 let (ans, overflow) =
                     $Inner::overflowing_mul(self.to_bits(), rhs.to_bits(), Frac::U32);
-                debug_assert!(!overflow, "overflow");
+                maybe_assert!(!overflow, "overflow");
                 Self::from_bits(ans)
             }
         }
@@ -252,7 +252,7 @@ macro_rules! fixed_arith {
             fn mul_assign(&mut self, rhs: $Fixed<RhsFrac>) {
                 let (ans, overflow) =
                     $Inner::overflowing_mul(self.to_bits(), rhs.to_bits(), RhsFrac::U32);
-                debug_assert!(!overflow, "overflow");
+                maybe_assert!(!overflow, "overflow");
                 *self = Self::from_bits(ans);
             }
         }
@@ -262,7 +262,7 @@ macro_rules! fixed_arith {
             fn mul_assign(&mut self, rhs: &$Fixed<RhsFrac>) {
                 let (ans, overflow) =
                     $Inner::overflowing_mul(self.to_bits(), rhs.to_bits(), RhsFrac::U32);
-                debug_assert!(!overflow, "overflow");
+                maybe_assert!(!overflow, "overflow");
                 *self = Self::from_bits(ans);
             }
         }
@@ -273,7 +273,7 @@ macro_rules! fixed_arith {
             fn div(self, rhs: $Fixed<Frac>) -> $Fixed<Frac> {
                 let (ans, overflow) =
                     $Inner::overflowing_div(self.to_bits(), rhs.to_bits(), Frac::U32);
-                debug_assert!(!overflow, "overflow");
+                maybe_assert!(!overflow, "overflow");
                 Self::from_bits(ans)
             }
         }
@@ -504,7 +504,7 @@ macro_rules! fixed_arith {
                     }
                     // SAFETY: rhs_fixed_bits must have some significant bits since
                     // rhs_fixed_bits >> frac_nbits is equal to a non-zero value.
-                    debug_assert_ne!(rhs_fixed_bits, 0);
+                    maybe_assert!(rhs_fixed_bits != 0);
                     let n = unsafe { $NonZeroInner::new_unchecked(rhs_fixed_bits) };
                     Self::from_bits(self.to_bits() % n)
                 }
@@ -621,11 +621,11 @@ macro_rules! mul_div_widen {
                 let prod2 = lhs2 * mul2;
                 let (prod2, overflow2) = if frac_nbits < 0 {
                     frac_nbits += NBITS;
-                    debug_assert!(frac_nbits >= 0);
+                    maybe_assert!(frac_nbits >= 0);
                     prod2.overflowing_mul(<$Unsigned>::MAX as $Double + 1)
                 } else if frac_nbits > NBITS {
                     frac_nbits -= NBITS;
-                    debug_assert!(frac_nbits <= NBITS);
+                    maybe_assert!(frac_nbits <= NBITS);
                     (prod2 >> NBITS, false)
                 } else {
                     (prod2, false)
@@ -718,13 +718,13 @@ pub mod u128 {
         let mut overflow1 = false;
         if frac_nbits < 0 {
             frac_nbits += 128;
-            debug_assert!(frac_nbits >= 0);
+            maybe_assert!(frac_nbits >= 0);
             overflow1 = prod.hi != 0;
             prod.hi = prod.lo;
             prod.lo = 0;
         } else if frac_nbits > 128 {
             frac_nbits -= 128;
-            debug_assert!(frac_nbits <= 128);
+            maybe_assert!(frac_nbits <= 128);
             prod.lo = prod.hi;
             prod.hi = 0;
         }
@@ -793,13 +793,13 @@ pub mod i128 {
         let mut overflow1 = false;
         if frac_nbits < 0 {
             frac_nbits += 128;
-            debug_assert!(frac_nbits >= 0);
+            maybe_assert!(frac_nbits >= 0);
             overflow1 = prod.hi != (prod.lo as i128) >> 127;
             prod.hi = prod.lo as i128;
             prod.lo = 0;
         } else if frac_nbits > 128 {
             frac_nbits -= 128;
-            debug_assert!(frac_nbits <= 128);
+            maybe_assert!(frac_nbits <= 128);
             prod.lo = prod.hi as u128;
             prod.hi >>= 127;
         }

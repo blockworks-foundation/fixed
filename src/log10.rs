@@ -20,7 +20,7 @@ pub mod int_part {
     // 0 <= log <= 2
     #[inline]
     pub const fn u8(val: u8) -> i32 {
-        debug_assert!(val >= 1);
+        maybe_assert!(val >= 1);
         // | from |  to |  a |  b | a&b |
         // |    1 |   9 | 10 | 01 |  00 |
         // |   10 |  99 | 11 | 01 |  01 |
@@ -35,14 +35,14 @@ pub mod int_part {
     // 0 <= log <= 4
     #[inline]
     pub const fn u16(val: u16) -> i32 {
-        debug_assert!(val >= 1);
+        maybe_assert!(val >= 1);
         less_than_5(val as u32)
     }
 
     // 1 <= val <= MAX
     // 0 <= log <= 9
     pub const fn u32(mut val: u32) -> i32 {
-        debug_assert!(val >= 1);
+        maybe_assert!(val >= 1);
         let mut log = 0;
         if val >= 100_000 {
             val /= 100_000;
@@ -54,7 +54,7 @@ pub mod int_part {
     // 1 <= val <= MAX
     // 0 <= log <= 19
     pub const fn u64(mut val: u64) -> i32 {
-        debug_assert!(val >= 1);
+        maybe_assert!(val >= 1);
         let mut log = 0;
         if val >= 10_000_000_000 {
             val /= 10_000_000_000;
@@ -64,32 +64,32 @@ pub mod int_part {
             val /= 100_000;
             log += 5;
         }
-        debug_assert!(val <= u32::MAX as u64);
+        maybe_assert!(val <= u32::MAX as u64);
         log + less_than_5(val as u32)
     }
 
     // 1 <= val <= MAX
     // 0 <= log <= 38
     pub const fn u128(mut val: u128) -> i32 {
-        debug_assert!(val >= 1);
+        maybe_assert!(val >= 1);
         let mut log = 0;
         if val >= 100_000_000_000_000_000_000_000_000_000_000 {
             val /= 100_000_000_000_000_000_000_000_000_000_000;
-            debug_assert!(val <= u32::MAX as u128);
+            maybe_assert!(val <= u32::MAX as u128);
             return 32 + u32(val as u32);
         }
         if val >= 10_000_000_000_000_000 {
             val /= 10_000_000_000_000_000;
             log += 16;
         }
-        debug_assert!(val <= u64::MAX as u128);
+        maybe_assert!(val <= u64::MAX as u128);
         log + u64(val as u64)
     }
 
     // 0 < val < 100_000
     // 0 <= log <= 4
     const fn less_than_5(val: u32) -> i32 {
-        debug_assert!(val < 100_000);
+        maybe_assert!(val < 100_000);
         // |  from |    to |   a |   b | a&b |   c |   d | c&d | a&b ^ c&d |
         // |     1 |     9 | 010 | 011 | 010 | 110 | 011 | 010 |       000 |
         // |    10 |    99 | 011 | 011 | 011 | 110 | 011 | 010 |       001 |
@@ -115,7 +115,7 @@ pub mod frac_part {
         } else if val > 2 {
             -2
         } else {
-            debug_assert!(val > 0);
+            maybe_assert!(val > 0);
             -3
         }
     }
@@ -133,7 +133,7 @@ pub mod frac_part {
         } else if val > 6 {
             -4
         } else {
-            debug_assert!(val > 0);
+            maybe_assert!(val > 0);
             -5
         }
     }
@@ -149,7 +149,7 @@ pub mod frac_part {
             if val > MAX / 10 {
                 -9
             } else {
-                debug_assert!(val > MAX / 100);
+                maybe_assert!(val > MAX / 100);
                 -10
             }
         } else {
@@ -184,7 +184,7 @@ pub mod frac_part {
         } else if val > MAX / 1000 {
             -3
         } else {
-            debug_assert!(val > MAX / 10_000);
+            maybe_assert!(val > MAX / 10_000);
             -4
         }
     }
@@ -229,7 +229,7 @@ pub mod frac_part {
         } else if val > MAX / 1000 {
             -3
         } else {
-            debug_assert!(val > MAX / 10_000);
+            maybe_assert!(val > MAX / 10_000);
             -4
         }
     }
@@ -238,7 +238,7 @@ pub mod frac_part {
     // -8 <= log <= -1
     const fn greater_equal_m8_u32(mut val: u32) -> i32 {
         const MAX: u32 = u32::MAX;
-        debug_assert!(val > MAX / 100_000_000);
+        maybe_assert!(val > MAX / 100_000_000);
         let mut log = 0;
         if val <= MAX / 10_000 {
             val *= 10_000;
@@ -251,7 +251,7 @@ pub mod frac_part {
         } else if val > MAX / 1000 {
             -3
         } else {
-            debug_assert!(val > MAX / 10_000);
+            maybe_assert!(val > MAX / 10_000);
             -4
         }
     }
@@ -260,7 +260,7 @@ pub mod frac_part {
     // -8 <= log <= 1
     const fn greater_equal_m8_u64(mut val: u64) -> i32 {
         const MAX: u64 = u64::MAX;
-        debug_assert!(val > MAX / 100_000_000);
+        maybe_assert!(val > MAX / 100_000_000);
         let mut log = 0;
         if val <= MAX / 10_000 {
             val *= 10_000;
@@ -273,7 +273,7 @@ pub mod frac_part {
         } else if val > MAX / 1000 {
             -3
         } else {
-            debug_assert!(val > MAX / 10_000);
+            maybe_assert!(val > MAX / 10_000);
             -4
         }
     }

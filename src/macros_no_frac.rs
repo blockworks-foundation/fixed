@@ -1201,7 +1201,7 @@ assert_eq!(Fix::MAX.mul_add(Fix::from_num(1.5), -Fix::MAX), Fix::MAX / 2);
                         add.to_bits(),
                         MulFrac::I32,
                     );
-                    debug_assert!(!overflow, "overflow");
+                    maybe_assert!(!overflow, "overflow");
                     Self::from_bits(ans)
                 }
             }
@@ -1460,7 +1460,7 @@ assert_eq!(
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub const fn next_multiple_of(self, other: $Fixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_next_multiple_of(other);
-                    debug_assert!(!overflow, "overflow");
+                    maybe_assert!(!overflow, "overflow");
                     ans
                 }
             }
@@ -1518,7 +1518,7 @@ assert_eq!(Fix::from_num(5).inv_lerp::<U4>(start, end), 2);
                         end.to_bits(),
                         RetFrac::U32,
                     );
-                    debug_assert!(!overflow, "overflow");
+                    maybe_assert!(!overflow, "overflow");
                     $Fixed::from_bits(ans)
                 }
             }
@@ -1617,7 +1617,7 @@ assert_eq!(Fix::from_num(6.5).next_power_of_two(), Fix::from_num(8));
                 #[must_use]
                 pub const fn add_unsigned(self, rhs: $UFixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_add_unsigned(rhs);
-                    debug_assert!(!overflow, "overflow");
+                    maybe_assert!(!overflow, "overflow");
                     ans
                 }
 
@@ -1646,7 +1646,7 @@ assert_eq!(Fix::from_num(6.5).next_power_of_two(), Fix::from_num(8));
                 #[must_use]
                 pub const fn sub_unsigned(self, rhs: $UFixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_sub_unsigned(rhs);
-                    debug_assert!(!overflow, "overflow");
+                    maybe_assert!(!overflow, "overflow");
                     ans
                 }
             }
@@ -1678,7 +1678,7 @@ assert_eq!(Fix::from_num(6.5).next_power_of_two(), Fix::from_num(8));
                 #[must_use]
                 pub const fn add_signed(self, rhs: $IFixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_add_signed(rhs);
-                    debug_assert!(!overflow, "overflow");
+                    maybe_assert!(!overflow, "overflow");
                     ans
                 }
 
@@ -1707,7 +1707,7 @@ assert_eq!(Fix::from_num(6.5).next_power_of_two(), Fix::from_num(8));
                 #[must_use]
                 pub const fn sub_signed(self, rhs: $IFixed<Frac>) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_sub_signed(rhs);
-                    debug_assert!(!overflow, "overflow");
+                    maybe_assert!(!overflow, "overflow");
                     ans
                 }
             }

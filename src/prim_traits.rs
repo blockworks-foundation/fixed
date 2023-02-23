@@ -374,7 +374,7 @@ it panics; if wrapping is required use [`wrapping_to_fixed`] instead.
                 #[track_caller]
                 fn to_fixed<F: Fixed>(self) -> F {
                     let (wrapped, overflow) = ToFixed::overflowing_to_fixed(self);
-                    debug_assert!(!overflow, $overflows_fmt, $overflows_filt(self));
+                    maybe_assert!(!overflow, $overflows_fmt, $overflows_filt(self));
                     let _ = overflow;
                     wrapped
                 }

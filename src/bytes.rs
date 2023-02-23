@@ -190,7 +190,7 @@ impl<'a> DigitsUnds<'a> {
         };
 
         // first byte is never underscore
-        debug_assert!(first != b'_');
+        maybe_assert!(first != b'_');
 
         // skip over underscores between first digit and last part
         while let Some((byte, rem)) = rem_bytes.split_first() {
@@ -216,7 +216,7 @@ impl<'a> DigitsUnds<'a> {
         };
 
         // last byte is never underscore
-        debug_assert!(last != b'_');
+        maybe_assert!(last != b'_');
 
         // skip over underscores between first part and last digit
         while let Some((rem, byte)) = rem_bytes.split_last() {

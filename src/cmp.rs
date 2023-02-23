@@ -124,7 +124,7 @@ fn float_rhs_shl<U>(rhs_abs: U, bits: u32, lhs_frac: i32, rhs_frac: i32) -> Opti
 where
     U: Copy + Eq + TryFrom<u32> + Shl<u32, Output = U> + Shr<u32, Output = U>,
 {
-    debug_assert!(lhs_frac >= rhs_frac);
+    maybe_assert!(lhs_frac >= rhs_frac);
     let rhs_shl = lhs_frac.wrapping_sub(rhs_frac) as u32;
     let rhs_zero = match U::try_from(0u32) {
         Ok(zero) => zero,

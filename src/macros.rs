@@ -75,3 +75,12 @@ macro_rules! comment {
         }
     };
 }
+
+macro_rules! maybe_assert {
+    ($($arg:tt)*) => {
+#[cfg(not(feature = "debug-assert-in-release"))]
+        debug_assert!($($arg)*);
+#[cfg(feature = "debug-assert-in-release")]
+        assert!($($arg)*);
+    }
+}

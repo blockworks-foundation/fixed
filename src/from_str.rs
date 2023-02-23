@@ -388,7 +388,7 @@ macro_rules! unsigned {
                 8 => oct_str_int_to_bin(int, bit_exp),
                 16 => hex_str_int_to_bin(int, bit_exp),
                 _ => {
-                    debug_assert!(radix == 10);
+                    maybe_assert!(radix == 10);
                     dec_str_int_to_bin(int)
                 }
             };
@@ -428,7 +428,7 @@ macro_rules! unsigned {
                 8 => oct_str_frac_to_bin(frac, nbits, bit_exp),
                 16 => hex_str_frac_to_bin(frac, nbits, bit_exp),
                 _ => {
-                    debug_assert!(radix == 10);
+                    maybe_assert!(radix == 10);
                     dec_str_frac_to_bin(frac, nbits)
                 }
             }
@@ -785,8 +785,8 @@ macro_rules! unsigned_not_u128 {
                 nbits: u32,
                 round: Round,
             ) -> Option<$Single> {
-                debug_assert!(val < $Double::pow(10, $dec));
-                debug_assert!(nbits <= $bin);
+                maybe_assert!(val < $Double::pow(10, $dec));
+                maybe_assert!(nbits <= $bin);
                 let fives = $Double::pow(5, $dec);
                 let denom = fives * 2;
                 let mut numer = val << ($bin - $dec + 1) >> ($bin - nbits);
@@ -863,9 +863,9 @@ pub mod u128 {
         nbits: u32,
         round: Round,
     ) -> Option<u128> {
-        debug_assert!(hi < 10u128.pow(27));
-        debug_assert!(lo < 10u128.pow(27));
-        debug_assert!(nbits <= 128);
+        maybe_assert!(hi < 10u128.pow(27));
+        maybe_assert!(lo < 10u128.pow(27));
+        maybe_assert!(nbits <= 128);
         let fives = 5u128.pow(54);
         let denom = fives * 2;
         let denom = match NonZeroU128::new(denom) {

@@ -18,8 +18,8 @@ macro_rules! impl_int_part {
         pub const fn $u(val: $u, base: u32) -> i32 {
             const MAX_TABLE_SIZE: usize = (u32::BITS - $u::BITS.leading_zeros() - 2) as usize;
 
-            debug_assert!(val > 0);
-            debug_assert!(base >= 2);
+            maybe_assert!(val > 0);
+            maybe_assert!(base >= 2);
 
             let baseu = base as $u;
             if baseu as u32 != base || val < baseu {
@@ -72,8 +72,8 @@ macro_rules! impl_frac_part {
         pub const fn $u(val: $u, base: u32) -> i32 {
             const MAX_TABLE_SIZE: usize = (u32::BITS - $u::BITS.leading_zeros() - 2) as usize;
 
-            debug_assert!(val > 0);
-            debug_assert!(base >= 2);
+            maybe_assert!(val > 0);
+            maybe_assert!(base >= 2);
 
             let baseu = base as $u;
             if baseu as u32 != base || val.checked_mul(baseu).is_none() {

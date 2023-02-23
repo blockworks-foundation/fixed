@@ -103,7 +103,7 @@ impl Buffer {
                     self.frac_digits += abs_exp;
                 }
                 // exp should be between -38 and 39 inclusive
-                debug_assert!(abs_exp <= 39);
+                maybe_assert!(abs_exp <= 39);
                 if abs_exp > 9 {
                     self.exp_len += 2;
                     let (e0, e1) = (abs_exp as u8 % 10, abs_exp as u8 / 10);
@@ -317,11 +317,11 @@ where
         let digit_bits = format.digit_bits();
         let mask = format.max_digit();
         for b in buf.int().iter_mut().rev() {
-            debug_assert!(int != Self::ZERO);
+            maybe_assert!(int != Self::ZERO);
             *b = int.wrapping_as::<u8>() & mask;
             int = int >> digit_bits;
         }
-        debug_assert!(int == Self::ZERO);
+        maybe_assert!(int == Self::ZERO);
     }
 
     fn write_frac_radix2(mut frac: Self, format: Format, nbits: u32, buf: &mut Buffer) -> Ordering {
@@ -336,7 +336,7 @@ where
         let digit_bits = format.digit_bits();
         let compl_digit_bits = Self::BITS - digit_bits;
         for b in buf.frac().iter_mut() {
-            debug_assert!(frac != Self::ZERO);
+            maybe_assert!(frac != Self::ZERO);
             *b = (frac >> compl_digit_bits).wrapping_as::<u8>();
             frac = frac << digit_bits;
         }
@@ -357,7 +357,7 @@ where
                 sig += 1;
             }
         }
-        debug_assert!(int == Self::ZERO);
+        maybe_assert!(int == Self::ZERO);
         sig
     }
 
@@ -416,7 +416,7 @@ where
                     break;
                 }
             } else if frac_format.has_exp {
-                debug_assert!(rem_prec > 0);
+                maybe_assert!(rem_prec > 0);
                 if is_past_point {
                     rem_prec -= 1;
                     if rem_prec == 0 {
@@ -647,7 +647,7 @@ impl_fmt! { FixedI128(LeEqU128, i128) }
 
 // ceil(i × log_10 2), works for input < 112_816
 fn ceil_log10_2_times(int_bits: u32) -> u32 {
-    debug_assert!(int_bits < 112_816);
+    maybe_assert!(int_bits < 112_816);
     ((u64::from(int_bits) * 0x4D10_4D43 + 0xFFFF_FFFF) >> 32) as u32
 }
 
