@@ -33,6 +33,7 @@ std = []
 
 # experimental optional feature
 debug-assert-in-release = []
+disable-cache = []
 
 # deprecated
 az = []

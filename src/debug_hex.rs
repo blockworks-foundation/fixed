@@ -13,7 +13,7 @@
 // <https://www.apache.org/licenses/LICENSE-2.0> and
 // <https://opensource.org/licenses/MIT>.
 
-#[cfg(target_has_atomic = "32")]
+#[cfg(all(target_has_atomic = "32", not(feature = "disable-cache")))]
 use core::sync::atomic::{AtomicU32, Ordering};
 use core::{
     cell::Cell,
@@ -29,9 +29,9 @@ use core::{
 //
 // If AtomicU32 is supported, we cache the flags.
 
-#[cfg(target_has_atomic = "32")]
+#[cfg(all(target_has_atomic = "32", not(feature = "disable-cache")))]
 static LOWER_FLAGS: AtomicU32 = AtomicU32::new(0);
-#[cfg(target_has_atomic = "32")]
+#[cfg(all(target_has_atomic = "32", not(feature = "disable-cache")))]
 static UPPER_FLAGS: AtomicU32 = AtomicU32::new(0);
 
 fn get_flags(f: &Formatter) -> u32 {
@@ -80,7 +80,7 @@ pub fn is_debug_hex(f: &Formatter) -> IsDebugHex {
     }
 }
 
-#[cfg(target_has_atomic = "32")]
+#[cfg(all(target_has_atomic = "32", not(feature = "disable-cache")))]
 fn load_cache() -> Option<(u32, u32)> {
     let cached_lower = LOWER_FLAGS.load(Ordering::Relaxed);
     let cached_upper = UPPER_FLAGS.load(Ordering::Relaxed);
@@ -95,7 +95,7 @@ fn load_cache() -> Option<(u32, u32)> {
     Some((cached_lower, cached_upper))
 }
 
-#[cfg(target_has_atomic = "32")]
+#[cfg(all(target_has_atomic = "32", not(feature = "disable-cache")))]
 fn store_cache(mut lower: u32, mut upper: u32) {
     if lower == 0 || upper == 0 {
         lower = u32::MAX;
@@ -105,12 +105,12 @@ fn store_cache(mut lower: u32, mut upper: u32) {
     UPPER_FLAGS.store(upper, Ordering::Relaxed);
 }
 
-#[cfg(not(target_has_atomic = "32"))]
+#[cfg(not(all(target_has_atomic = "32", not(feature = "disable-cache"))))]
 fn load_cache() -> Option<(u32, u32)> {
     None
 }
 
-#[cfg(not(target_has_atomic = "32"))]
+#[cfg(not(all(target_has_atomic = "32", not(feature = "disable-cache"))))]
 fn store_cache(_lower: u32, _upper: u32) {}
 
 fn get_flag_masks() -> (u32, u32) {
