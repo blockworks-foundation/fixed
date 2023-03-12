@@ -245,7 +245,7 @@ assert_eq!(Fix::from_num(2).recip(), Fix::from_num(0.5));
 ";
                 #[inline] pub fn recip(self) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_recip();
-                    debug_assert!(!overflow, "overflow");
+                    maybe_assert!(!overflow, "overflow");
                     ans
                 }
             }
@@ -406,7 +406,7 @@ assert_eq!(acc, Fix::MAX / 2);
                         self.to_bits(),
                         AFrac::I32 + BFrac::I32 - Frac::I32,
                     );
-                    debug_assert!(!overflow, "overflow");
+                    maybe_assert!(!overflow, "overflow");
                     *self = Self::from_bits(ans);
                 }
             }
@@ -436,7 +436,7 @@ assert_eq!(Fix::from_num(7.5).rem_euclid_int(2), Fix::from_num(1.5));
                 #[must_use = "this returns the result of the operation, without modifying the original"]
                 pub fn rem_euclid_int(self, rhs: $Inner) -> $Fixed<Frac> {
                     let (ans, overflow) = self.overflowing_rem_euclid_int(rhs);
-                    debug_assert!(!overflow, "overflow");
+                    maybe_assert!(!overflow, "overflow");
                     ans
                 }
             }
@@ -489,7 +489,7 @@ assert_eq!(Fix::from_num(2.0).lerp(start, end), 5);
                         end.to_bits(),
                         Frac::U32,
                     );
-                    debug_assert!(!overflow, "overflow");
+                    maybe_assert!(!overflow, "overflow");
                     $Fixed::from_bits(ans)
                 }
             }

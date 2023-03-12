@@ -30,6 +30,9 @@ std = []
 # borsh
 # num-traits
 
+# experimental optional feature
+debug-assert-in-release = []
+
 # deprecated
 az = []
 f16 = []

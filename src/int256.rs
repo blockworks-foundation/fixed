@@ -81,7 +81,7 @@ fn u128_lo_hi(u: u128) -> (u128, u128) {
 
 #[inline]
 fn u128_from_lo_hi(lo: u128, hi: u128) -> u128 {
-    debug_assert!(hi >> 64 == 0);
+    maybe_assert!(hi >> 64 == 0);
     lo + (hi << 64)
 }
 
@@ -92,7 +92,7 @@ fn i128_lo_hi(i: i128) -> (i128, i128) {
 
 #[inline]
 fn i128_from_lo_hi(lo: i128, hi: i128) -> i128 {
-    debug_assert!(hi >> 64 == 0);
+    maybe_assert!(hi >> 64 == 0);
     lo + (hi << 64)
 }
 

@@ -108,7 +108,7 @@ impl Buffer {
                     break;
                 }
                 if *b == b'.' {
-                    debug_assert!(self.frac_digits == 0);
+                    maybe_assert!(self.frac_digits == 0);
                     continue;
                 }
                 *b = 0;
@@ -277,11 +277,11 @@ where
         let digit_bits = radix.digit_bits();
         let mask = radix.max();
         for b in buf.int().iter_mut().rev() {
-            debug_assert!(int != Self::ZERO);
+            maybe_assert!(int != Self::ZERO);
             *b = int.wrapping_as::<u8>() & mask;
             int = int >> digit_bits;
         }
-        debug_assert!(int == Self::ZERO);
+        maybe_assert!(int == Self::ZERO);
     }
 
     fn write_frac(mut frac: Self, radix: Radix, nbits: u32, buf: &mut Buffer) -> Ordering {
@@ -296,7 +296,7 @@ where
         let digit_bits = radix.digit_bits();
         let compl_digit_bits = Self::BITS - digit_bits;
         for b in buf.frac().iter_mut() {
-            debug_assert!(frac != Self::ZERO);
+            maybe_assert!(frac != Self::ZERO);
             *b = (frac >> compl_digit_bits).wrapping_as::<u8>();
             frac = frac << digit_bits;
         }
@@ -312,7 +312,7 @@ where
             int = q;
             *b = r;
         }
-        debug_assert!(int == Self::ZERO);
+        maybe_assert!(int == Self::ZERO);
     }
 
     fn write_frac_dec(mut frac: Self, nbits: u32, auto_prec: bool, buf: &mut Buffer) -> Ordering {
@@ -520,7 +520,7 @@ impl_fmt! { FixedI128(LeEqU128, i128) }
 
 // ceil(i × log_10 2), works for input < 112_816
 fn ceil_log10_2_times(int_bits: u32) -> u32 {
-    debug_assert!(int_bits < 112_816);
+    maybe_assert!(int_bits < 112_816);
     ((u64::from(int_bits) * 0x4D10_4D43 + 0xFFFF_FFFF) >> 32) as u32
 }
 

@@ -29,7 +29,7 @@ impl IntFracLog10 for u8 {
         } else if self >= 10 {
             1
         } else {
-            debug_assert!(self >= 1);
+            maybe_assert!(self >= 1);
             0
         }
     }
@@ -43,7 +43,7 @@ impl IntFracLog10 for u8 {
         } else if self > 2 {
             -2
         } else {
-            debug_assert!(self > 0);
+            maybe_assert!(self > 0);
             -3
         }
     }
@@ -63,7 +63,7 @@ impl IntFracLog10 for u16 {
         } else if self >= 10 {
             1
         } else {
-            debug_assert!(self >= 1);
+            maybe_assert!(self >= 1);
             0
         }
     }
@@ -81,7 +81,7 @@ impl IntFracLog10 for u16 {
         } else if self > 6 {
             -4
         } else {
-            debug_assert!(self > 0);
+            maybe_assert!(self > 0);
             -5
         }
     }
@@ -90,7 +90,7 @@ impl IntFracLog10 for u16 {
 // 0 < val < 100_000_000
 // 0 <= log <= 7
 fn int_part_log10_less_than_8(mut val: u32) -> i32 {
-    debug_assert!(val < 100_000_000);
+    maybe_assert!(val < 100_000_000);
     let mut log = 0;
     if val >= 10_000 {
         val /= 10_000;
@@ -103,7 +103,7 @@ fn int_part_log10_less_than_8(mut val: u32) -> i32 {
     } else if val >= 10 {
         1
     } else {
-        debug_assert!(val >= 1);
+        maybe_assert!(val >= 1);
         0
     }
 }
@@ -111,13 +111,13 @@ fn int_part_log10_less_than_8(mut val: u32) -> i32 {
 // 0 < val < 10_000_000_000_000_000
 // 0 <= log <= 15
 fn int_part_log10_less_than_16(mut val: u64) -> i32 {
-    debug_assert!(val < 10_000_000_000_000_000);
+    maybe_assert!(val < 10_000_000_000_000_000);
     let mut log = 0;
     if val >= 100_000_000 {
         val /= 100_000_000;
         log += 8;
     }
-    debug_assert_eq!(val >> 32, 0);
+    maybe_assert!((val >> 32) == 0);
     log + int_part_log10_less_than_8(val as u32)
 }
 
@@ -125,7 +125,7 @@ fn int_part_log10_less_than_16(mut val: u64) -> i32 {
 // -8 <= log <= -1
 fn frac_part_log10_greater_equal_m8_u32(mut val: u32) -> i32 {
     const MAX: u32 = u32::MAX;
-    debug_assert!(val > MAX / 100_000_000);
+    maybe_assert!(val > MAX / 100_000_000);
     let mut log = 0;
     if val <= MAX / 10_000 {
         val *= 10_000;
@@ -138,7 +138,7 @@ fn frac_part_log10_greater_equal_m8_u32(mut val: u32) -> i32 {
     } else if val > MAX / 1000 {
         -3
     } else {
-        debug_assert!(val > MAX / 10_000);
+        maybe_assert!(val > MAX / 10_000);
         -4
     }
 }
@@ -147,7 +147,7 @@ fn frac_part_log10_greater_equal_m8_u32(mut val: u32) -> i32 {
 // -8 <= log <= 1
 fn frac_part_log10_greater_equal_m8_u64(mut val: u64) -> i32 {
     const MAX: u64 = u64::MAX;
-    debug_assert!(val > MAX / 100_000_000);
+    maybe_assert!(val > MAX / 100_000_000);
     let mut log = 0;
     if val <= MAX / 10_000 {
         val *= 10_000;
@@ -160,7 +160,7 @@ fn frac_part_log10_greater_equal_m8_u64(mut val: u64) -> i32 {
     } else if val > MAX / 1000 {
         -3
     } else {
-        debug_assert!(val > MAX / 10_000);
+        maybe_assert!(val > MAX / 10_000);
         -4
     }
 }
@@ -171,11 +171,11 @@ impl IntFracLog10 for u32 {
     fn int_part_log10(mut self) -> i32 {
         if self >= 100_000_000 {
             self /= 100_000_000;
-            debug_assert!(self < 100);
+            maybe_assert!(self < 100);
             if self >= 10 {
                 9
             } else {
-                debug_assert!(self >= 1);
+                maybe_assert!(self >= 1);
                 8
             }
         } else {
@@ -194,7 +194,7 @@ impl IntFracLog10 for u32 {
             if self > MAX / 10 {
                 -9
             } else {
-                debug_assert!(self > MAX / 100);
+                maybe_assert!(self > MAX / 100);
                 -10
             }
         } else {
@@ -209,7 +209,7 @@ impl IntFracLog10 for u64 {
     fn int_part_log10(mut self) -> i32 {
         if self >= 10_000_000_000_000_000 {
             self /= 10_000_000_000_000_000;
-            debug_assert!(self < 10_000);
+            maybe_assert!(self < 10_000);
             if self >= 1000 {
                 19
             } else if self >= 100 {
@@ -217,7 +217,7 @@ impl IntFracLog10 for u64 {
             } else if self >= 10 {
                 17
             } else {
-                debug_assert!(self >= 1);
+                maybe_assert!(self >= 1);
                 16
             }
         } else {
@@ -252,7 +252,7 @@ impl IntFracLog10 for u64 {
         } else if self > MAX / 1000 {
             -3
         } else {
-            debug_assert!(self > MAX / 10_000);
+            maybe_assert!(self > MAX / 10_000);
             -4
         }
     }
@@ -265,14 +265,14 @@ impl IntFracLog10 for u128 {
         let mut log = 0;
         if self >= 100_000_000_000_000_000_000_000_000_000_000 {
             self /= 100_000_000_000_000_000_000_000_000_000_000;
-            debug_assert!(self <= u32::MAX as u128);
+            maybe_assert!(self <= u32::MAX as u128);
             return 32 + int_part_log10_less_than_8(self as u32);
         }
         if self >= 10_000_000_000_000_000 {
             self /= 10_000_000_000_000_000;
             log += 16;
         }
-        debug_assert!(self <= u64::MAX as u128);
+        maybe_assert!(self <= u64::MAX as u128);
         log + int_part_log10_less_than_16(self as u64)
     }
 
@@ -316,7 +316,7 @@ impl IntFracLog10 for u128 {
         } else if self > MAX / 1000 {
             -3
         } else {
-            debug_assert!(self > MAX / 10_000);
+            maybe_assert!(self > MAX / 10_000);
             -4
         }
     }

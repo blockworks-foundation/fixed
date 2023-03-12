@@ -189,7 +189,7 @@ assert_eq!(Fix::from_num(2.5).ceil(), Fix::from_num(3));
             #[inline]
             pub fn ceil(self) -> $Fixed<Frac> {
                 let (ceil, overflow) = self.overflowing_ceil();
-                debug_assert!(!overflow, "overflow");
+                maybe_assert!(!overflow, "overflow");
                 let _ = overflow;
                 ceil
             }
@@ -231,7 +231,7 @@ assert_eq!(Fix::from_num(2.5).floor(), Fix::from_num(2));
             #[inline]
             pub fn floor(self) -> $Fixed<Frac> {
                 let (floor, overflow) = self.overflowing_floor();
-                debug_assert!(!overflow, "overflow");
+                maybe_assert!(!overflow, "overflow");
                 let _ = overflow;
                 floor
             }
@@ -267,7 +267,7 @@ assert_eq!(Fix::from_num(2.5).round(), Fix::from_num(3));
             #[inline]
             pub fn round(self) -> $Fixed<Frac> {
                 let (round, overflow) = self.overflowing_round();
-                debug_assert!(!overflow, "overflow");
+                maybe_assert!(!overflow, "overflow");
                 let _ = overflow;
                 round
             }
@@ -298,7 +298,7 @@ assert_eq!(Fix::from_num(3.5).round_ties_to_even(), Fix::from_num(4));
             #[inline]
             pub fn round_ties_to_even(self) -> $Fixed<Frac> {
                 let (round, overflow) = self.overflowing_round_ties_to_even();
-                debug_assert!(!overflow, "overflow");
+                maybe_assert!(!overflow, "overflow");
                 let _ = overflow;
                 round
             }

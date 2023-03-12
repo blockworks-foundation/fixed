@@ -823,7 +823,7 @@ assert_eq!(Fix::MAX.mul_add(Fix::from_num(1.5), -Fix::MAX), Fix::MAX / 2);
                         add.to_bits(),
                         MulFrac::I32,
                     );
-                    debug_assert!(!overflow, "overflow");
+                    maybe_assert!(!overflow, "overflow");
                     Self::from_bits(ans)
                 }
             }
@@ -1067,7 +1067,7 @@ assert_eq!(Fix::from_num(5).inv_lerp::<U4>(start, end), 2);
                         end.to_bits(),
                         RetFrac::U32,
                     );
-                    debug_assert!(!overflow, "overflow");
+                    maybe_assert!(!overflow, "overflow");
                     $Fixed::from_bits(ans)
                 }
             }

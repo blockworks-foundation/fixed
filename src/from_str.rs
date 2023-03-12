@@ -57,7 +57,7 @@ where
     }
 
     fn bin_str_frac_to_bin(bytes: &[u8], nbits: u32) -> Option<Self> {
-        debug_assert!(!bytes.is_empty());
+        maybe_assert!(!bytes.is_empty());
         let dump_bits = Self::BITS - nbits;
         let mut rem_bits = nbits;
         let mut acc = Self::from(0);
@@ -104,7 +104,7 @@ where
     }
 
     fn oct_str_frac_to_bin(bytes: &[u8], nbits: u32) -> Option<Self> {
-        debug_assert!(!bytes.is_empty());
+        maybe_assert!(!bytes.is_empty());
         let dump_bits = Self::BITS - nbits;
         let mut rem_bits = nbits;
         let mut acc = Self::from(0);
@@ -153,7 +153,7 @@ where
     }
 
     fn hex_str_frac_to_bin(bytes: &[u8], nbits: u32) -> Option<Self> {
-        debug_assert!(!bytes.is_empty());
+        maybe_assert!(!bytes.is_empty());
         let dump_bits = Self::BITS - nbits;
         let mut rem_bits = nbits;
         let mut acc = Self::from(0);
@@ -334,8 +334,8 @@ macro_rules! impl_dec_to_bin {
         impl DecToBin for $Single {
             type Double = $Double;
             fn dec_to_bin(val: $Double, nbits: u32, round: Round) -> Option<$Single> {
-                debug_assert!(val < $Double::pow(10, $dec));
-                debug_assert!(nbits <= $bin);
+                maybe_assert!(val < $Double::pow(10, $dec));
+                maybe_assert!(nbits <= $bin);
                 let fives = $Double::pow(5, $dec);
                 let denom = fives * 2;
                 let mut numer = val << ($bin - $dec + 1) >> ($bin - nbits);
@@ -385,9 +385,9 @@ impl_dec_to_bin! { u64, u128, 27, 64 }
 impl DecToBin for u128 {
     type Double = (u128, u128);
     fn dec_to_bin((hi, lo): (u128, u128), nbits: u32, round: Round) -> Option<u128> {
-        debug_assert!(hi < 10u128.pow(27));
-        debug_assert!(lo < 10u128.pow(27));
-        debug_assert!(nbits <= 128);
+        maybe_assert!(hi < 10u128.pow(27));
+        maybe_assert!(lo < 10u128.pow(27));
+        maybe_assert!(nbits <= 128);
         let fives = 5u128.pow(54);
         let denom = fives * 2;
         // we need to combine (10^27*hi + lo) << (128 - 54 + 1)
