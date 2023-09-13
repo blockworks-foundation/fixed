@@ -5,6 +5,13 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+
+Version 1.11.0-borsh0_10-mango (2023-09-13)
+===========================
+[`Implements`][issue 1] borsh 0.10 update to the last version without the bug https://gitlab.com/tspiteri/fixed/-/issues/57
+
+[issue 1]: https://github.com/blockworks-foundation/fixed/issues/1
+
 Version 1.11.0 (2021-11-24)
 ===========================
 
