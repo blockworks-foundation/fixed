@@ -17,7 +17,7 @@ use crate::{
     FixedI128, FixedI16, FixedI32, FixedI64, FixedI8, FixedU128, FixedU16, FixedU32, FixedU64,
     FixedU8,
 };
-use borsh::maybestd::io::{Result, Write};
+use borsh::maybestd::io::{Read, Result, Write};
 use borsh::{BorshDeserialize, BorshSerialize};
 
 macro_rules! borsh_fixed {
@@ -31,8 +31,8 @@ macro_rules! borsh_fixed {
 
         impl<Frac> BorshDeserialize for $Fixed<Frac> {
             #[inline]
-            fn deserialize(buf: &mut &[u8]) -> Result<Self> {
-                <$TBits as BorshDeserialize>::deserialize(buf).map($Fixed::from_bits)
+            fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
+                <$TBits as BorshDeserialize>::deserialize_reader(reader).map($Fixed::from_bits)
             }
         }
     };
